@@ -9,6 +9,7 @@ import { imageHero1 } from './image-hero-1'
 import { post1 } from './post-1'
 import { post2 } from './post-2'
 import { post3 } from './post-3'
+import { seedMedoraData } from './medora-seed'
 
 const collections: CollectionSlug[] = [
   'categories',
@@ -48,9 +49,7 @@ export const seed = async ({
     globals.map((global) =>
       payload.updateGlobal({
         slug: global,
-        data: {
-          navItems: [],
-        },
+        data: {},
         depth: 0,
         context: {
           disableRevalidate: true,
@@ -273,6 +272,10 @@ export const seed = async ({
       },
     }),
   ])
+
+  payload.logger.info(`— Seeding Medora hotel data...`)
+
+  await seedMedoraData({ payload, req })
 
   payload.logger.info('Seeded database successfully!')
 }

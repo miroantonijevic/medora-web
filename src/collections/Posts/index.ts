@@ -43,11 +43,13 @@ export const Posts: CollectionConfig<'posts'> = {
     slug: true,
     categories: true,
     meta: {
-      image: true,
       description: true,
     },
   },
   admin: {
+    hidden: true,
+    group: 'Blog',
+    description: 'Blog articles and news posts with full rich-text layout builder.',
     defaultColumns: ['title', 'slug', 'updatedAt'],
     livePreview: {
       url: ({ data, req }) =>

@@ -65,13 +65,21 @@ export interface Config {
   auth: {
     users: UserAuthOperations;
   };
-  blocks: {};
+  blocks: {
+    'medora-hero': MedoraHero;
+  };
   collections: {
     pages: Page;
     posts: Post;
     media: Media;
     categories: Category;
     users: User;
+    properties: Property;
+    'room-groups': RoomGroup;
+    rooms: Room;
+    offers: Offer;
+    amenities: Amenity;
+    'landing-pages': LandingPage;
     redirects: Redirect;
     forms: Form;
     'form-submissions': FormSubmission;
@@ -94,6 +102,12 @@ export interface Config {
     media: MediaSelect<false> | MediaSelect<true>;
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
+    properties: PropertiesSelect<false> | PropertiesSelect<true>;
+    'room-groups': RoomGroupsSelect<false> | RoomGroupsSelect<true>;
+    rooms: RoomsSelect<false> | RoomsSelect<true>;
+    offers: OffersSelect<false> | OffersSelect<true>;
+    amenities: AmenitiesSelect<false> | AmenitiesSelect<true>;
+    'landing-pages': LandingPagesSelect<false> | LandingPagesSelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
     forms: FormsSelect<false> | FormsSelect<true>;
     'form-submissions': FormSubmissionsSelect<false> | FormSubmissionsSelect<true>;
@@ -106,18 +120,28 @@ export interface Config {
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
   };
   db: {
-    defaultIDType: string;
+    defaultIDType: number;
   };
-  fallbackLocale: null;
+  fallbackLocale: ('false' | 'none' | 'null') | false | null | ('en' | 'hr' | 'de') | ('en' | 'hr' | 'de')[];
   globals: {
     header: Header;
     footer: Footer;
+    'main-nav': MainNav;
+    'site-settings': SiteSetting;
+    'seo-defaults': SeoDefault;
+    'auri-homepage': AuriHomepage;
+    'orbis-homepage': OrbisHomepage;
   };
   globalsSelect: {
     header: HeaderSelect<false> | HeaderSelect<true>;
     footer: FooterSelect<false> | FooterSelect<true>;
+    'main-nav': MainNavSelect<false> | MainNavSelect<true>;
+    'site-settings': SiteSettingsSelect<false> | SiteSettingsSelect<true>;
+    'seo-defaults': SeoDefaultsSelect<false> | SeoDefaultsSelect<true>;
+    'auri-homepage': AuriHomepageSelect<false> | AuriHomepageSelect<true>;
+    'orbis-homepage': OrbisHomepageSelect<false> | OrbisHomepageSelect<true>;
   };
-  locale: null;
+  locale: 'en' | 'hr' | 'de';
   widgets: {
     collections: CollectionsWidget;
   };
@@ -153,129 +177,25 @@ export interface UserAuthOperations {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "pages".
+ * via the `definition` "medora-hero".
  */
-export interface Page {
-  id: string;
+export interface MedoraHero {
+  eyebrow?: string | null;
   title: string;
-  hero: {
-    type: 'none' | 'highImpact' | 'mediumImpact' | 'lowImpact';
-    richText?: {
-      root: {
-        type: string;
-        children: {
-          type: any;
-          version: number;
-          [k: string]: unknown;
-        }[];
-        direction: ('ltr' | 'rtl') | null;
-        format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-        indent: number;
-        version: number;
-      };
-      [k: string]: unknown;
-    } | null;
-    links?:
-      | {
-          link: {
-            type?: ('reference' | 'custom') | null;
-            newTab?: boolean | null;
-            reference?:
-              | ({
-                  relationTo: 'pages';
-                  value: string | Page;
-                } | null)
-              | ({
-                  relationTo: 'posts';
-                  value: string | Post;
-                } | null);
-            url?: string | null;
-            label: string;
-            /**
-             * Choose how the link should be rendered.
-             */
-            appearance?: ('default' | 'outline') | null;
-          };
-          id?: string | null;
-        }[]
-      | null;
-    media?: (string | null) | Media;
-  };
-  layout: (CallToActionBlock | ContentBlock | MediaBlock | ArchiveBlock | FormBlock)[];
-  meta?: {
-    title?: string | null;
-    /**
-     * Maximum upload file size: 12MB. Recommended file size for images is <500KB.
-     */
-    image?: (string | null) | Media;
-    description?: string | null;
-  };
-  publishedAt?: string | null;
-  /**
-   * When enabled, the slug will auto-generate from the title field on save and autosave.
-   */
-  generateSlug?: boolean | null;
-  slug: string;
-  updatedAt: string;
-  createdAt: string;
-  _status?: ('draft' | 'published') | null;
+  subtitle?: string | null;
+  backgroundImage?: (number | null) | Media;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'medora-hero';
 }
 /**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "posts".
- */
-export interface Post {
-  id: string;
-  title: string;
-  heroImage?: (string | null) | Media;
-  content: {
-    root: {
-      type: string;
-      children: {
-        type: any;
-        version: number;
-        [k: string]: unknown;
-      }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-      indent: number;
-      version: number;
-    };
-    [k: string]: unknown;
-  };
-  relatedPosts?: (string | Post)[] | null;
-  categories?: (string | Category)[] | null;
-  meta?: {
-    title?: string | null;
-    /**
-     * Maximum upload file size: 12MB. Recommended file size for images is <500KB.
-     */
-    image?: (string | null) | Media;
-    description?: string | null;
-  };
-  publishedAt?: string | null;
-  authors?: (string | User)[] | null;
-  populatedAuthors?:
-    | {
-        id?: string | null;
-        name?: string | null;
-      }[]
-    | null;
-  /**
-   * When enabled, the slug will auto-generate from the title field on save and autosave.
-   */
-  generateSlug?: boolean | null;
-  slug: string;
-  updatedAt: string;
-  createdAt: string;
-  _status?: ('draft' | 'published') | null;
-}
-/**
+ * All uploaded images and files. Referenced by properties, rooms, offers and the homepage.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "media".
  */
 export interface Media {
-  id: string;
+  id: number;
   alt?: string | null;
   caption?: {
     root: {
@@ -292,7 +212,7 @@ export interface Media {
     };
     [k: string]: unknown;
   } | null;
-  folder?: (string | null) | FolderInterface;
+  folder?: (number | null) | FolderInterface;
   updatedAt: string;
   createdAt: string;
   url?: string | null;
@@ -368,18 +288,18 @@ export interface Media {
  * via the `definition` "payload-folders".
  */
 export interface FolderInterface {
-  id: string;
+  id: number;
   name: string;
-  folder?: (string | null) | FolderInterface;
+  folder?: (number | null) | FolderInterface;
   documentsAndFolders?: {
     docs?: (
       | {
           relationTo?: 'payload-folders';
-          value: string | FolderInterface;
+          value: number | FolderInterface;
         }
       | {
           relationTo?: 'media';
-          value: string | Media;
+          value: number | Media;
         }
     )[];
     hasNextPage?: boolean;
@@ -390,21 +310,138 @@ export interface FolderInterface {
   createdAt: string;
 }
 /**
+ * Custom CMS pages built with a drag-and-drop block layout builder.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "pages".
+ */
+export interface Page {
+  id: number;
+  title: string;
+  hero: {
+    type: 'none' | 'highImpact' | 'mediumImpact' | 'lowImpact';
+    richText?: {
+      root: {
+        type: string;
+        children: {
+          type: any;
+          version: number;
+          [k: string]: unknown;
+        }[];
+        direction: ('ltr' | 'rtl') | null;
+        format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+        indent: number;
+        version: number;
+      };
+      [k: string]: unknown;
+    } | null;
+    links?:
+      | {
+          link: {
+            type?: ('reference' | 'custom') | null;
+            newTab?: boolean | null;
+            reference?:
+              | ({
+                  relationTo: 'pages';
+                  value: number | Page;
+                } | null)
+              | ({
+                  relationTo: 'posts';
+                  value: number | Post;
+                } | null);
+            url?: string | null;
+            label: string;
+            /**
+             * Choose how the link should be rendered.
+             */
+            appearance?: ('default' | 'outline') | null;
+          };
+          id?: string | null;
+        }[]
+      | null;
+    media?: (number | null) | Media;
+  };
+  layout: (CallToActionBlock | ContentBlock | MediaBlock | ArchiveBlock | FormBlock)[];
+  meta?: {
+    title?: string | null;
+    description?: string | null;
+  };
+  publishedAt?: string | null;
+  /**
+   * When enabled, the slug will auto-generate from the title field on save and autosave.
+   */
+  generateSlug?: boolean | null;
+  slug: string;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * Blog articles and news posts with full rich-text layout builder.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "posts".
+ */
+export interface Post {
+  id: number;
+  title: string;
+  heroImage?: (number | null) | Media;
+  content: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  };
+  relatedPosts?: (number | Post)[] | null;
+  categories?: (number | Category)[] | null;
+  meta?: {
+    title?: string | null;
+    description?: string | null;
+  };
+  publishedAt?: string | null;
+  authors?: (number | User)[] | null;
+  populatedAuthors?:
+    | {
+        id?: string | null;
+        name?: string | null;
+      }[]
+    | null;
+  /**
+   * When enabled, the slug will auto-generate from the title field on save and autosave.
+   */
+  generateSlug?: boolean | null;
+  slug: string;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * Categories used to tag blog posts.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "categories".
  */
 export interface Category {
-  id: string;
+  id: number;
   title: string;
   /**
    * When enabled, the slug will auto-generate from the title field on save and autosave.
    */
   generateSlug?: boolean | null;
   slug: string;
-  parent?: (string | null) | Category;
+  parent?: (number | null) | Category;
   breadcrumbs?:
     | {
-        doc?: (string | null) | Category;
+        doc?: (number | null) | Category;
         url?: string | null;
         label?: string | null;
         id?: string | null;
@@ -414,11 +451,13 @@ export interface Category {
   createdAt: string;
 }
 /**
+ * Admin users who can log in to this CMS.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "users".
  */
 export interface User {
-  id: string;
+  id: number;
   name?: string | null;
   updatedAt: string;
   createdAt: string;
@@ -467,11 +506,11 @@ export interface CallToActionBlock {
           reference?:
             | ({
                 relationTo: 'pages';
-                value: string | Page;
+                value: number | Page;
               } | null)
             | ({
                 relationTo: 'posts';
-                value: string | Post;
+                value: number | Post;
               } | null);
           url?: string | null;
           label: string;
@@ -517,11 +556,11 @@ export interface ContentBlock {
           reference?:
             | ({
                 relationTo: 'pages';
-                value: string | Page;
+                value: number | Page;
               } | null)
             | ({
                 relationTo: 'posts';
-                value: string | Post;
+                value: number | Post;
               } | null);
           url?: string | null;
           label: string;
@@ -542,7 +581,7 @@ export interface ContentBlock {
  * via the `definition` "MediaBlock".
  */
 export interface MediaBlock {
-  media: string | Media;
+  media: number | Media;
   id?: string | null;
   blockName?: string | null;
   blockType: 'mediaBlock';
@@ -569,12 +608,12 @@ export interface ArchiveBlock {
   } | null;
   populateBy?: ('collection' | 'selection') | null;
   relationTo?: 'posts' | null;
-  categories?: (string | Category)[] | null;
+  categories?: (number | Category)[] | null;
   limit?: number | null;
   selectedDocs?:
     | {
         relationTo: 'posts';
-        value: string | Post;
+        value: number | Post;
       }[]
     | null;
   id?: string | null;
@@ -586,7 +625,7 @@ export interface ArchiveBlock {
  * via the `definition` "FormBlock".
  */
 export interface FormBlock {
-  form: string | Form;
+  form: number | Form;
   enableIntro?: boolean | null;
   introContent?: {
     root: {
@@ -612,7 +651,7 @@ export interface FormBlock {
  * via the `definition` "forms".
  */
 export interface Form {
-  id: string;
+  id: number;
   title: string;
   fields?:
     | (
@@ -782,11 +821,191 @@ export interface Form {
   createdAt: string;
 }
 /**
+ * Manage hotels and camps — names, descriptions, images, amenities and star ratings.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "properties".
+ */
+export interface Property {
+  id: number;
+  name: string;
+  slug: string;
+  type: 'hotel' | 'camp';
+  shortDescription?: string | null;
+  description?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  heroImages?: (number | Media)[] | null;
+  amenities?: (number | Amenity)[] | null;
+  address?: string | null;
+  coordinates?: {
+    lat?: number | null;
+    lng?: number | null;
+  };
+  starRating?: number | null;
+  meta?: {
+    title?: string | null;
+    description?: string | null;
+  };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Reusable amenity icons (pool, spa, parking…) that appear on property pages.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "amenities".
+ */
+export interface Amenity {
+  id: number;
+  name: string;
+  /**
+   * Use a lucide icon name, for example: waves, parking-circle, dumbbell.
+   */
+  icon: string;
+  category?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Hierarchical room groups (e.g. "Sobe i suiteovi" → "Dvokrevetne sobe"). Assign rooms to leaf groups.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "room-groups".
+ */
+export interface RoomGroup {
+  id: number;
+  name: string;
+  slug: string;
+  property: number | Property;
+  parent?: (number | null) | RoomGroup;
+  heroImage?: (number | null) | Media;
+  description?: string | null;
+  order?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Room types per property — photos, capacity, bed type, inclusions and pricing details.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "rooms".
+ */
+export interface Room {
+  id: number;
+  name: string;
+  slug: string;
+  property: number | Property;
+  /**
+   * Assign to the leaf sub-group (e.g. "Dvokrevetne sobe"), not the parent.
+   */
+  group?: (number | null) | RoomGroup;
+  category: 'room' | 'suite' | 'villa' | 'tent' | 'cabin';
+  description?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  images?: (number | Media)[] | null;
+  capacity?: number | null;
+  size?: string | null;
+  bedType?: string | null;
+  inclusions?:
+    | {
+        label: string;
+        id?: string | null;
+      }[]
+    | null;
+  meta?: {
+    title?: string | null;
+    description?: string | null;
+  };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Special deals and packages. Supports draft, scheduled publish and expiry dates.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "offers".
+ */
+export interface Offer {
+  id: number;
+  title: string;
+  slug: string;
+  property?: (number | null) | Property;
+  validFrom?: string | null;
+  validUntil?: string | null;
+  description?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  heroImage?: (number | null) | Media;
+  meta?: {
+    title?: string | null;
+    description?: string | null;
+  };
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * Custom landing pages with a block-based layout builder.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "landing-pages".
+ */
+export interface LandingPage {
+  id: number;
+  title: string;
+  slug: string;
+  summary?: string | null;
+  layout?: unknown[] | null;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * URL redirects (301/302). Managed automatically when slugs change.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "redirects".
  */
 export interface Redirect {
-  id: string;
+  id: number;
   /**
    * You will need to rebuild the website when changing this field.
    */
@@ -796,11 +1015,19 @@ export interface Redirect {
     reference?:
       | ({
           relationTo: 'pages';
-          value: string | Page;
+          value: number | Page;
         } | null)
       | ({
           relationTo: 'posts';
-          value: string | Post;
+          value: number | Post;
+        } | null)
+      | ({
+          relationTo: 'properties';
+          value: number | Property;
+        } | null)
+      | ({
+          relationTo: 'offers';
+          value: number | Offer;
         } | null);
     url?: string | null;
   };
@@ -812,8 +1039,8 @@ export interface Redirect {
  * via the `definition` "form-submissions".
  */
 export interface FormSubmission {
-  id: string;
-  form: string | Form;
+  id: number;
+  form: number | Form;
   submissionData?:
     | {
         field: string;
@@ -831,18 +1058,18 @@ export interface FormSubmission {
  * via the `definition` "search".
  */
 export interface Search {
-  id: string;
+  id: number;
   title?: string | null;
   priority?: number | null;
   doc: {
     relationTo: 'posts';
-    value: string | Post;
+    value: number | Post;
   };
   slug?: string | null;
   meta?: {
     title?: string | null;
     description?: string | null;
-    image?: (string | null) | Media;
+    image?: (number | null) | Media;
   };
   categories?:
     | {
@@ -860,7 +1087,7 @@ export interface Search {
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
-  id: string;
+  id: number;
   key: string;
   data:
     | {
@@ -877,7 +1104,7 @@ export interface PayloadKv {
  * via the `definition` "payload-jobs".
  */
 export interface PayloadJob {
-  id: string;
+  id: number;
   /**
    * Input data provided to the job
    */
@@ -969,52 +1196,76 @@ export interface PayloadJob {
  * via the `definition` "payload-locked-documents".
  */
 export interface PayloadLockedDocument {
-  id: string;
+  id: number;
   document?:
     | ({
         relationTo: 'pages';
-        value: string | Page;
+        value: number | Page;
       } | null)
     | ({
         relationTo: 'posts';
-        value: string | Post;
+        value: number | Post;
       } | null)
     | ({
         relationTo: 'media';
-        value: string | Media;
+        value: number | Media;
       } | null)
     | ({
         relationTo: 'categories';
-        value: string | Category;
+        value: number | Category;
       } | null)
     | ({
         relationTo: 'users';
-        value: string | User;
+        value: number | User;
+      } | null)
+    | ({
+        relationTo: 'properties';
+        value: number | Property;
+      } | null)
+    | ({
+        relationTo: 'room-groups';
+        value: number | RoomGroup;
+      } | null)
+    | ({
+        relationTo: 'rooms';
+        value: number | Room;
+      } | null)
+    | ({
+        relationTo: 'offers';
+        value: number | Offer;
+      } | null)
+    | ({
+        relationTo: 'amenities';
+        value: number | Amenity;
+      } | null)
+    | ({
+        relationTo: 'landing-pages';
+        value: number | LandingPage;
       } | null)
     | ({
         relationTo: 'redirects';
-        value: string | Redirect;
+        value: number | Redirect;
       } | null)
     | ({
         relationTo: 'forms';
-        value: string | Form;
+        value: number | Form;
       } | null)
     | ({
         relationTo: 'form-submissions';
-        value: string | FormSubmission;
+        value: number | FormSubmission;
       } | null)
     | ({
         relationTo: 'search';
-        value: string | Search;
+        value: number | Search;
       } | null)
     | ({
         relationTo: 'payload-folders';
-        value: string | FolderInterface;
+        value: number | FolderInterface;
       } | null);
   globalSlug?: string | null;
   user: {
     relationTo: 'users';
-    value: string | User;
+    value: number | User;
   };
   updatedAt: string;
   createdAt: string;
@@ -1024,10 +1275,10 @@ export interface PayloadLockedDocument {
  * via the `definition` "payload-preferences".
  */
 export interface PayloadPreference {
-  id: string;
+  id: number;
   user: {
     relationTo: 'users';
-    value: string | User;
+    value: number | User;
   };
   key?: string | null;
   value?:
@@ -1047,7 +1298,7 @@ export interface PayloadPreference {
  * via the `definition` "payload-migrations".
  */
 export interface PayloadMigration {
-  id: string;
+  id: number;
   name?: string | null;
   batch?: number | null;
   updatedAt: string;
@@ -1094,7 +1345,6 @@ export interface PagesSelect<T extends boolean = true> {
     | T
     | {
         title?: T;
-        image?: T;
         description?: T;
       };
   publishedAt?: T;
@@ -1202,7 +1452,6 @@ export interface PostsSelect<T extends boolean = true> {
     | T
     | {
         title?: T;
-        image?: T;
         description?: T;
       };
   publishedAt?: T;
@@ -1355,6 +1604,126 @@ export interface UsersSelect<T extends boolean = true> {
         createdAt?: T;
         expiresAt?: T;
       };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "properties_select".
+ */
+export interface PropertiesSelect<T extends boolean = true> {
+  name?: T;
+  slug?: T;
+  type?: T;
+  shortDescription?: T;
+  description?: T;
+  heroImages?: T;
+  amenities?: T;
+  address?: T;
+  coordinates?:
+    | T
+    | {
+        lat?: T;
+        lng?: T;
+      };
+  starRating?: T;
+  meta?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "room-groups_select".
+ */
+export interface RoomGroupsSelect<T extends boolean = true> {
+  name?: T;
+  slug?: T;
+  property?: T;
+  parent?: T;
+  heroImage?: T;
+  description?: T;
+  order?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "rooms_select".
+ */
+export interface RoomsSelect<T extends boolean = true> {
+  name?: T;
+  slug?: T;
+  property?: T;
+  group?: T;
+  category?: T;
+  description?: T;
+  images?: T;
+  capacity?: T;
+  size?: T;
+  bedType?: T;
+  inclusions?:
+    | T
+    | {
+        label?: T;
+        id?: T;
+      };
+  meta?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "offers_select".
+ */
+export interface OffersSelect<T extends boolean = true> {
+  title?: T;
+  slug?: T;
+  property?: T;
+  validFrom?: T;
+  validUntil?: T;
+  description?: T;
+  heroImage?: T;
+  meta?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "amenities_select".
+ */
+export interface AmenitiesSelect<T extends boolean = true> {
+  name?: T;
+  icon?: T;
+  category?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "landing-pages_select".
+ */
+export interface LandingPagesSelect<T extends boolean = true> {
+  title?: T;
+  slug?: T;
+  summary?: T;
+  layout?: T | {};
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1632,11 +2001,13 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
   createdAt?: T;
 }
 /**
+ * Header navigation (legacy scaffold — Medora uses Main Nav instead).
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "header".
  */
 export interface Header {
-  id: string;
+  id: number;
   navItems?:
     | {
         link: {
@@ -1645,11 +2016,11 @@ export interface Header {
           reference?:
             | ({
                 relationTo: 'pages';
-                value: string | Page;
+                value: number | Page;
               } | null)
             | ({
                 relationTo: 'posts';
-                value: string | Post;
+                value: number | Post;
               } | null);
           url?: string | null;
           label: string;
@@ -1661,11 +2032,13 @@ export interface Header {
   createdAt?: string | null;
 }
 /**
+ * Footer navigation links (legacy scaffold — Medora uses Main Nav instead).
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "footer".
  */
 export interface Footer {
-  id: string;
+  id: number;
   navItems?:
     | {
         link: {
@@ -1674,11 +2047,11 @@ export interface Footer {
           reference?:
             | ({
                 relationTo: 'pages';
-                value: string | Page;
+                value: number | Page;
               } | null)
             | ({
                 relationTo: 'posts';
-                value: string | Post;
+                value: number | Post;
               } | null);
           url?: string | null;
           label: string;
@@ -1686,6 +2059,193 @@ export interface Footer {
         id?: string | null;
       }[]
     | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * Edit the header navigation links shown on every page.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "main-nav".
+ */
+export interface MainNav {
+  id: number;
+  items?:
+    | {
+        label: string;
+        href: string;
+        children?:
+          | {
+              label: string;
+              href: string;
+              id?: string | null;
+            }[]
+          | null;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * Brand name, contact details, favicon, default OG image and Google Analytics ID.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "site-settings".
+ */
+export interface SiteSetting {
+  id: number;
+  brandName: string;
+  contactEmail?: string | null;
+  contactPhone?: string | null;
+  address?: string | null;
+  /**
+   * Favicon image (recommended: 32×32 PNG or SVG)
+   */
+  favicon?: (number | null) | Media;
+  /**
+   * Default OG/social share image (1200×630px recommended)
+   */
+  defaultOgImage?: (number | null) | Media;
+  /**
+   * Google Analytics Measurement ID (e.g. G-XXXXXXXXXX)
+   */
+  googleAnalyticsId?: string | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * Fallback SEO title and description used when a page has no specific SEO set.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "seo-defaults".
+ */
+export interface SeoDefault {
+  id: number;
+  defaultTitle: string;
+  defaultDescription?: string | null;
+  defaultCanonicalUrl?: string | null;
+  defaultOgImage?: (number | null) | Media;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * Controls every section of the Medora Auri Homepage — slides, inclusions, rooms, offer.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "auri-homepage".
+ */
+export interface AuriHomepage {
+  id: number;
+  /**
+   * Drag to reorder. Each slide shows a full-screen background image with headline, bullet points and a CTA button.
+   */
+  slides?:
+    | {
+        image: number | Media;
+        headline?: string | null;
+        /**
+         * Short benefit lines shown below the headline.
+         */
+        benefits?:
+          | {
+              text?: string | null;
+              id?: string | null;
+            }[]
+          | null;
+        ctaLabel?: string | null;
+        ctaHref?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Bold text shown above the benefit icons.
+   */
+  inclusionsHeadline?: string | null;
+  /**
+   * Drag to reorder. Defaults are used when the list is empty.
+   */
+  inclusions?:
+    | {
+        icon?: (number | null) | Media;
+        label: string;
+        href?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Smaller text shown below the benefit icons.
+   */
+  inclusionsSubtitle?: string | null;
+  /**
+   * Pick up to 6 rooms to feature. Leave empty to auto-show the first rooms for medora-auri.
+   */
+  featuredRooms?: (number | Room)[] | null;
+  /**
+   * The offer shown in the homepage banner. Leave empty to use the latest active offer.
+   */
+  featuredOffer?: (number | null) | Offer;
+  _status?: ('draft' | 'published') | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * Controls every section of the Luxury Camp Orbis Homepage — slides, inclusions, rooms, offer.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "orbis-homepage".
+ */
+export interface OrbisHomepage {
+  id: number;
+  /**
+   * Drag to reorder. Each slide shows a full-screen background image with headline, bullet points and a CTA button.
+   */
+  slides?:
+    | {
+        image: number | Media;
+        headline?: string | null;
+        /**
+         * Short benefit lines shown below the headline.
+         */
+        benefits?:
+          | {
+              text?: string | null;
+              id?: string | null;
+            }[]
+          | null;
+        ctaLabel?: string | null;
+        ctaHref?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Bold text shown above the benefit icons.
+   */
+  inclusionsHeadline?: string | null;
+  /**
+   * Drag to reorder. Defaults are used when the list is empty.
+   */
+  inclusions?:
+    | {
+        icon?: (number | null) | Media;
+        label: string;
+        href?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Smaller text shown below the benefit icons.
+   */
+  inclusionsSubtitle?: string | null;
+  /**
+   * Pick up to 6 rooms to feature. Leave empty to auto-show the first rooms for luxury-camp-orbis.
+   */
+  featuredRooms?: (number | Room)[] | null;
+  /**
+   * The offer shown in the homepage banner. Leave empty to use the latest active offer.
+   */
+  featuredOffer?: (number | null) | Offer;
+  _status?: ('draft' | 'published') | null;
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -1737,6 +2297,132 @@ export interface FooterSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "main-nav_select".
+ */
+export interface MainNavSelect<T extends boolean = true> {
+  items?:
+    | T
+    | {
+        label?: T;
+        href?: T;
+        children?:
+          | T
+          | {
+              label?: T;
+              href?: T;
+              id?: T;
+            };
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "site-settings_select".
+ */
+export interface SiteSettingsSelect<T extends boolean = true> {
+  brandName?: T;
+  contactEmail?: T;
+  contactPhone?: T;
+  address?: T;
+  favicon?: T;
+  defaultOgImage?: T;
+  googleAnalyticsId?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "seo-defaults_select".
+ */
+export interface SeoDefaultsSelect<T extends boolean = true> {
+  defaultTitle?: T;
+  defaultDescription?: T;
+  defaultCanonicalUrl?: T;
+  defaultOgImage?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "auri-homepage_select".
+ */
+export interface AuriHomepageSelect<T extends boolean = true> {
+  slides?:
+    | T
+    | {
+        image?: T;
+        headline?: T;
+        benefits?:
+          | T
+          | {
+              text?: T;
+              id?: T;
+            };
+        ctaLabel?: T;
+        ctaHref?: T;
+        id?: T;
+      };
+  inclusionsHeadline?: T;
+  inclusions?:
+    | T
+    | {
+        icon?: T;
+        label?: T;
+        href?: T;
+        id?: T;
+      };
+  inclusionsSubtitle?: T;
+  featuredRooms?: T;
+  featuredOffer?: T;
+  _status?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "orbis-homepage_select".
+ */
+export interface OrbisHomepageSelect<T extends boolean = true> {
+  slides?:
+    | T
+    | {
+        image?: T;
+        headline?: T;
+        benefits?:
+          | T
+          | {
+              text?: T;
+              id?: T;
+            };
+        ctaLabel?: T;
+        ctaHref?: T;
+        id?: T;
+      };
+  inclusionsHeadline?: T;
+  inclusions?:
+    | T
+    | {
+        icon?: T;
+        label?: T;
+        href?: T;
+        id?: T;
+      };
+  inclusionsSubtitle?: T;
+  featuredRooms?: T;
+  featuredOffer?: T;
+  _status?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "collections_widget".
  */
 export interface CollectionsWidget {
@@ -1756,14 +2442,18 @@ export interface TaskSchedulePublish {
     doc?:
       | ({
           relationTo: 'pages';
-          value: string | Page;
+          value: number | Page;
         } | null)
       | ({
           relationTo: 'posts';
-          value: string | Post;
+          value: number | Post;
+        } | null)
+      | ({
+          relationTo: 'offers';
+          value: number | Offer;
         } | null);
     global?: string | null;
-    user?: (string | null) | User;
+    user?: (number | null) | User;
   };
   output?: unknown;
 }

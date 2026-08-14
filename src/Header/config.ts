@@ -5,6 +5,11 @@ import { revalidateHeader } from './hooks/revalidateHeader'
 
 export const Header: GlobalConfig = {
   slug: 'header',
+  admin: {
+    group: 'Blog',
+    description: 'Header navigation (legacy scaffold — Medora uses Main Nav instead).',
+    hidden: true,
+  },
   access: {
     read: () => true,
   },

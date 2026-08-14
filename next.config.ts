@@ -1,5 +1,6 @@
 import { withPayload } from '@payloadcms/next/withPayload'
 import type { NextConfig } from 'next'
+import createNextIntlPlugin from 'next-intl/plugin'
 import path from 'path'
 import { fileURLToPath } from 'url'
 
@@ -11,7 +12,10 @@ const NEXT_PUBLIC_SERVER_URL = process.env.VERCEL_PROJECT_PRODUCTION_URL
   ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
   : process.env.__NEXT_PRIVATE_ORIGIN || 'http://localhost:3000'
 
+const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts')
+
 const nextConfig: NextConfig = {
+  output: 'standalone',
   // Temporarily required on Windows until Next.js fixes Turbopack Sass resolution.
   // See: https://github.com/vercel/next.js/issues/86431
   sassOptions: {
@@ -19,9 +23,11 @@ const nextConfig: NextConfig = {
   },
   images: {
     localPatterns: [
-      {
-        pathname: '/api/media/file/**',
-      },
+      { pathname: '/api/media/file/**' },
+      { pathname: '/brand/**' },
+      { pathname: '/hero/**' },
+      { pathname: '/gallery/**' },
+      { pathname: '/rooms/**' },
     ],
     qualities: [100],
     remotePatterns: [
@@ -51,4 +57,4 @@ const nextConfig: NextConfig = {
   },
 }
 
-export default withPayload(nextConfig, { devBundleServerPackages: false })
+export default withPayload(withNextIntl(nextConfig), { devBundleServerPackages: false })

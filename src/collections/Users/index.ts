@@ -12,6 +12,8 @@ export const Users: CollectionConfig = {
     update: authenticated,
   },
   admin: {
+    group: 'System',
+    description: 'Admin users who can log in to this CMS.',
     defaultColumns: ['name', 'email'],
     useAsTitle: 'name',
   },

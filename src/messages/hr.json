@@ -1,0 +1,122 @@
+{
+  "common": {
+    "bookNow": "Rezerviraj",
+    "contactUs": "Kontakt",
+    "learnMore": "Saznaj više",
+    "viewAll": "Pogledaj sve",
+    "viewDetails": "Detalji",
+    "sendInquiry": "Pošalji upit",
+    "noPaymentRequired": "Uplata nije potrebna za upit"
+  },
+  "navigation": {
+    "home": "Početna",
+    "properties": "Objekti",
+    "rooms": "Sobe",
+    "offers": "Ponude",
+    "contact": "Kontakt",
+    "gallery": "Galerija",
+    "destination": "Destinacija",
+    "weThinkGreen": "Razmišljamo zeleno",
+    "faq": "Česta pitanja",
+    "contactFaq": "Kontakt i FAQ"
+  },
+  "properties": {
+    "title": "Naši objekti",
+    "viewProperty": "Pogledaj objekt",
+    "hotel": "Hotel",
+    "camp": "Kamp",
+    "noProperties": "Nema dostupnih objekata."
+  },
+  "rooms": {
+    "title": "Sobe i smještaj",
+    "guests": "Gosti",
+    "size": "Veličina",
+    "bed": "Vrsta kreveta",
+    "included": "Sadržaj",
+    "capacity": "Kapacitet",
+    "viewGallery": "Pregledaj galeriju",
+    "bookThisRoom": "Rezerviraj sobu",
+    "checkAvailability": "Provjeri dostupnost",
+    "noPaymentNote": "Bez plaćanja za upit",
+    "select": "Odaberi",
+    "noRooms": "Nema dostupnih soba za ovaj objekt."
+  },
+  "offers": {
+    "title": "Posebne ponude",
+    "subtitle": "Rezervirajte izravno i dobijte zajamčeno najnižu cijenu.",
+    "until": "Do",
+    "validFrom": "Vrijedi od",
+    "interested": "Zainteresirani za ovu ponudu?",
+    "specialOffer": "Posebna ponuda",
+    "property": "Objekt",
+    "noOffers": "Trenutno nema aktivnih ponuda. Provjerite uskoro."
+  },
+  "contact": {
+    "title": "Kontaktirajte nas",
+    "subtitle": "Tu smo za vas. Obratite nam se i naš tim će vam odgovoriti u roku od 24 sata.",
+    "getInTouch": "Stupite u kontakt",
+    "findUs": "Pronađite nas",
+    "email": "E-pošta",
+    "phone": "Telefon",
+    "whatsapp": "WhatsApp",
+    "whatsappLabel": "Pišite nam na WhatsApp",
+    "address": "Adresa",
+    "faqTitle": "Često postavljana pitanja",
+    "faqFallback": "Niste pronašli odgovor?",
+    "faqFallbackLink": "Pišite nam",
+    "getInTouch": "Stupite u kontakt",
+    "findUs": "Pronađite nas",
+    "faqItems": [
+      { "q": "Što je uključeno u cijenu sobe?", "a": "Sve sobe uključuju doručak, besplatan parking, besplatne ležaljke na plaži i bezalkoholna pića uz bazen. Djeca borave besplatno." },
+      { "q": "Imate li direktan pristup plaži?", "a": "Da — Medora Auri se nalazi neposredno uz Jadransko more s privatnom plažom i područjem ležaljka za goste." },
+      { "q": "Imate li kids club?", "a": "Imamo potpuno nadgledani kids club koji radi svakodnevno tijekom ljetne sezone, besplatno za djecu od 4 do 12 godina." },
+      { "q": "Mogu li rezervirati aktivnosti (izleti, izleti brodom) iz hotela?", "a": "Da. Naša recepcija organizira izlete na Skywalk Biokovo, izlete brodom na otoke i druge lokalne aktivnosti. Neke su uključene u cijenu sobe — pogledajte naše trenutne ponude." },
+      { "q": "Kakva je vaša politika otkazivanja?", "a": "Standardne rezervacije mogu se besplatno otkazati do 14 dana prije dolaska. Za rane rezervacije i nepovratne tarife vrijede drugi uvjeti. Kontaktirajte nas za detalje." },
+      { "q": "Prihvaćate li ljubimce?", "a": "Mali ljubimci (do 10 kg) su prihvaćeni u odabranim kategorijama soba uz prethodno obavještavanje. Primjenjuje se mala dnevna naknada." }
+    ]
+  },
+  "gallery": {
+    "title": "Galerija",
+    "subtitle": "Otkrijte Medora Hotels kroz našu foto galeriju."
+  },
+  "header": {
+    "quickInquiry": "Brzi upit"
+  },
+  "footer": {
+    "customerServices": "Korisnička podrška",
+    "accommodation": "Smještaj",
+    "experience": "Iskustvo",
+    "contact": "Kontakt",
+    "allContacts": "Svi kontakti",
+    "modifyReservation": "Izmjena / Otkazivanje rezervacije",
+    "faq": "Česta pitanja",
+    "packagesOffers": "Paketi i posebne ponude",
+    "auriResort": "Medora Auri Obiteljsko Odmaralište",
+    "orbis": "Luksuzni Kamp Orbis",
+    "roomsSuites": "Sobe i apartmani",
+    "quickInquiry": "Brzi upit",
+    "wellness": "Wellness",
+    "dining": "Restorani i barovi",
+    "activeVacation": "Aktivan odmor",
+    "aboutRiviera": "O Makarskoj rivijeri",
+    "aboutMedora": "O Medora Hotels",
+    "awards": "Naše nagrade i postignuća",
+    "directions": "Kako doći do nas",
+    "privacyPolicy": "Politika privatnosti"
+  },
+  "inquiry": {
+    "title": "Brzi upit",
+    "subtitle": "Ispunite obrazac i naš tim će vas kontaktirati u roku od 24 sata.",
+    "name": "Ime i prezime",
+    "email": "Email adresa",
+    "phone": "Broj telefona",
+    "arrival": "Dolazak",
+    "departure": "Odlazak",
+    "adults": "Odrasli",
+    "children": "Djeca",
+    "roomPreference": "Soba / smještaj",
+    "message": "Poruka (opcionalno)",
+    "submit": "Pošalji upit",
+    "note": "Uplata nije potrebna. Potvrditi ćemo dostupnost i poslati vam personaliziranu ponudu."
+  }
+}

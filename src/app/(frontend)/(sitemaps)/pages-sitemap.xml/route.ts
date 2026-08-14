@@ -31,16 +31,70 @@ const getPagesSitemap = unstable_cache(
 
     const dateFallback = new Date().toISOString()
 
-    const defaultSitemap = [
-      {
-        loc: `${SITE_URL}/search`,
-        lastmod: dateFallback,
-      },
-      {
-        loc: `${SITE_URL}/posts`,
-        lastmod: dateFallback,
-      },
+    // Static routes always included
+    const staticRoutes = [
+      { loc: `${SITE_URL}/`, lastmod: dateFallback },
+      { loc: `${SITE_URL}/properties`, lastmod: dateFallback },
+      { loc: `${SITE_URL}/offers`, lastmod: dateFallback },
+      { loc: `${SITE_URL}/gallery`, lastmod: dateFallback },
+      { loc: `${SITE_URL}/destination`, lastmod: dateFallback },
+      { loc: `${SITE_URL}/we-think-green`, lastmod: dateFallback },
+      { loc: `${SITE_URL}/contact`, lastmod: dateFallback },
     ]
+
+    // Dynamic: properties + their rooms
+    const propertiesResult = await payload.find({
+      collection: 'properties',
+      overrideAccess: false,
+      draft: false,
+      depth: 0,
+      limit: 100,
+      pagination: false,
+      select: { slug: true, updatedAt: true },
+    })
+
+    const propertyRoutes = propertiesResult.docs.flatMap((p) =>
+      p?.slug
+        ? [
+            { loc: `${SITE_URL}/properties/${p.slug}`, lastmod: p.updatedAt || dateFallback },
+            { loc: `${SITE_URL}/properties/${p.slug}/rooms`, lastmod: p.updatedAt || dateFallback },
+          ]
+        : [],
+    )
+
+    // Dynamic: rooms
+    const roomsResult = await payload.find({
+      collection: 'rooms',
+      overrideAccess: false,
+      draft: false,
+      depth: 1,
+      limit: 500,
+      pagination: false,
+      select: { slug: true, updatedAt: true, property: true },
+    })
+
+    const roomRoutes = roomsResult.docs.flatMap((r) => {
+      const propSlug =
+        r?.property && typeof r.property === 'object' ? (r.property as { slug?: string }).slug : null
+      return propSlug && r?.slug
+        ? [{ loc: `${SITE_URL}/properties/${propSlug}/rooms/${r.slug}`, lastmod: r.updatedAt || dateFallback }]
+        : []
+    })
+
+    // Dynamic: offers
+    const offersResult = await payload.find({
+      collection: 'offers',
+      overrideAccess: false,
+      draft: false,
+      depth: 0,
+      limit: 200,
+      pagination: false,
+      select: { slug: true, updatedAt: true },
+    })
+
+    const offerRoutes = offersResult.docs.flatMap((o) =>
+      o?.slug ? [{ loc: `${SITE_URL}/offers/${o.slug}`, lastmod: o.updatedAt || dateFallback }] : [],
+    )
 
     const sitemap = results.docs
       ? results.docs
@@ -53,7 +107,7 @@ const getPagesSitemap = unstable_cache(
           })
       : []
 
-    return [...defaultSitemap, ...sitemap]
+    return [...staticRoutes, ...propertyRoutes, ...roomRoutes, ...offerRoutes, ...sitemap]
   },
   ['pages-sitemap'],
   {

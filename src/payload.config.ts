@@ -8,18 +8,48 @@ import { Categories } from './collections/Categories'
 import { Media } from './collections/Media'
 import { Pages } from './collections/Pages'
 import { Posts } from './collections/Posts'
+import { Amenities } from './collections/Amenities'
+import { LandingPages } from './collections/LandingPages'
+import { Offers } from './collections/Offers'
+import { Properties } from './collections/Properties'
+import { RoomGroups } from './collections/RoomGroups'
+import { Rooms } from './collections/Rooms'
 import { Users } from './collections/Users'
 import { Footer } from './Footer/config'
 import { Header } from './Header/config'
+import { AuriHomepage, OrbisHomepage, MainNav, SEODefaults, SiteSettings } from './globals'
 import { plugins } from './plugins'
 import { defaultLexical } from '@/fields/defaultLexical'
 import { getServerSideURL } from './utilities/getURL'
+import { medoraBlocks } from './blocks/medora'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 
 export default buildConfig({
+  localization: {
+    locales: [
+      {
+        label: 'English',
+        code: 'en',
+      },
+      {
+        label: 'Croatian',
+        code: 'hr',
+      },
+      {
+        label: 'German',
+        code: 'de',
+      },
+    ],
+    defaultLocale: 'en',
+    fallback: true,
+  },
   admin: {
+    meta: {
+      titleSuffix: '— Medora Hotels CMS',
+      icons: [{ url: '/favicon.ico' }],
+    },
     components: {
       // The `BeforeLogin` component renders a message that you see while logging into your admin panel.
       // Feel free to delete this at any time. Simply remove the line below.
@@ -27,12 +57,17 @@ export default buildConfig({
       // The `BeforeDashboard` component renders the 'welcome' block that you see after logging into your admin panel.
       // Feel free to delete this at any time. Simply remove the line below.
       beforeDashboard: ['@/components/BeforeDashboard'],
+      graphics: {
+        Logo: '@/components/AdminLogo#AdminLogo',
+        Icon: '@/components/AdminLogo#AdminIcon',
+      },
     },
     importMap: {
       baseDir: path.resolve(dirname),
     },
     user: Users.slug,
     livePreview: {
+      globals: ['auri-homepage', 'orbis-homepage'],
       breakpoints: [
         {
           label: 'Mobile',
@@ -62,9 +97,24 @@ export default buildConfig({
       connectionString: process.env.DATABASE_URL || '',
     },
   }),
-  collections: [Pages, Posts, Media, Categories, Users],
+  collections: [
+    Pages,
+    Posts,
+    Media,
+    Categories,
+    Users,
+    Properties,
+    RoomGroups,
+    Rooms,
+    Offers,
+    Amenities,
+    LandingPages,
+  ],
   cors: [getServerSideURL()].filter(Boolean),
-  globals: [Header, Footer],
+  folders: {
+    browseByFolder: false,
+  },
+  globals: [Header, Footer, MainNav, SiteSettings, SEODefaults, AuriHomepage, OrbisHomepage],
   plugins,
   secret: process.env.PAYLOAD_SECRET,
   sharp,
@@ -89,4 +139,5 @@ export default buildConfig({
     },
     tasks: [],
   },
+  blocks: medoraBlocks,
 })

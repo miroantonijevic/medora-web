@@ -5,6 +5,11 @@ import { revalidateFooter } from './hooks/revalidateFooter'
 
 export const Footer: GlobalConfig = {
   slug: 'footer',
+  admin: {
+    group: 'Blog',
+    description: 'Footer navigation links (legacy scaffold — Medora uses Main Nav instead).',
+    hidden: true,
+  },
   access: {
     read: () => true,
   },

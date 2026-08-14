@@ -1,0 +1,212 @@
+/* ─── Medora Admin Theme ──────────────────────────────────────────────────── */
+/* Montserrat is loaded via <link> in layout.tsx */
+
+:root {
+  /* Brand font */
+  --font-body: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+  /* Map Payload's success/accent scale → Medora blue #009bdb */
+  --color-success-50:  rgb(230, 246, 253);
+  --color-success-100: rgb(204, 236, 251);
+  --color-success-200: rgb(153, 215, 247);
+  --color-success-300: rgb(77,  188, 237);
+  --color-success-400: rgb(0,   155, 219);
+  --color-success-500: rgb(0,   139, 197);
+  --color-success-600: rgb(0,   118, 167);
+  --color-success-700: rgb(0,    98, 138);
+  --color-success-800: rgb(0,    76, 107);
+  --color-success-900: rgb(0,    55,  77);
+  --color-success-950: rgb(0,    34,  48);
+
+  /* Map Payload's warning scale → Medora orange #FF914D */
+  --color-warning-50:  rgb(255, 244, 237);
+  --color-warning-100: rgb(255, 232, 215);
+  --color-warning-200: rgb(255, 205, 168);
+  --color-warning-300: rgb(255, 175, 115);
+  --color-warning-400: rgb(255, 145,  77);
+  --color-warning-500: rgb(230, 119,  50);
+  --color-warning-600: rgb(196,  97,  30);
+  --color-warning-700: rgb(157,  76,  18);
+  --color-warning-800: rgb(117,  57,  13);
+  --color-warning-900: rgb( 76,  37,   8);
+  --color-warning-950: rgb( 48,  23,   5);
+
+  /* Rounder corners */
+  --style-radius-s: 4px;
+  --style-radius-m: 8px;
+  --style-radius-l: 12px;
+}
+
+/* ─── Nav sidebar — Medora navy ───────────────────────────────────────────── */
+.nav {
+  background-color: #012B59 !important;
+  color: #ffffff;
+}
+
+.nav a,
+.nav button,
+.nav span,
+.nav .nav__label {
+  color: rgba(255, 255, 255, 0.85) !important;
+}
+
+.nav .nav__link--active,
+.nav a:hover {
+  background-color: rgba(0, 155, 219, 0.18) !important;
+  color: #ffffff !important;
+}
+
+.nav .nav__group-label {
+  color: rgba(255, 255, 255, 0.45) !important;
+  text-transform: uppercase;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+}
+
+/* ─── Nav groups — parent toggle button ──────────────────────────────────── */
+.nav-group__toggle {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border-radius: 6px !important;
+  margin: 2px 8px !important;
+  padding: 8px 10px !important;
+  width: calc(100% - 16px) !important;
+  font-weight: 600 !important;
+  font-size: 12px !important;
+  letter-spacing: 0.03em !important;
+  color: rgba(255, 255, 255, 0.95) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.nav-group__toggle:hover {
+  background: rgba(255, 255, 255, 0.10) !important;
+}
+
+/* Chevron icon inside group toggle */
+.nav-group__indicator svg {
+  fill: rgba(255, 255, 255, 0.6) !important;
+}
+
+/* ─── Nav group children — indented, lighter ─────────────────────────────── */
+.nav-group__content {
+  padding-left: 8px !important;
+  border-left: 2px solid rgba(0, 155, 219, 0.3) !important;
+  margin: 2px 8px 6px 20px !important;
+}
+
+.nav-group__content a {
+  font-size: 12px !important;
+  font-weight: 400 !important;
+  color: rgba(255, 255, 255, 0.70) !important;
+  padding: 5px 8px !important;
+  border-radius: 4px !important;
+  display: block;
+}
+
+.nav-group__content a:hover {
+  color: #ffffff !important;
+  background-color: rgba(0, 155, 219, 0.15) !important;
+}
+
+.nav-group__content a.active {
+  color: #ffffff !important;
+  background-color: rgba(0, 155, 219, 0.22) !important;
+  font-weight: 500 !important;
+}
+
+/* ─── Top app bar — navy ──────────────────────────────────────────────────── */
+.app-header {
+  background-color: #012B59 !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.app-header * {
+  color: #ffffff !important;
+}
+
+.app-header svg {
+  fill: #ffffff !important;
+}
+
+/* Locale switcher button — needs its own background so text is legible */
+.localizer-button {
+  background-color: rgba(255, 255, 255, 0.12) !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+  border-radius: 6px !important;
+  color: #ffffff !important;
+}
+
+.localizer-button:hover {
+  background-color: rgba(255, 255, 255, 0.20) !important;
+}
+
+.localizer-button__current,
+.localizer-button__label,
+.localizer-button__chevron svg {
+  color: #ffffff !important;
+  fill: #ffffff !important;
+}
+
+/* ─── Tabs — underline accent in Medora blue ──────────────────────────────── */
+.tabs-field__tab-button--active {
+  border-bottom-color: #009bdb !important;
+  color: #009bdb !important;
+}
+
+/* ─── Primary buttons ─────────────────────────────────────────────────────── */
+.btn--style-primary {
+  background-color: #009bdb !important;
+  border-color: #009bdb !important;
+}
+
+.btn--style-primary:hover {
+  background-color: #0088c3 !important;
+  border-color: #0088c3 !important;
+}
+
+/* ─── Array row cards ─────────────────────────────────────────────────────── */
+.array-field__row {
+  border-radius: var(--style-radius-m) !important;
+  border: 1px solid var(--theme-border-color) !important;
+  margin-bottom: 8px !important;
+  box-shadow: 0 1px 3px rgba(1, 43, 89, 0.06) !important;
+}
+
+.collapsible__content {
+  border-radius: 0 0 var(--style-radius-m) var(--style-radius-m) !important;
+}
+
+/* ─── Global font size bump ───────────────────────────────────────────────── */
+/* Payload's base is 13px — bump to 14px for better readability */
+.app-header .step-nav,
+.app-header .step-nav a,
+.app-header .step-nav button,
+.app-header .step-nav span {
+  font-size: 14px !important;
+}
+
+.btn {
+  font-size: 14px !important;
+}
+
+.nav a,
+.nav button,
+.nav-group__toggle {
+  font-size: 13px !important;
+}
+
+/* ─── Dashboard content top spacing ──────────────────────────────────────── */
+/* Push the inner page content away from the sticky header */
+.dashboard__wrap,
+.collection-list__wrap,
+.document-fields,
+.render-fields {
+  padding-top: 24px !important;
+}
+
+.gutter--left {
+  padding-left: 32px !important;
+}
+
+.gutter--right {
+  padding-right: 32px !important;
+}

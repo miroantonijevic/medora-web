@@ -7,6 +7,7 @@ import { CallToActionBlock } from '@/blocks/CallToAction/Component'
 import { ContentBlock } from '@/blocks/Content/Component'
 import { FormBlock } from '@/blocks/Form/Component'
 import { MediaBlock } from '@/blocks/MediaBlock/Component'
+import { MedoraHeroBlockComponent } from '@/blocks/medora/Component'
 
 const blockComponents = {
   archive: ArchiveBlock,
@@ -14,6 +15,7 @@ const blockComponents = {
   cta: CallToActionBlock,
   formBlock: FormBlock,
   mediaBlock: MediaBlock,
+  'medora-hero': MedoraHeroBlockComponent,
 }
 
 export const RenderBlocks: React.FC<{

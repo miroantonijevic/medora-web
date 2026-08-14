@@ -1,0 +1,122 @@
+{
+  "common": {
+    "bookNow": "Book now",
+    "contactUs": "Contact us",
+    "learnMore": "Learn more",
+    "viewAll": "View all",
+    "viewDetails": "View details",
+    "sendInquiry": "Send Quick Inquiry",
+    "noPaymentRequired": "No payment required to inquire"
+  },
+  "navigation": {
+    "home": "Home",
+    "properties": "Properties",
+    "rooms": "Rooms",
+    "offers": "Offers",
+    "contact": "Contact",
+    "gallery": "Gallery",
+    "destination": "Destination",
+    "weThinkGreen": "We think green",
+    "faq": "FAQ",
+    "contactFaq": "Contact & FAQ"
+  },
+  "properties": {
+    "title": "Our Properties",
+    "viewProperty": "View property",
+    "hotel": "Hotel",
+    "camp": "Camp",
+    "noProperties": "No properties found."
+  },
+  "rooms": {
+    "title": "Rooms & Accommodation",
+    "guests": "Guests",
+    "size": "Size",
+    "bed": "Bed type",
+    "included": "Included",
+    "capacity": "Capacity",
+    "viewGallery": "View Gallery",
+    "bookThisRoom": "Book this room",
+    "checkAvailability": "Check availability",
+    "noPaymentNote": "No payment required to inquire",
+    "select": "Select",
+    "noRooms": "No rooms available for this property."
+  },
+  "offers": {
+    "title": "Special Offers",
+    "subtitle": "Book directly and get the best price guaranteed.",
+    "until": "Until",
+    "validFrom": "Valid from",
+    "interested": "Interested in this offer?",
+    "specialOffer": "Special Offer",
+    "property": "Property",
+    "noOffers": "No active offers at the moment. Check back soon."
+  },
+  "contact": {
+    "title": "Contact Us",
+    "subtitle": "We're here to help. Reach out and our team will get back to you within 24 hours.",
+    "getInTouch": "Get in Touch",
+    "findUs": "Find Us",
+    "email": "Email",
+    "phone": "Phone",
+    "whatsapp": "WhatsApp",
+    "whatsappLabel": "Message us on WhatsApp",
+    "address": "Address",
+    "faqTitle": "Frequently Asked Questions",
+    "faqFallback": "Didn't find the answer?",
+    "faqFallbackLink": "Email us",
+    "getInTouch": "Get in Touch",
+    "findUs": "Find us",
+    "faqItems": [
+      { "q": "What is included in the room price?", "a": "All rooms include breakfast, free parking, free sun loungers on the beach, and complimentary non-alcoholic drinks at the pool bar. Children stay free." },
+      { "q": "Is there a direct beach?", "a": "Yes \u2014 Medora Auri is located directly on the Adriatic Sea with a private beach and sun lounger area for guests." },
+      { "q": "Do you have a kids club?", "a": "We have a fully supervised kids club running daily during the summer season, free of charge for children aged 4\u201312." },
+      { "q": "Can I book activities (excursions, boat trips) from the hotel?", "a": "Yes. Our reception team arranges excursions to Skywalk Biokovo, boat trips to the islands, and other local activities. Some are included in the room rate \u2014 see our current offers." },
+      { "q": "What is your cancellation policy?", "a": "Standard bookings can be cancelled free of charge up to 14 days before arrival. Early-bird and non-refundable rates apply different conditions. Contact us for details." },
+      { "q": "Do you accept pets?", "a": "Small pets (up to 10 kg) are accepted in selected room categories with prior notification. A small daily fee applies." }
+    ]
+  },
+  "gallery": {
+    "title": "Gallery",
+    "subtitle": "Discover Medora Hotels through our photo gallery."
+  },
+  "header": {
+    "quickInquiry": "Quick inquiry"
+  },
+  "footer": {
+    "customerServices": "Customer Services",
+    "accommodation": "Accommodation",
+    "experience": "Experience",
+    "contact": "Contact",
+    "allContacts": "All contacts",
+    "modifyReservation": "Modify / Cancel reservation",
+    "faq": "FAQ",
+    "packagesOffers": "Packages & Special offers",
+    "auriResort": "Medora Auri Family Beach Resort",
+    "orbis": "Luxury Camp Orbis",
+    "roomsSuites": "Rooms & Suites",
+    "quickInquiry": "Quick inquiry",
+    "wellness": "Wellness",
+    "dining": "Dining & Bars",
+    "activeVacation": "Active vacation",
+    "aboutRiviera": "About Makarska Riviera",
+    "aboutMedora": "About Medora Hotels",
+    "awards": "Our awards & Achievements",
+    "directions": "How to reach us",
+    "privacyPolicy": "Privacy Policy"
+  },
+  "inquiry": {
+    "title": "Quick Inquiry",
+    "subtitle": "Fill out this form and our team will contact you within 24 hours.",
+    "name": "Full name",
+    "email": "Email address",
+    "phone": "Phone number",
+    "arrival": "Arrival date",
+    "departure": "Departure date",
+    "adults": "Adults",
+    "children": "Children",
+    "roomPreference": "Room / Unit preference",
+    "message": "Message (optional)",
+    "submit": "Send inquiry",
+    "note": "No payment required. We will confirm availability and send you a personalised offer."
+  }
+}

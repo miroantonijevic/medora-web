@@ -1,31 +1,78 @@
-version: '3'
-
 services:
-  payload:
-    image: node:18-alpine
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    # Expose on host only for local dev — remove in production
     ports:
-      - '3000:3000'
+      - '5432:5432'
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-medora-web}
     volumes:
-      - .:/home/node/app
-      - node_modules:/home/node/app/node_modules
-    working_dir: /home/node/app/
-    command: sh -c "yarn install && yarn dev"
-    depends_on:
-      - mongo
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-medora-web}']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    profiles: ['fullstack']
+    # Not exposed directly — nginx proxies port 3000
+    expose:
+      - '3000'
     env_file:
       - .env
-
-  mongo:
-    image: mongo:latest
-    ports:
-      - '27017:27017'
-    command:
-      - --storageEngine=wiredTiger
     volumes:
-      - data:/data/db
-    logging:
-      driver: none
+      # Persist uploaded media across container restarts
+      - uploads_data:/app/public/media
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://localhost:3000/api/health || exit 1']
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  nginx:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    profiles: ['fullstack']
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      # Mount your SSL certificates here (e.g. from Certbot / Let's Encrypt)
+      - /etc/letsencrypt/live/${DOMAIN:-localhost}/fullchain.pem:/etc/nginx/ssl/fullchain.pem:ro
+      - /etc/letsencrypt/live/${DOMAIN:-localhost}/privkey.pem:/etc/nginx/ssl/privkey.pem:ro
+      # Certbot webroot for ACME challenges
+      - certbot_webroot:/var/www/certbot:ro
+    depends_on:
+      web:
+        condition: service_healthy
+
+  # One-shot helper: issue/renew Let's Encrypt certificates
+  certbot:
+    image: certbot/certbot:latest
+    profiles: ['certbot']
+    volumes:
+      - /etc/letsencrypt:/etc/letsencrypt
+      - certbot_webroot:/var/www/certbot
+    command: >
+      certonly --webroot --webroot-path=/var/www/certbot
+      --email ${CERTBOT_EMAIL:-admin@example.com}
+      --agree-tos --no-eff-email
+      -d ${DOMAIN:-example.com}
 
 volumes:
-  data:
-  node_modules:
+  postgres_data:
+  uploads_data:
+  certbot_webroot:

@@ -24,11 +24,11 @@ export const generateMeta = async (args: {
 }): Promise<Metadata> => {
   const { doc } = args
 
-  const ogImage = getImageURL(doc?.meta?.image)
+  const ogImage = getImageURL(undefined)
 
   const title = doc?.meta?.title
-    ? doc?.meta?.title + ' | Payload Website Template'
-    : 'Payload Website Template'
+    ? doc?.meta?.title + ' | Medora Hotels'
+    : 'Medora Hotels'
 
   return {
     description: doc?.meta?.description,

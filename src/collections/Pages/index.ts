@@ -37,6 +37,9 @@ export const Pages: CollectionConfig<'pages'> = {
     slug: true,
   },
   admin: {
+    hidden: true,
+    group: 'Blog',
+    description: 'Custom CMS pages built with a drag-and-drop block layout builder.',
     defaultColumns: ['title', 'slug', 'updatedAt'],
     livePreview: {
       url: ({ data, req }) =>

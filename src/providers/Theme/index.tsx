@@ -23,32 +23,22 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
   const setTheme = useCallback((themeToSet: Theme | null) => {
     if (themeToSet === null) {
       window.localStorage.removeItem(themeLocalStorageKey)
+      document.cookie = `payload-theme=; path=/; max-age=0`
       const implicitPreference = getImplicitPreference()
       document.documentElement.setAttribute('data-theme', implicitPreference || '')
       if (implicitPreference) setThemeState(implicitPreference)
     } else {
       setThemeState(themeToSet)
       window.localStorage.setItem(themeLocalStorageKey, themeToSet)
+      document.cookie = `payload-theme=${themeToSet}; path=/; max-age=31536000; SameSite=Lax`
       document.documentElement.setAttribute('data-theme', themeToSet)
     }
   }, [])
 
   useEffect(() => {
-    let themeToSet: Theme = defaultTheme
-    const preference = window.localStorage.getItem(themeLocalStorageKey)
-
-    if (themeIsValid(preference)) {
-      themeToSet = preference
-    } else {
-      const implicitPreference = getImplicitPreference()
-
-      if (implicitPreference) {
-        themeToSet = implicitPreference
-      }
-    }
-
-    document.documentElement.setAttribute('data-theme', themeToSet)
-    setThemeState(themeToSet)
+    // Hotel frontend is always light mode regardless of system or admin preference
+    document.documentElement.setAttribute('data-theme', 'light')
+    setThemeState('light')
   }, [])
 
   return <ThemeContext value={{ setTheme, theme }}>{children}</ThemeContext>

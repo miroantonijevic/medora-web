@@ -1,67 +1,79 @@
-import { Banner } from '@payloadcms/ui/elements/Banner'
 import React from 'react'
-
-import { SeedButton } from './SeedButton'
 import './index.scss'
 
-const baseClass = 'before-dashboard'
-
-const BeforeDashboard: React.FC = () => {
+const BeforeDashboard = async () => {
   return (
-    <div className={baseClass}>
-      <Banner className={`${baseClass}__banner`} type="success">
-        <h4>Welcome to your dashboard!</h4>
-      </Banner>
-      Here&apos;s what to do next:
-      <ul className={`${baseClass}__instructions`}>
-        <li>
-          <SeedButton />
-          {' with a few pages, posts, and projects to jump-start your new site, then '}
-          <a href="/" target="_blank">
-            visit your website
-          </a>
-          {' to see the results.'}
-        </li>
-        <li>
-          {'Modify your '}
-          <a
-            href="https://payloadcms.com/docs/configuration/collections"
-            rel="noopener noreferrer"
-            target="_blank"
-          >
-            collections
-          </a>
-          {' and add more '}
-          <a
-            href="https://payloadcms.com/docs/fields/overview"
-            rel="noopener noreferrer"
-            target="_blank"
-          >
-            fields
-          </a>
-          {' as needed. If you are new to Payload, we also recommend you check out the '}
-          <a
-            href="https://payloadcms.com/docs/getting-started/what-is-payload"
-            rel="noopener noreferrer"
-            target="_blank"
-          >
-            Getting Started
-          </a>
-          {' docs.'}
-        </li>
-        <li>
-          Commit and push your changes to the repository to trigger a redeployment of your project.
-        </li>
-      </ul>
-      {'Pro Tip: This block is a '}
-      <a
-        href="https://payloadcms.com/docs/custom-components/overview"
-        rel="noopener noreferrer"
-        target="_blank"
-      >
-        custom component
-      </a>
-      , you can remove it at any time by updating your <strong>payload.config</strong>.
+    <div className="medora-dashboard">
+      {/* Hides Payload auto-generated ModularDashboard rendered below this component */}
+      <style>{`.modular-dashboard{display:none!important}`}</style>
+
+      <div className="medora-dashboard__header">
+        <h2>Medora Hotels CMS</h2>
+        <a href="/" target="_blank" rel="noopener noreferrer" className="medora-dashboard__live">
+          View live website ↗
+        </a>
+      </div>
+
+      <div className="medora-dashboard__label">Properties</div>
+      <div className="medora-dashboard__row">
+        <a className="medora-dashboard__prop" href="/admin/globals/auri-homepage">
+          <span>🏨</span>
+          <div>
+            <strong>Medora Auri</strong>
+            <small>Homepage</small>
+          </div>
+        </a>
+        <a className="medora-dashboard__prop" href="/admin/globals/orbis-homepage">
+          <span>🏕</span>
+          <div>
+            <strong>Luxury Camp Orbis</strong>
+            <small>Homepage</small>
+          </div>
+        </a>
+      </div>
+
+      <div className="medora-dashboard__row" style={{ marginTop: '8px' }}>
+        <a className="medora-dashboard__card" href="/admin/collections/rooms">
+          🛏 Rooms
+          <small>Room types per property</small>
+        </a>
+        <a className="medora-dashboard__card" href="/admin/collections/offers">
+          🎁 Special Offers
+          <small>Deals with publish scheduling</small>
+        </a>
+        <a className="medora-dashboard__card" href="/admin/collections/media">
+          🖼 Media
+          <small>Upload and manage images</small>
+        </a>
+        <a className="medora-dashboard__card" href="/admin/collections/properties">
+          🏗 Property details
+          <small>Name, address, star rating</small>
+        </a>
+      </div>
+
+      <div className="medora-dashboard__label">Settings</div>
+      <div className="medora-dashboard__row">
+        <a className="medora-dashboard__card" href="/admin/globals/site-settings">
+          ⚙️ Site Settings
+          <small>Contact info, favicon, Analytics</small>
+        </a>
+        <a className="medora-dashboard__card" href="/admin/globals/seo-defaults">
+          🔍 SEO Defaults
+          <small>Fallback meta title &amp; description</small>
+        </a>
+        <a className="medora-dashboard__card" href="/admin/collections/amenities">
+          ✅ Amenities
+          <small>Pool, parking, spa icons</small>
+        </a>
+      </div>
+
+      <div className="medora-dashboard__footer">
+        <a href="/admin/globals/main-nav">Navigation menu</a>
+        <span> · </span>
+        <a href="/admin/collections/users">Users</a>
+        <span> · </span>
+        <a href="/admin/collections/redirects">Redirects</a>
+      </div>
     </div>
   )
 }

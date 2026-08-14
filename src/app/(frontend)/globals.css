@@ -43,8 +43,8 @@
   --breakpoint-lg: 64rem;
   --breakpoint-xl: 80rem;
   --breakpoint-2xl: 86rem;
-  --font-mono: var(--font-geist-mono);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-montserrat), Arial, sans-serif;
+  --font-display: var(--font-montserrat), Arial, sans-serif;
 }
 
 @layer utilities {
@@ -87,25 +87,31 @@
 }
 
 :root {
-  --background: oklch(100% 0 0deg);
-  --foreground: oklch(14.5% 0 0deg);
-  --card: oklch(96.5% 0.005 265deg);
-  --card-foreground: oklch(14.5% 0 0deg);
-  --popover: oklch(100% 0 0deg);
-  --popover-foreground: oklch(14.5% 0 0deg);
-  --primary: oklch(20.5% 0 0deg);
-  --primary-foreground: oklch(98.5% 0 0deg);
-  --secondary: oklch(97% 0 0deg);
-  --secondary-foreground: oklch(20.5% 0 0deg);
-  --muted: oklch(97% 0 0deg);
-  --muted-foreground: oklch(55.6% 0 0deg);
-  --accent: oklch(97% 0 0deg);
-  --accent-foreground: oklch(20.5% 0 0deg);
-  --destructive: oklch(57.7% 0.245 27.325deg);
-  --destructive-foreground: oklch(57.7% 0.245 27.325deg);
-  --border: oklch(92.2% 0 0deg);
-  --input: oklch(92.2% 0 0deg);
-  --ring: oklch(70.8% 0 0deg);
+  --background: #fffaf5;
+  --foreground: #11131e;
+  --color-navy: #012B59;
+  --color-blue: #009bdb;
+  --color-orange: #FF914D;
+  --color-overlay: #19287b;
+  --color-footer-bg: #f1e5e1;
+  --color-gold: #c9a96e;
+  --card: #ffffff;
+  --card-foreground: #1f1f1f;
+  --popover: #ffffff;
+  --popover-foreground: #1a1a1a;
+  --primary: #1a1a1a;
+  --primary-foreground: #fafaf8;
+  --secondary: #f2efe7;
+  --secondary-foreground: #232323;
+  --muted: #f4f1ea;
+  --muted-foreground: #6b6b6b;
+  --accent: #c9a96e;
+  --accent-foreground: #1a1a1a;
+  --destructive: #b91c1c;
+  --destructive-foreground: #fff1f2;
+  --border: #e5ded1;
+  --input: #e5ded1;
+  --ring: #c9a96e;
   --chart-1: oklch(64.6% 0.222 41.116deg);
   --chart-2: oklch(60% 0.118 184.704deg);
   --chart-3: oklch(39.8% 0.07 227.392deg);
@@ -209,8 +215,23 @@
   * {
     @apply border-border outline-ring/50;
   }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-display);
+  }
+
   body {
     @apply bg-background text-foreground min-h-[100vh] flex flex-col;
+    font-family: var(--font-sans);
+    letter-spacing: 0.01em;
+    background-image:
+      radial-gradient(circle at 20% 10%, rgba(201, 169, 110, 0.11), transparent 40%),
+      radial-gradient(circle at 80% 90%, rgba(201, 169, 110, 0.07), transparent 35%);
   }
 }
 
