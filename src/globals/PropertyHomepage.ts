@@ -17,7 +17,8 @@ const makePropertyHomepage = (
       url: ({ locale }) => {
         const secret = process.env.PAYLOAD_DRAFT_SECRET ?? 'draft-secret'
         const localeCode = locale?.code ?? 'en'
-        return `${getServerSideURL()}/api/draft?url=${encodeURIComponent(pageURL)}&secret=${secret}&locale=${localeCode}`
+        const localizedURL = `/${localeCode}${pageURL === '/' ? '' : pageURL}`
+        return `${getServerSideURL()}/api/draft?url=${encodeURIComponent(localizedURL)}&secret=${secret}&locale=${localeCode}`
       },
     },
   },
@@ -56,7 +57,8 @@ const makePropertyHomepage = (
                   RowLabel: '@/globals/RowLabels/SlideRowLabel#SlideRowLabel',
                 },
                 initCollapsed: true,
-                description: 'Drag to reorder. Each slide shows a full-screen background image with headline, bullet points and a CTA button.',
+                description:
+                  'Drag to reorder. Each slide shows a full-screen background image with headline, bullet points and a CTA button.',
               },
               fields: [
                 {
@@ -186,17 +188,17 @@ const makePropertyHomepage = (
         // ─── Tab 3: Rooms & Offer ──────────────────────────────────────────
         {
           label: 'Rooms & Offer',
-          description: 'Pick which rooms and offer appear on the homepage.',
+          description: 'Pick which room groups and offer appear on the homepage.',
           fields: [
             {
-              name: 'featuredRooms',
+              name: 'featuredGroups',
               type: 'relationship',
-              relationTo: 'rooms',
+              relationTo: 'room-groups',
               hasMany: true,
               maxRows: 6,
-              label: 'Featured Rooms',
+              label: 'Featured Room Groups',
               admin: {
-                description: `Pick up to 6 rooms to feature. Leave empty to auto-show the first rooms for ${propertySlug}.`,
+                description: `Pick which room groups to show on the homepage. Leave empty to auto-show all top-level groups for ${propertySlug}.`,
               },
             },
             {
@@ -206,7 +208,8 @@ const makePropertyHomepage = (
               hasMany: false,
               label: 'Featured Offer',
               admin: {
-                description: 'The offer shown in the homepage banner. Leave empty to use the latest active offer.',
+                description:
+                  'The offer shown in the homepage banner. Leave empty to use the latest active offer.',
               },
             },
           ],

@@ -25,7 +25,7 @@ export const MedoraHeroBlock: Block = {
     },
     {
       name: 'backgroundImage',
-      type: 'relationship',
+      type: 'upload',
       relationTo: 'media',
     },
   ],

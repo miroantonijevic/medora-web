@@ -17,12 +17,22 @@ export const getSiteSettings = cache(async () => {
 
 export const getAuriHomepage = cache(async (draft = false, locale = 'en') => {
   const payload = await getPayloadClient()
-  return payload.findGlobal({ slug: 'auri-homepage', depth: 2, draft, locale: locale as 'en' | 'hr' | 'de' })
+  return payload.findGlobal({
+    slug: 'auri-homepage',
+    depth: 2,
+    draft,
+    locale: locale as 'en' | 'hr' | 'de',
+  })
 })
 
 export const getOrbisHomepage = cache(async (draft = false, locale = 'en') => {
   const payload = await getPayloadClient()
-  return payload.findGlobal({ slug: 'orbis-homepage', depth: 2, draft, locale: locale as 'en' | 'hr' | 'de' })
+  return payload.findGlobal({
+    slug: 'orbis-homepage',
+    depth: 2,
+    draft,
+    locale: locale as 'en' | 'hr' | 'de',
+  })
 })
 
 // ─── Properties ─────────────────────────────────────────────────────────────
@@ -66,25 +76,6 @@ export const getRoomsByProperty = cache(async (propertySlug: string, locale = 'e
   return payload.find({
     collection: 'rooms',
     where: { property: { equals: propertyId } },
-    depth: 2,
-    locale: locale as 'en' | 'hr' | 'de',
-    limit: 100,
-  })
-})
-
-export const getRoomsByCategories = cache(async (propertySlug: string, categories: string[], locale = 'en') => {
-  const payload = await getPayloadClient()
-  const propResult = await payload.find({
-    collection: 'properties',
-    where: { slug: { equals: propertySlug } },
-    depth: 0,
-    limit: 1,
-  })
-  const propertyId = propResult.docs[0]?.id
-  if (!propertyId) return { docs: [], totalDocs: 0 }
-  return payload.find({
-    collection: 'rooms',
-    where: { and: [{ property: { equals: propertyId } }, { category: { in: categories } }] },
     depth: 2,
     locale: locale as 'en' | 'hr' | 'de',
     limit: 100,
@@ -212,10 +203,7 @@ export const getPublishedOffers = cache(async (propertySlug?: string, locale = '
     })
     const propertyId = propResult.docs[0]?.id
     if (propertyId) {
-      baseWhere['or'] = [
-        { property: { equals: propertyId } },
-        { property: { exists: false } },
-      ]
+      baseWhere['or'] = [{ property: { equals: propertyId } }, { property: { exists: false } }]
     }
   }
 

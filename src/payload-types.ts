@@ -912,7 +912,6 @@ export interface Room {
    * Assign to the leaf sub-group (e.g. "Dvokrevetne sobe"), not the parent.
    */
   group?: (number | null) | RoomGroup;
-  category: 'room' | 'suite' | 'villa' | 'tent' | 'cabin';
   description?: {
     root: {
       type: string;
@@ -944,6 +943,7 @@ export interface Room {
   };
   updatedAt: string;
   createdAt: string;
+  _status?: ('draft' | 'published') | null;
 }
 /**
  * Special deals and packages. Supports draft, scheduled publish and expiry dates.
@@ -1658,7 +1658,6 @@ export interface RoomsSelect<T extends boolean = true> {
   slug?: T;
   property?: T;
   group?: T;
-  category?: T;
   description?: T;
   images?: T;
   capacity?: T;
@@ -1678,6 +1677,7 @@ export interface RoomsSelect<T extends boolean = true> {
       };
   updatedAt?: T;
   createdAt?: T;
+  _status?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -2178,9 +2178,9 @@ export interface AuriHomepage {
    */
   inclusionsSubtitle?: string | null;
   /**
-   * Pick up to 6 rooms to feature. Leave empty to auto-show the first rooms for medora-auri.
+   * Pick which room groups to show on the homepage. Leave empty to auto-show all top-level groups for medora-auri.
    */
-  featuredRooms?: (number | Room)[] | null;
+  featuredGroups?: (number | RoomGroup)[] | null;
   /**
    * The offer shown in the homepage banner. Leave empty to use the latest active offer.
    */
@@ -2238,9 +2238,9 @@ export interface OrbisHomepage {
    */
   inclusionsSubtitle?: string | null;
   /**
-   * Pick up to 6 rooms to feature. Leave empty to auto-show the first rooms for luxury-camp-orbis.
+   * Pick which room groups to show on the homepage. Leave empty to auto-show all top-level groups for luxury-camp-orbis.
    */
-  featuredRooms?: (number | Room)[] | null;
+  featuredGroups?: (number | RoomGroup)[] | null;
   /**
    * The offer shown in the homepage banner. Leave empty to use the latest active offer.
    */
@@ -2377,7 +2377,7 @@ export interface AuriHomepageSelect<T extends boolean = true> {
         id?: T;
       };
   inclusionsSubtitle?: T;
-  featuredRooms?: T;
+  featuredGroups?: T;
   featuredOffer?: T;
   _status?: T;
   updatedAt?: T;
@@ -2414,7 +2414,7 @@ export interface OrbisHomepageSelect<T extends boolean = true> {
         id?: T;
       };
   inclusionsSubtitle?: T;
-  featuredRooms?: T;
+  featuredGroups?: T;
   featuredOffer?: T;
   _status?: T;
   updatedAt?: T;

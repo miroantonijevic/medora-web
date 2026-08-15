@@ -47,7 +47,7 @@ export const RoomGroups: CollectionConfig = {
     },
     {
       name: 'heroImage',
-      type: 'relationship',
+      type: 'upload',
       relationTo: 'media',
     },
     {

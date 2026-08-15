@@ -28,7 +28,7 @@ export const SEODefaults: GlobalConfig = {
     },
     {
       name: 'defaultOgImage',
-      type: 'relationship',
+      type: 'upload',
       relationTo: 'media',
     },
   ],

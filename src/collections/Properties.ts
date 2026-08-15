@@ -7,7 +7,8 @@ export const Properties: CollectionConfig = {
   admin: {
     useAsTitle: 'name',
     group: 'Hotel Content',
-    description: 'Manage hotels and camps — names, descriptions, images, amenities and star ratings.',
+    description:
+      'Manage hotels and camps — names, descriptions, images, amenities and star ratings.',
   },
   access: {
     read: () => true,
@@ -51,7 +52,7 @@ export const Properties: CollectionConfig = {
     },
     {
       name: 'heroImages',
-      type: 'relationship',
+      type: 'upload',
       relationTo: 'media',
       hasMany: true,
     },

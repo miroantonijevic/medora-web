@@ -27,17 +27,6 @@ export const ROOM_GROUPS: RoomGroup[] = [
   },
 ]
 
-export function groupSlugFromCategory(category: string): string {
-  for (const g of ROOM_GROUPS) {
-    if (g.categories.includes(category)) return g.slug
-  }
-  return 'rooms'
-}
-
-export function groupFromSlug(slug: string): RoomGroup | null {
-  return ROOM_GROUPS.find((g) => g.slug === slug) ?? null
-}
-
 export function groupNameForLocale(group: RoomGroup, locale: string): string {
   return group.names[locale as keyof typeof group.names] ?? group.names.en
 }

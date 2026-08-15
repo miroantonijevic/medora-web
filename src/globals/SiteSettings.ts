@@ -32,7 +32,7 @@ export const SiteSettings: GlobalConfig = {
     },
     {
       name: 'favicon',
-      type: 'relationship',
+      type: 'upload',
       relationTo: 'media',
       admin: {
         description: 'Favicon image (recommended: 32×32 PNG or SVG)',
@@ -40,7 +40,7 @@ export const SiteSettings: GlobalConfig = {
     },
     {
       name: 'defaultOgImage',
-      type: 'relationship',
+      type: 'upload',
       relationTo: 'media',
       admin: {
         description: 'Default OG/social share image (1200×630px recommended)',

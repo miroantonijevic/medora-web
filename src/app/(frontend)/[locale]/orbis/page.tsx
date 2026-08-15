@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { draftMode } from 'next/headers'
 import { getTranslations } from 'next-intl/server'
-import { getRoomSubGroups, getPublishedOffers, getOrbisHomepage } from '@/lib/queries'
+import { getOrbisHomepage } from '@/lib/queries'
 import { MedoraHero, type HeroSlide } from '@/components/sections/MedoraHero'
 import { MedoraInclusions, type Inclusion } from '@/components/sections/MedoraInclusions'
 import { MedoraGallery } from '@/components/sections/MedoraGallery'
@@ -36,13 +36,11 @@ export default async function OrbisHomePage({
   const resolvedSearch = await searchParams
   const locale = isDraft && resolvedSearch.locale ? resolvedSearch.locale : localeParam
 
-  const [tCommon, tNav, tOffers, homepageGlobal, roomSubGroups, fallbackOffersResult] = await Promise.all([
+  const [tCommon, tNav, tOffers, homepageGlobal] = await Promise.all([
     getTranslations({ locale, namespace: 'common' }),
     getTranslations({ locale, namespace: 'navigation' }),
     getTranslations({ locale, namespace: 'offers' }),
     getOrbisHomepage(isDraft, locale).catch(() => null),
-    getRoomSubGroups(PROPERTY_SLUG, locale).catch(() => []),
-    getPublishedOffers(PROPERTY_SLUG, locale).catch(() => ({ docs: [] })),
   ])
 
   // Map CMS slides → HeroSlide[]
@@ -68,8 +66,9 @@ export default async function OrbisHomePage({
   const inclusionsHeadline: string | undefined = homepageGlobal?.inclusionsHeadline
     ? String(homepageGlobal.inclusionsHeadline)
     : undefined
-  const inclusionsSubtitle: string | undefined = (homepageGlobal as { inclusionsSubtitle?: unknown } | null)
-    ?.inclusionsSubtitle
+  const inclusionsSubtitle: string | undefined = (
+    homepageGlobal as { inclusionsSubtitle?: unknown } | null
+  )?.inclusionsSubtitle
     ? String((homepageGlobal as { inclusionsSubtitle?: unknown }).inclusionsSubtitle)
     : undefined
   if (homepageGlobal?.inclusions && homepageGlobal.inclusions.length > 0) {
@@ -83,8 +82,10 @@ export default async function OrbisHomePage({
     })
   }
 
-  // Build room cards from DB sub-groups
-  const payloadRooms: RoomCard[] = roomSubGroups.map((group) => {
+  // Use editor-picked groups — nothing shown if not configured
+  type GroupDoc = { id: number; name: unknown; slug: string; heroImage?: unknown }
+  const featuredGroupDocs = homepageGlobal?.featuredGroups as GroupDoc[] | null | undefined
+  const payloadRooms: RoomCard[] = (featuredGroupDocs ?? []).map((group) => {
     const heroImage = group.heroImage as { url?: string; alt?: string } | null
     return {
       image: heroImage?.url ?? '/rooms/orbis-deluxe-2bed-actual.jpg',
@@ -94,11 +95,9 @@ export default async function OrbisHomePage({
     }
   })
 
-  // Featured offer: use editor-picked offer from global, or fall back to latest
+  // Featured offer — nothing shown if not configured
   type OfferDoc = { title: unknown; slug: string; heroImage?: unknown }
-  const featuredOfferDoc = homepageGlobal?.featuredOffer as OfferDoc | null | undefined
-  const offerDoc: OfferDoc | undefined =
-    featuredOfferDoc ?? (fallbackOffersResult.docs[0] as OfferDoc | undefined)
+  const offerDoc = homepageGlobal?.featuredOffer as OfferDoc | null | undefined
   let offerBanner: OfferBanner | undefined
   if (offerDoc) {
     const img = offerDoc.heroImage as { url?: string; alt?: string } | null | undefined
@@ -115,14 +114,22 @@ export default async function OrbisHomePage({
     <main>
       <LivePreviewListener />
       <MedoraHero slides={heroSlides} />
-      <MedoraInclusions headline={inclusionsHeadline} subtitle={inclusionsSubtitle} inclusions={inclusions} />
+      <MedoraInclusions
+        headline={inclusionsHeadline}
+        subtitle={inclusionsSubtitle}
+        inclusions={inclusions}
+      />
       <MedoraGallery title={tNav('gallery')} viewAllLabel={tCommon('viewAll')} />
       <MedoraRoomsGrid
         rooms={payloadRooms.length > 0 ? payloadRooms : undefined}
         title={tNav('rooms')}
         viewAllLabel={tCommon('viewAll')}
       />
-      <MedoraOfferBanners offer={offerBanner} ctaLabel={tCommon('learnMore')} specialOffersLabel={tOffers('title')} />
+      <MedoraOfferBanners
+        offer={offerBanner}
+        ctaLabel={tCommon('learnMore')}
+        specialOffersLabel={tOffers('title')}
+      />
     </main>
   )
 }

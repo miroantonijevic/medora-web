@@ -11,21 +11,12 @@ export type OfferBanner = {
   ctaHref: string
 }
 
-const defaultOffer: OfferBanner = {
-  image: '/brand/special-offers.jpg',
-  alt: 'Special offers at Medora Hotels',
-  headline: 'Spring offer with FREE LUNCH AND UNLIMITED DRINKS!',
-  ctaLabel: 'Find out more',
-  ctaHref: '/offers',
-}
-
-type Props = {
-  offer?: OfferBanner
-  ctaLabel?: string
-  specialOffersLabel?: string
-}
-
-export function MedoraOfferBanners({ offer = defaultOffer, ctaLabel, specialOffersLabel = 'Special offers' }: Props) {
+export function MedoraOfferBanners({
+  offer,
+  ctaLabel,
+  specialOffersLabel = 'Special offers',
+}: Props) {
+  if (!offer) return null
   const resolvedOffer = ctaLabel ? { ...offer, ctaLabel } : offer
   return (
     <section

@@ -13,52 +13,14 @@ export type HeroSlide = {
   ctaHref: string
 }
 
-const defaultSlides: HeroSlide[] = [
-  {
-    image: '/gallery/mainpage_skywalk.png',
-    alt: 'Medora hotels – Skywalk Biokovo',
-    headline: 'Book here & get FREE:',
-    benefits: [
-      'Excursion (Skywalk Biokovo / boat trip to islands)',
-      'OR',
-      'VIP seats at open air musical',
-    ],
-    ctaLabel: 'Find out more',
-    ctaHref: '/offers',
-  },
-  {
-    image: '/hero/mainpage_hotel.png',
-    alt: 'Medora Auri Family Beach Resort',
-    headline: 'Book here & get FREE:',
-    benefits: [
-      'Excursion (Skywalk Biokovo / boat trip to islands)',
-      'OR',
-      'VIP seats at open air musical',
-    ],
-    ctaLabel: 'View rooms',
-    ctaHref: '/accommodation',
-  },
-  {
-    image: '/gallery/mainpage_room.png',
-    alt: 'Medora rooms & suites',
-    headline: 'Book here & get FREE:',
-    benefits: [
-      'Excursion (Skywalk Biokovo / boat trip to islands)',
-      'OR',
-      'VIP seats at open air musical',
-    ],
-    ctaLabel: 'Book now',
-    ctaHref: '/inquiry',
-  },
-]
-
 type Props = {
   slides?: HeroSlide[]
 }
 
 const AUTOPLAY_MS = 5500
 
-export function MedoraHero({ slides = defaultSlides }: Props) {
+export function MedoraHero({ slides }: Props) {
+  if (!slides || slides.length === 0) return null
   const [current, setCurrent] = useState(0)
   const [paused, setPaused] = useState(false)
 

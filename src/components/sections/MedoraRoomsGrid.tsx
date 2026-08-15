@@ -11,35 +11,13 @@ export type RoomCard = {
   href: string
 }
 
-const defaultRooms: RoomCard[] = [
-  {
-    image: '/rooms/double-room.jpg',
-    alt: 'Comfort double room with partial sea view',
-    name: 'Comfort Double Rooms',
-    href: '/accommodation/rooms/double',
-  },
-  {
-    image: '/rooms/family-room.jpg',
-    alt: 'Superior family room',
-    name: 'Superior Family Rooms',
-    href: '/accommodation/rooms/family',
-  },
-  {
-    image: '/rooms/suite.jpg',
-    alt: 'Deluxe suite living room',
-    name: 'Deluxe Suites',
-    href: '/accommodation/rooms/suites',
-  },
-]
-
-type Props = {
-  rooms?: RoomCard[]
-  title?: string
-  viewAllLabel?: string
-  viewAllHref?: string
-}
-
-export function MedoraRoomsGrid({ rooms = defaultRooms, title = 'Rooms', viewAllLabel = 'view all', viewAllHref = '/accommodation' }: Props) {
+export function MedoraRoomsGrid({
+  rooms,
+  title = 'Rooms',
+  viewAllLabel = 'view all',
+  viewAllHref = '/accommodation',
+}: Props) {
+  if (!rooms || rooms.length === 0) return null
   const rowRef = useRef<HTMLDivElement>(null)
 
   return (

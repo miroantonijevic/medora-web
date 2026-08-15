@@ -23,6 +23,15 @@ export function MedoraHeader() {
   const tOffers = useTranslations('offers')
   const tFooter = useTranslations('footer')
   const [activeProperty, setActiveProperty] = useState(0)
+
+  // Sync active tab with current URL on mount and navigation
+  useEffect(() => {
+    const path = window.location.pathname.replace(/^\/(en|hr|de)(\/|$)/, '/')
+    const idx = PROPERTIES.findIndex((p) =>
+      p.href === '/' ? path === '/' : path.startsWith(p.href),
+    )
+    setActiveProperty(idx >= 0 ? idx : 0)
+  }, [])
   const [contactOpen, setContactOpen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [langOpen, setLangOpen] = useState(false)
@@ -149,7 +158,8 @@ export function MedoraHeader() {
                 fontFamily: 'inherit',
               }}
             >
-              {tCommon('contactUs')} <span style={{ fontSize: '9px' }}>{contactOpen ? '▲' : '▼'}</span>
+              {tCommon('contactUs')}{' '}
+              <span style={{ fontSize: '9px' }}>{contactOpen ? '▲' : '▼'}</span>
             </button>
             {contactOpen && (
               <div
@@ -166,7 +176,10 @@ export function MedoraHeader() {
                 }}
               >
                 {[
-                  { href: 'mailto:reservations@medorahotels.com', label: '✉ reservations@medorahotels.com' },
+                  {
+                    href: 'mailto:reservations@medorahotels.com',
+                    label: '✉ reservations@medorahotels.com',
+                  },
                   { href: 'tel:+38521607990', label: '☎ +385 21 607 990' },
                   { href: 'https://wa.me/38521607990', label: '💬 WhatsApp', external: true },
                 ].map(({ href, label, external }) => (
@@ -174,9 +187,19 @@ export function MedoraHeader() {
                     key={href}
                     href={href}
                     {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-                    style={{ display: 'block', padding: '10px 16px', fontSize: '13px', color: '#11131e', textDecoration: 'none' }}
-                    onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = '#f5f5f5')}
-                    onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = 'transparent')}
+                    style={{
+                      display: 'block',
+                      padding: '10px 16px',
+                      fontSize: '13px',
+                      color: '#11131e',
+                      textDecoration: 'none',
+                    }}
+                    onMouseEnter={(e) =>
+                      ((e.currentTarget as HTMLElement).style.background = '#f5f5f5')
+                    }
+                    onMouseLeave={(e) =>
+                      ((e.currentTarget as HTMLElement).style.background = 'transparent')
+                    }
                   >
                     {label}
                   </a>
@@ -292,9 +315,15 @@ export function MedoraHeader() {
               <span style={{ fontSize: '20px', color: '#11131e', lineHeight: 1 }}>✕</span>
             ) : (
               <>
-                <span style={{ display: 'block', width: '22px', height: '2px', background: '#11131e' }} />
-                <span style={{ display: 'block', width: '22px', height: '2px', background: '#11131e' }} />
-                <span style={{ display: 'block', width: '22px', height: '2px', background: '#11131e' }} />
+                <span
+                  style={{ display: 'block', width: '22px', height: '2px', background: '#11131e' }}
+                />
+                <span
+                  style={{ display: 'block', width: '22px', height: '2px', background: '#11131e' }}
+                />
+                <span
+                  style={{ display: 'block', width: '22px', height: '2px', background: '#11131e' }}
+                />
               </>
             )}
           </button>

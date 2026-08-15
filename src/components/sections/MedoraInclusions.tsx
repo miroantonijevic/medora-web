@@ -7,23 +7,10 @@ export type Inclusion = {
   href: string
 }
 
-const DEFAULT_INCLUSIONS: Inclusion[] = [
-  { icon: '/brand/parking.svg', label: '1 parking space', href: '/accommodation' },
-  { icon: '/brand/sunloungers.svg', label: 'Sunloungers & beach towel', href: '/accommodation' },
-  { icon: '/brand/drinks.svg', label: 'Soft drinks & wine with dinner', href: '/accommodation' },
-]
-
-const DEFAULT_HEADLINE = 'Children stay for FREE! Save €483 compared to other hotels for:'
-
-type Props = {
-  headline?: string
-  subtitle?: string
-  inclusions?: Inclusion[]
-}
-
 export function MedoraInclusions({ headline, subtitle, inclusions }: Props) {
-  const items = inclusions && inclusions.length > 0 ? inclusions : DEFAULT_INCLUSIONS
-  const title = headline ?? DEFAULT_HEADLINE
+  if (!inclusions || inclusions.length === 0) return null
+  const items = inclusions
+  const title = headline ?? ''
 
   return (
     <section

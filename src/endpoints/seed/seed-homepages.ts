@@ -83,8 +83,12 @@ function mapSlidesWithIds(
 async function seedAuriHomepage(
   payload: Payload,
   ids: {
-    skywalk: number; hotel: number; room: number
-    parking: number; sunloungers: number; drinks: number
+    skywalk: number
+    hotel: number
+    room: number
+    parking: number
+    sunloungers: number
+    drinks: number
   },
 ) {
   const en = await payload.updateGlobal({
@@ -92,16 +96,34 @@ async function seedAuriHomepage(
     locale: 'en',
     data: {
       slides: [
-        { image: ids.skywalk, headline: HERO_HEADLINE.en, benefits: HERO_BENEFITS.en, ctaLabel: 'Find out more', ctaHref: '/offers' },
-        { image: ids.hotel,   headline: HERO_HEADLINE.en, benefits: HERO_BENEFITS.en, ctaLabel: 'View rooms',    ctaHref: '/accommodation' },
-        { image: ids.room,    headline: HERO_HEADLINE.en, benefits: HERO_BENEFITS.en, ctaLabel: 'Book now',      ctaHref: '/inquiry' },
+        {
+          image: ids.skywalk,
+          headline: HERO_HEADLINE.en,
+          benefits: HERO_BENEFITS.en,
+          ctaLabel: 'Find out more',
+          ctaHref: '/offers',
+        },
+        {
+          image: ids.hotel,
+          headline: HERO_HEADLINE.en,
+          benefits: HERO_BENEFITS.en,
+          ctaLabel: 'View rooms',
+          ctaHref: '/accommodation',
+        },
+        {
+          image: ids.room,
+          headline: HERO_HEADLINE.en,
+          benefits: HERO_BENEFITS.en,
+          ctaLabel: 'Book now',
+          ctaHref: '/inquiry',
+        },
       ],
       inclusionsHeadline: 'Children stay for FREE! Save \u20ac483 compared to other hotels for:',
       inclusionsSubtitle: 'Free of charge in Medora, because we appreciate our guests!',
       inclusions: [
-        { icon: ids.parking,     label: '1 parking space',               href: '/accommodation' },
-        { icon: ids.sunloungers, label: 'Sunloungers & beach towel',     href: '/accommodation' },
-        { icon: ids.drinks,      label: 'Soft drinks & wine with dinner', href: '/accommodation' },
+        { icon: ids.parking, label: '1 parking space', href: '/accommodation' },
+        { icon: ids.sunloungers, label: 'Sunloungers & beach towel', href: '/accommodation' },
+        { icon: ids.drinks, label: 'Soft drinks & wine with dinner', href: '/accommodation' },
       ],
     },
   })
@@ -118,7 +140,8 @@ async function seedAuriHomepage(
         { label: 'Pogledaj sobe' },
         { label: 'Rezerviraj' },
       ]),
-      inclusionsHeadline: 'Djeca borave BESPLATNO! U\u0161tedite 483 \u20ac u usporedbi s drugim hotelima:',
+      inclusionsHeadline:
+        'Djeca borave BESPLATNO! U\u0161tedite 483 \u20ac u usporedbi s drugim hotelima:',
       inclusionsSubtitle: 'Besplatno u Medori, jer cijenimo svoje goste!',
       inclusions: [
         { id: inclusionIds[0], label: 'Parking' },
@@ -137,13 +160,35 @@ async function seedAuriHomepage(
         { label: 'Zimmer ansehen' },
         { label: 'Jetzt buchen' },
       ]),
-      inclusionsHeadline: 'Kinder \u00fcbernachten KOSTENLOS! Sparen Sie bis zu 483 \u20ac im Vergleich zu anderen Hotels f\u00fcr:',
+      inclusionsHeadline:
+        'Kinder \u00fcbernachten KOSTENLOS! Sparen Sie bis zu 483 \u20ac im Vergleich zu anderen Hotels f\u00fcr:',
       inclusionsSubtitle: 'Kostenlos in Medora, weil wir unsere G\u00e4ste sch\u00e4tzen!',
       inclusions: [
         { id: inclusionIds[0], label: 'Parkplatz' },
         { id: inclusionIds[1], label: 'Sonnenliegen und Badetuch' },
         { id: inclusionIds[2], label: 'Getr\u00e4nke zum Abendessen' },
       ],
+    },
+  })
+
+  const auriGroupSlugs = ['auri-double-rooms', 'auri-suites', 'auri-family-rooms']
+  const auriGroups = await payload.find({
+    collection: 'room-groups',
+    where: { slug: { in: auriGroupSlugs } },
+    depth: 0,
+    limit: 10,
+  })
+  const auriOffer = await payload.find({
+    collection: 'offers',
+    where: { slug: { equals: 'family-holiday-at-medora' } },
+    depth: 0,
+    limit: 1,
+  })
+  await payload.updateGlobal({
+    slug: 'auri-homepage',
+    data: {
+      featuredGroups: auriGroups.docs.map((g) => g.id),
+      featuredOffer: auriOffer.docs[0]?.id ?? null,
     },
   })
 
@@ -162,18 +207,36 @@ async function seedOrbisHomepage(
     locale: 'en',
     data: {
       slides: [
-        { image: ids.skywalk, headline: HERO_HEADLINE.en, benefits: HERO_BENEFITS.en, ctaLabel: 'Find out more',      ctaHref: '/offers' },
-        { image: ids.hotel,   headline: HERO_HEADLINE.en, benefits: HERO_BENEFITS.en, ctaLabel: 'View accommodation', ctaHref: '/orbis' },
-        { image: ids.room,    headline: HERO_HEADLINE.en, benefits: HERO_BENEFITS.en, ctaLabel: 'Quick inquiry',      ctaHref: '/inquiry' },
+        {
+          image: ids.skywalk,
+          headline: HERO_HEADLINE.en,
+          benefits: HERO_BENEFITS.en,
+          ctaLabel: 'Find out more',
+          ctaHref: '/offers',
+        },
+        {
+          image: ids.hotel,
+          headline: HERO_HEADLINE.en,
+          benefits: HERO_BENEFITS.en,
+          ctaLabel: 'View accommodation',
+          ctaHref: '/orbis',
+        },
+        {
+          image: ids.room,
+          headline: HERO_HEADLINE.en,
+          benefits: HERO_BENEFITS.en,
+          ctaLabel: 'Quick inquiry',
+          ctaHref: '/inquiry',
+        },
       ],
       inclusionsHeadline: 'Free of charge in Medora, because we love our guests!',
       inclusionsSubtitle: 'Free of charge in Medora, because we love our guests!',
       inclusions: [
-        { icon: ids.parking,     label: 'Parking',                  href: '/orbis' },
+        { icon: ids.parking, label: 'Parking', href: '/orbis' },
         { icon: ids.sunloungers, label: 'Sunloungers & beach towel', href: '/orbis' },
-        {                        label: 'Washer and dryer',          href: '/orbis' },
-        {                        label: 'A gift for your pet',       href: '/orbis' },
-        {                        label: 'Bicycle',                   href: '/orbis' },
+        { label: 'Washer and dryer', href: '/orbis' },
+        { label: 'A gift for your pet', href: '/orbis' },
+        { label: 'Bicycle', href: '/orbis' },
       ],
     },
   })
@@ -223,16 +286,34 @@ async function seedOrbisHomepage(
     },
   })
 
+  const orbisGroupSlugs = ['orbis-cabins-small', 'orbis-cabins-large', 'orbis-pitches']
+  const orbisGroups = await payload.find({
+    collection: 'room-groups',
+    where: { slug: { in: orbisGroupSlugs } },
+    depth: 0,
+    limit: 10,
+  })
+  const orbisOffer = await payload.find({
+    collection: 'offers',
+    where: { slug: { equals: 'one-summer-in-orbis' } },
+    depth: 0,
+    limit: 1,
+  })
+  await payload.updateGlobal({
+    slug: 'orbis-homepage',
+    data: {
+      featuredGroups: orbisGroups.docs.map((g) => g.id),
+      featuredOffer: orbisOffer.docs[0]?.id ?? null,
+    },
+  })
+
   await payload.updateGlobal({ slug: 'orbis-homepage', data: { _status: 'published' } })
   payload.logger.info('  orbis-homepage seeded and published.')
 }
 
 // ─── Rooms images ─────────────────────────────────────────────────────────────
 
-async function seedRoomImages(
-  payload: Payload,
-  roomImages: { slug: string; mediaId: number }[],
-) {
+async function seedRoomImages(payload: Payload, roomImages: { slug: string; mediaId: number }[]) {
   for (const { slug, mediaId } of roomImages) {
     const result = await payload.find({
       collection: 'rooms',
@@ -258,50 +339,62 @@ async function seedRoomImages(
 
 // ─── Main export ─────────────────────────────────────────────────────────────
 
-export async function seedHomepages({ payload, force = false }: { payload: Payload; force?: boolean }) {
+export async function seedHomepages({
+  payload,
+  force = false,
+}: {
+  payload: Payload
+  force?: boolean
+}) {
   payload.logger.info('Seeding homepages...')
 
-  const [parkingId, sunloungersId, drinksId, doubleRoomId, familyRoomId, suiteId] = await Promise.all([
-    getOrUploadMedia(payload, 'parking.svg',    'brand/parking.svg',    'image/svg+xml'),
-    getOrUploadMedia(payload, 'sunloungers.svg', 'brand/sunloungers.svg', 'image/svg+xml'),
-    getOrUploadMedia(payload, 'drinks.svg',      'brand/drinks.svg',     'image/svg+xml'),
-    getOrUploadMedia(payload, 'double-room.jpg', 'rooms/double-room.jpg', 'image/jpeg'),
-    getOrUploadMedia(payload, 'family-room.jpg', 'rooms/family-room.jpg', 'image/jpeg'),
-    getOrUploadMedia(payload, 'suite.jpg',        'rooms/suite.jpg',       'image/jpeg'),
-  ])
+  const [parkingId, sunloungersId, drinksId, doubleRoomId, familyRoomId, suiteId] =
+    await Promise.all([
+      getOrUploadMedia(payload, 'parking.svg', 'brand/parking.svg', 'image/svg+xml'),
+      getOrUploadMedia(payload, 'sunloungers.svg', 'brand/sunloungers.svg', 'image/svg+xml'),
+      getOrUploadMedia(payload, 'drinks.svg', 'brand/drinks.svg', 'image/svg+xml'),
+      getOrUploadMedia(payload, 'double-room.jpg', 'rooms/double-room.jpg', 'image/jpeg'),
+      getOrUploadMedia(payload, 'family-room.jpg', 'rooms/family-room.jpg', 'image/jpeg'),
+      getOrUploadMedia(payload, 'suite.jpg', 'rooms/suite.jpg', 'image/jpeg'),
+    ])
 
   await seedRoomImages(payload, [
     { slug: 'superior-double-sea-view', mediaId: doubleRoomId },
-    { slug: 'family-room-auri',         mediaId: familyRoomId },
-    { slug: 'junior-suite-sea-view',    mediaId: suiteId },
+    { slug: 'family-room-auri', mediaId: familyRoomId },
+    { slug: 'junior-suite-sea-view', mediaId: suiteId },
   ])
 
-  const findMediaId = async (filename: string) => {
-    const r = await payload.find({ collection: 'media', where: { filename: { equals: filename } }, limit: 1 })
-    return r.docs[0]?.id as number | undefined
-  }
   const [skywalkId, hotelId, roomId] = await Promise.all([
-    findMediaId('mainpage_skywalk.png'),
-    findMediaId('mainpage_hotel.png'),
-    findMediaId('mainpage_room.png'),
+    getOrUploadMedia(payload, 'mainpage_skywalk.png', 'gallery/mainpage_skywalk.png', 'image/png'),
+    getOrUploadMedia(payload, 'mainpage_hotel.png', 'gallery/mainpage_hotel.png', 'image/png'),
+    getOrUploadMedia(payload, 'mainpage_room.png', 'gallery/mainpage_room.png', 'image/png'),
   ])
-
-  if (!skywalkId || !hotelId || !roomId) {
-    throw new Error('Hero images not found in Media. Upload mainpage_skywalk.png, mainpage_hotel.png, mainpage_room.png first.')
-  }
 
   const existingAuri = await payload.findGlobal({ slug: 'auri-homepage', locale: 'en', depth: 0 })
   if (!force && existingAuri.slides?.length) {
     payload.logger.info('  auri-homepage already seeded - use force=true to reseed.')
   } else {
-    await seedAuriHomepage(payload, { skywalk: skywalkId, hotel: hotelId, room: roomId, parking: parkingId, sunloungers: sunloungersId, drinks: drinksId })
+    await seedAuriHomepage(payload, {
+      skywalk: skywalkId,
+      hotel: hotelId,
+      room: roomId,
+      parking: parkingId,
+      sunloungers: sunloungersId,
+      drinks: drinksId,
+    })
   }
 
   const existingOrbis = await payload.findGlobal({ slug: 'orbis-homepage', locale: 'en', depth: 0 })
   if (!force && existingOrbis.slides?.length) {
     payload.logger.info('  orbis-homepage already seeded - use force=true to reseed.')
   } else {
-    await seedOrbisHomepage(payload, { skywalk: skywalkId, hotel: hotelId, room: roomId, parking: parkingId, sunloungers: sunloungersId })
+    await seedOrbisHomepage(payload, {
+      skywalk: skywalkId,
+      hotel: hotelId,
+      room: roomId,
+      parking: parkingId,
+      sunloungers: sunloungersId,
+    })
   }
 
   payload.logger.info('Homepage seed complete.')
