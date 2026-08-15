@@ -5,11 +5,10 @@ export const Amenities: CollectionConfig = {
   admin: {
     useAsTitle: 'name',
     group: 'Hotel Content',
-    description: 'Reusable amenity icons (pool, spa, parking…) that appear on property pages.',
+    description: 'Individual amenity items (Spa, Restaurant, Fitness…) each belonging to an amenity group.',
+    defaultColumns: ['name', 'group', 'slug'],
   },
-  access: {
-    read: () => true,
-  },
+  access: { read: () => true },
   fields: [
     {
       name: 'name',
@@ -18,17 +17,63 @@ export const Amenities: CollectionConfig = {
       localized: true,
     },
     {
-      name: 'icon',
+      name: 'slug',
       type: 'text',
       required: true,
-      admin: {
-        description: 'Use a lucide icon name, for example: waves, parking-circle, dumbbell.',
-      },
+      index: true,
     },
     {
-      name: 'category',
+      name: 'group',
+      type: 'relationship',
+      relationTo: 'amenity-groups',
+      required: true,
+      index: true,
+    },
+    {
+      name: 'heroImage',
+      type: 'upload',
+      relationTo: 'media',
+    },
+    {
+      name: 'tagline',
       type: 'text',
       localized: true,
+    },
+    {
+      name: 'description',
+      type: 'richText',
+      localized: true,
+    },
+    {
+      name: 'highlights',
+      type: 'array',
+      localized: true,
+      admin: { description: 'Bullet-point features, e.g. "Finnish sauna", "Heated pool".' },
+      fields: [
+        { name: 'text', type: 'text', required: true },
+      ],
+    },
+    {
+      name: 'openingHours',
+      type: 'text',
+      localized: true,
+    },
+    {
+      name: 'location',
+      type: 'text',
+      localized: true,
+      admin: { description: 'e.g. "9th Floor" or "Ground floor, pool area".' },
+    },
+    {
+      name: 'images',
+      type: 'upload',
+      relationTo: 'media',
+      hasMany: true,
+    },
+    {
+      name: 'order',
+      type: 'number',
+      admin: { description: 'Controls display order within the group.' },
     },
   ],
 }

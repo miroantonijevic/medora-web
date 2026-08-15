@@ -78,6 +78,7 @@ export interface Config {
     'room-groups': RoomGroup;
     rooms: Room;
     offers: Offer;
+    'amenity-groups': AmenityGroup;
     amenities: Amenity;
     'landing-pages': LandingPage;
     redirects: Redirect;
@@ -106,6 +107,7 @@ export interface Config {
     'room-groups': RoomGroupsSelect<false> | RoomGroupsSelect<true>;
     rooms: RoomsSelect<false> | RoomsSelect<true>;
     offers: OffersSelect<false> | OffersSelect<true>;
+    'amenity-groups': AmenityGroupsSelect<false> | AmenityGroupsSelect<true>;
     amenities: AmenitiesSelect<false> | AmenitiesSelect<true>;
     'landing-pages': LandingPagesSelect<false> | LandingPagesSelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
@@ -848,7 +850,6 @@ export interface Property {
     [k: string]: unknown;
   } | null;
   heroImages?: (number | Media)[] | null;
-  amenities?: (number | Amenity)[] | null;
   address?: string | null;
   coordinates?: {
     lat?: number | null;
@@ -859,23 +860,6 @@ export interface Property {
     title?: string | null;
     description?: string | null;
   };
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * Reusable amenity icons (pool, spa, parking…) that appear on property pages.
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "amenities".
- */
-export interface Amenity {
-  id: number;
-  name: string;
-  /**
-   * Use a lucide icon name, for example: waves, parking-circle, dumbbell.
-   */
-  icon: string;
-  category?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -981,6 +965,75 @@ export interface Offer {
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
+}
+/**
+ * Top-level amenity categories shown in the footer: Wellness, Dining & Bars, Active vacation.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "amenity-groups".
+ */
+export interface AmenityGroup {
+  id: number;
+  name: string;
+  slug: string;
+  description?: string | null;
+  heroImage?: (number | null) | Media;
+  /**
+   * Controls display order in navigation.
+   */
+  order?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Individual amenity items (Spa, Restaurant, Fitness…) each belonging to an amenity group.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "amenities".
+ */
+export interface Amenity {
+  id: number;
+  name: string;
+  slug: string;
+  group: number | AmenityGroup;
+  heroImage?: (number | null) | Media;
+  tagline?: string | null;
+  description?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  /**
+   * Bullet-point features, e.g. "Finnish sauna", "Heated pool".
+   */
+  highlights?:
+    | {
+        text: string;
+        id?: string | null;
+      }[]
+    | null;
+  openingHours?: string | null;
+  /**
+   * e.g. "9th Floor" or "Ground floor, pool area".
+   */
+  location?: string | null;
+  images?: (number | Media)[] | null;
+  /**
+   * Controls display order within the group.
+   */
+  order?: number | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * Custom landing pages with a block-based layout builder.
@@ -1233,6 +1286,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'offers';
         value: number | Offer;
+      } | null)
+    | ({
+        relationTo: 'amenity-groups';
+        value: number | AmenityGroup;
       } | null)
     | ({
         relationTo: 'amenities';
@@ -1616,7 +1673,6 @@ export interface PropertiesSelect<T extends boolean = true> {
   shortDescription?: T;
   description?: T;
   heroImages?: T;
-  amenities?: T;
   address?: T;
   coordinates?:
     | T
@@ -1703,12 +1759,38 @@ export interface OffersSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "amenity-groups_select".
+ */
+export interface AmenityGroupsSelect<T extends boolean = true> {
+  name?: T;
+  slug?: T;
+  description?: T;
+  heroImage?: T;
+  order?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "amenities_select".
  */
 export interface AmenitiesSelect<T extends boolean = true> {
   name?: T;
-  icon?: T;
-  category?: T;
+  slug?: T;
+  group?: T;
+  heroImage?: T;
+  tagline?: T;
+  description?: T;
+  highlights?:
+    | T
+    | {
+        text?: T;
+        id?: T;
+      };
+  openingHours?: T;
+  location?: T;
+  images?: T;
+  order?: T;
   updatedAt?: T;
   createdAt?: T;
 }

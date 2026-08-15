@@ -57,12 +57,6 @@ export const Properties: CollectionConfig = {
       hasMany: true,
     },
     {
-      name: 'amenities',
-      type: 'relationship',
-      relationTo: 'amenities',
-      hasMany: true,
-    },
-    {
       name: 'address',
       type: 'text',
       localized: true,

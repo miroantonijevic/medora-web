@@ -184,6 +184,67 @@ export const getRoomsByGroup = cache(async (groupId: number, locale = 'en') => {
   })
 })
 
+// ─── Amenity Groups ───────────────────────────────────────────────────────────
+
+export const getAmenityGroups = cache(async (locale = 'en') => {
+  const payload = await getPayloadClient()
+  const result = await payload.find({
+    collection: 'amenity-groups',
+    depth: 0,
+    locale: locale as 'en' | 'hr' | 'de',
+    sort: 'order',
+    limit: 20,
+  })
+  return result.docs
+})
+
+export const getAmenityGroupBySlug = cache(async (slug: string, locale = 'en') => {
+  const payload = await getPayloadClient()
+  const result = await payload.find({
+    collection: 'amenity-groups',
+    where: { slug: { equals: slug } },
+    depth: 0,
+    locale: locale as 'en' | 'hr' | 'de',
+    limit: 1,
+  })
+  return result.docs[0] ?? null
+})
+
+// ─── Amenities ────────────────────────────────────────────────────────────────
+
+export const getAmenitiesByGroup = cache(async (groupSlug: string, locale = 'en') => {
+  const payload = await getPayloadClient()
+  const groupResult = await payload.find({
+    collection: 'amenity-groups',
+    where: { slug: { equals: groupSlug } },
+    depth: 0,
+    limit: 1,
+  })
+  const groupId = groupResult.docs[0]?.id
+  if (!groupId) return []
+  const result = await payload.find({
+    collection: 'amenities',
+    where: { group: { equals: groupId } },
+    depth: 1,
+    locale: locale as 'en' | 'hr' | 'de',
+    sort: 'order',
+    limit: 50,
+  })
+  return result.docs
+})
+
+export const getAmenityBySlug = cache(async (slug: string, locale = 'en') => {
+  const payload = await getPayloadClient()
+  const result = await payload.find({
+    collection: 'amenities',
+    where: { slug: { equals: slug } },
+    depth: 2,
+    locale: locale as 'en' | 'hr' | 'de',
+    limit: 1,
+  })
+  return result.docs[0] ?? null
+})
+
 // ─── Offers ──────────────────────────────────────────────────────────────────
 
 export const getPublishedOffers = cache(async (propertySlug?: string, locale = 'en') => {

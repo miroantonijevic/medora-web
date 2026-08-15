@@ -9,6 +9,7 @@ import { Media } from './collections/Media'
 import { Pages } from './collections/Pages'
 import { Posts } from './collections/Posts'
 import { Amenities } from './collections/Amenities'
+import { AmenityGroups } from './collections/AmenityGroups'
 import { LandingPages } from './collections/LandingPages'
 import { Offers } from './collections/Offers'
 import { Properties } from './collections/Properties'
@@ -108,6 +109,7 @@ export default buildConfig({
     RoomGroups,
     Rooms,
     Offers,
+    AmenityGroups,
     Amenities,
     LandingPages,
   ],
