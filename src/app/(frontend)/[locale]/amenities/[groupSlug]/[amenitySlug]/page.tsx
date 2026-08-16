@@ -50,24 +50,71 @@ export default async function AmenityDetailPage({ params: paramsPromise }: Args)
 
   type MediaDoc = { url?: string; alt?: string }
   const heroImage = amenity.heroImage as MediaDoc | null
-  const images = ((amenity.images ?? []) as MediaDoc[]).filter((i): i is Required<MediaDoc> => Boolean(i.url))
+  const images = ((amenity.images ?? []) as MediaDoc[]).filter((i): i is Required<MediaDoc> =>
+    Boolean(i.url),
+  )
   type Highlight = { text?: unknown }
   const highlights = (amenity.highlights ?? []) as Highlight[]
 
   return (
     <main>
       {/* ── HERO ── */}
-      <div style={{ position: 'relative', width: '100%', height: '60vh', minHeight: 380, background: '#1a2a3a' }}>
+      <div
+        style={{
+          position: 'relative',
+          width: '100%',
+          height: '60vh',
+          minHeight: 380,
+          background: '#1a2a3a',
+        }}
+      >
         {heroImage?.url && (
-          <Image src={heroImage.url} alt={heroImage.alt ?? String(amenity.name)} fill style={{ objectFit: 'cover' }} priority sizes="100vw" />
+          <Image
+            src={heroImage.url}
+            alt={heroImage.alt ?? String(amenity.name)}
+            fill
+            style={{ objectFit: 'cover' }}
+            priority
+            sizes="100vw"
+          />
         )}
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.15) 55%, transparent 100%)' }} />
-        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: 'clamp(24px, 4vh, 44px) clamp(24px, 4vw, 48px)' }}>
-          <h1 style={{ color: '#fff', fontSize: 'clamp(26px, 3.5vw, 50px)', fontWeight: 700, margin: 0, textShadow: '0 2px 12px rgba(0,0,0,0.5)' }}>
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            background:
+              'linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.15) 55%, transparent 100%)',
+          }}
+        />
+        <div
+          style={{
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            padding: 'clamp(24px, 4vh, 44px) clamp(24px, 4vw, 48px)',
+          }}
+        >
+          <h1
+            style={{
+              color: '#fff',
+              fontSize: 'clamp(26px, 3.5vw, 50px)',
+              fontWeight: 700,
+              margin: 0,
+              textShadow: '0 2px 12px rgba(0,0,0,0.5)',
+            }}
+          >
             {String(amenity.name)}
           </h1>
           {amenity.tagline && (
-            <p style={{ color: 'rgba(255,255,255,0.85)', fontSize: 'clamp(14px, 1.5vw, 18px)', margin: '8px 0 0', fontStyle: 'italic' }}>
+            <p
+              style={{
+                color: 'rgba(255,255,255,0.85)',
+                fontSize: 'clamp(14px, 1.5vw, 18px)',
+                margin: '8px 0 0',
+                fontStyle: 'italic',
+              }}
+            >
               {String(amenity.tagline)}
             </p>
           )}
@@ -76,10 +123,26 @@ export default async function AmenityDetailPage({ params: paramsPromise }: Args)
 
       {/* ── BREADCRUMB ── */}
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 clamp(24px, 4vw, 48px)' }}>
-        <nav style={{ fontSize: 13, color: '#888', padding: '14px 0', display: 'flex', flexWrap: 'wrap', alignItems: 'center' }}>
-          <Link href="/" style={{ color: '#009bdb', textDecoration: 'none' }}>{tNav('home')}</Link>
+        <nav
+          style={{
+            fontSize: 13,
+            color: '#888',
+            padding: '14px 0',
+            display: 'flex',
+            flexWrap: 'wrap',
+            alignItems: 'center',
+          }}
+        >
+          <Link href="/" style={{ color: '#009bdb', textDecoration: 'none' }}>
+            {tNav('home')}
+          </Link>
           <span style={{ margin: '0 8px', color: '#ccc' }}>/</span>
-          <Link href={`/amenities/${groupSlug}`} style={{ color: '#009bdb', textDecoration: 'none' }}>{String(group.name)}</Link>
+          <Link
+            href={`/amenities/${groupSlug}`}
+            style={{ color: '#009bdb', textDecoration: 'none' }}
+          >
+            {String(group.name)}
+          </Link>
           <span style={{ margin: '0 8px', color: '#ccc' }}>/</span>
           <span style={{ color: '#555' }}>{String(amenity.name)}</span>
         </nav>
@@ -87,7 +150,17 @@ export default async function AmenityDetailPage({ params: paramsPromise }: Args)
       <div style={{ borderTop: '1px solid #e5e0d8', margin: '0 clamp(24px, 4vw, 48px)' }} />
 
       {/* ── CONTENT + META ── */}
-      <div style={{ maxWidth: 1200, margin: '0 auto', padding: 'clamp(32px, 5vh, 56px) clamp(24px, 4vw, 48px)', display: 'grid', gridTemplateColumns: '1fr 320px', gap: 'clamp(32px, 5vw, 64px)', alignItems: 'start' }}>
+      <div
+        style={{
+          maxWidth: 1200,
+          margin: '0 auto',
+          padding: 'clamp(32px, 5vh, 56px) clamp(24px, 4vw, 48px)',
+          display: 'grid',
+          gridTemplateColumns: '1fr 320px',
+          gap: 'clamp(32px, 5vw, 64px)',
+          alignItems: 'start',
+        }}
+      >
         <div style={{ fontSize: 18, lineHeight: 1.75, color: '#333' }}>
           {amenity.description && (
             <RichText data={amenity.description as Parameters<typeof RichText>[0]['data']} />
@@ -97,7 +170,18 @@ export default async function AmenityDetailPage({ params: paramsPromise }: Args)
           {highlights.length > 0 && (
             <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 20px' }}>
               {highlights.map((h, i) => (
-                <li key={i} style={{ display: 'flex', gap: 10, alignItems: 'center', padding: '8px 0', borderBottom: '1px solid #f0ebe3', fontSize: 14, color: '#333' }}>
+                <li
+                  key={i}
+                  style={{
+                    display: 'flex',
+                    gap: 10,
+                    alignItems: 'center',
+                    padding: '8px 0',
+                    borderBottom: '1px solid #f0ebe3',
+                    fontSize: 14,
+                    color: '#333',
+                  }}
+                >
                   <span style={{ color: '#009bdb', fontWeight: 700, flexShrink: 0 }}>✓</span>
                   {String(h.text ?? '')}
                 </li>
@@ -106,13 +190,37 @@ export default async function AmenityDetailPage({ params: paramsPromise }: Args)
           )}
           {amenity.openingHours && (
             <div style={{ marginBottom: 16 }}>
-              <p style={{ fontSize: 11, color: '#999', textTransform: 'uppercase', letterSpacing: '0.14em', fontWeight: 600, margin: '0 0 6px' }}>Opening Hours</p>
-              <p style={{ fontSize: 15, color: '#222', margin: 0 }}>{String(amenity.openingHours)}</p>
+              <p
+                style={{
+                  fontSize: 11,
+                  color: '#999',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.14em',
+                  fontWeight: 600,
+                  margin: '0 0 6px',
+                }}
+              >
+                Opening Hours
+              </p>
+              <p style={{ fontSize: 15, color: '#222', margin: 0 }}>
+                {String(amenity.openingHours)}
+              </p>
             </div>
           )}
           {amenity.location && (
             <div>
-              <p style={{ fontSize: 11, color: '#999', textTransform: 'uppercase', letterSpacing: '0.14em', fontWeight: 600, margin: '0 0 6px' }}>Location</p>
+              <p
+                style={{
+                  fontSize: 11,
+                  color: '#999',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.14em',
+                  fontWeight: 600,
+                  margin: '0 0 6px',
+                }}
+              >
+                Location
+              </p>
               <p style={{ fontSize: 15, color: '#222', margin: 0 }}>{String(amenity.location)}</p>
             </div>
           )}

@@ -190,7 +190,7 @@ export const getAmenityGroups = cache(async (locale = 'en') => {
   const payload = await getPayloadClient()
   const result = await payload.find({
     collection: 'amenity-groups',
-    depth: 0,
+    depth: 1,
     locale: locale as 'en' | 'hr' | 'de',
     sort: 'order',
     limit: 20,
@@ -203,7 +203,7 @@ export const getAmenityGroupBySlug = cache(async (slug: string, locale = 'en') =
   const result = await payload.find({
     collection: 'amenity-groups',
     where: { slug: { equals: slug } },
-    depth: 0,
+    depth: 1,
     locale: locale as 'en' | 'hr' | 'de',
     limit: 1,
   })

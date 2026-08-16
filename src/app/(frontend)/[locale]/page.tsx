@@ -1,12 +1,13 @@
 import type { Metadata } from 'next'
 import { draftMode } from 'next/headers'
 import { getTranslations } from 'next-intl/server'
-import { getPublishedOffers, getAuriHomepage } from '@/lib/queries'
+import { getPublishedOffers, getAuriHomepage, getAmenityGroups } from '@/lib/queries'
 import { MedoraHero, type HeroSlide } from '@/components/sections/MedoraHero'
 import { MedoraInclusions, type Inclusion } from '@/components/sections/MedoraInclusions'
 import { MedoraGallery } from '@/components/sections/MedoraGallery'
 import { MedoraOfferBanners, type OfferBanner } from '@/components/sections/MedoraOfferBanners'
 import { MedoraRoomsGrid, type RoomCard } from '@/components/sections/MedoraRoomsGrid'
+import { MedoraAmenityGroups, type AmenityGroupCard } from '@/components/sections/MedoraAmenityGroups'
 import { LivePreviewListener } from '@/components/LivePreviewListener'
 import { mergeOpenGraph } from '@/utilities/mergeOpenGraph'
 import { getServerSideURL } from '@/utilities/getURL'
@@ -38,11 +39,12 @@ export default async function AuriHomePage({
   const resolvedSearch = await searchParams
   const locale = isDraft && resolvedSearch.locale ? resolvedSearch.locale : localeParam
 
-  const [tCommon, tNav, tOffers, homepageGlobal] = await Promise.all([
+  const [tCommon, tNav, tOffers, homepageGlobal, amenityGroups] = await Promise.all([
     getTranslations({ locale, namespace: 'common' }),
     getTranslations({ locale, namespace: 'navigation' }),
     getTranslations({ locale, namespace: 'offers' }),
     getAuriHomepage(isDraft, locale).catch(() => null),
+    getAmenityGroups(locale),
   ])
 
   // Map CMS slides → HeroSlide[]
@@ -112,6 +114,18 @@ export default async function AuriHomePage({
     }
   }
 
+  const amenityGroupCards: AmenityGroupCard[] = amenityGroups.map((g) => {
+    type MediaDoc = { url?: string; alt?: string }
+    const img = g.heroImage as MediaDoc | null
+    return {
+      slug: String(g.slug),
+      name: String(g.name),
+      description: g.description ? String(g.description) : undefined,
+      image: img?.url,
+      alt: img?.alt,
+    }
+  })
+
   return (
     <main>
       <LivePreviewListener />
@@ -127,6 +141,11 @@ export default async function AuriHomePage({
         title={tNav('rooms')}
         viewAllLabel={tCommon('viewAll')}
         viewAllHref={`/properties/${PROPERTY_SLUG}/rooms`}
+      />
+      <MedoraAmenityGroups
+        groups={amenityGroupCards}
+        title="Amenities"
+        subtitle="Wellness, dining, and activities — all within Medora Auri, most included free of charge."
       />
       <MedoraOfferBanners
         offer={offerBanner}

@@ -5,7 +5,8 @@ export const AmenityGroups: CollectionConfig = {
   admin: {
     useAsTitle: 'name',
     group: 'Hotel Content',
-    description: 'Top-level amenity categories shown in the footer: Wellness, Dining & Bars, Active vacation.',
+    description:
+      'Top-level amenity categories shown in the footer: Wellness, Dining & Bars, Active vacation.',
     defaultColumns: ['name', 'slug'],
   },
   access: { read: () => true },

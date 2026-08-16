@@ -5,7 +5,8 @@ export const Amenities: CollectionConfig = {
   admin: {
     useAsTitle: 'name',
     group: 'Hotel Content',
-    description: 'Individual amenity items (Spa, Restaurant, Fitness…) each belonging to an amenity group.',
+    description:
+      'Individual amenity items (Spa, Restaurant, Fitness…) each belonging to an amenity group.',
     defaultColumns: ['name', 'group', 'slug'],
   },
   access: { read: () => true },
@@ -49,9 +50,7 @@ export const Amenities: CollectionConfig = {
       type: 'array',
       localized: true,
       admin: { description: 'Bullet-point features, e.g. "Finnish sauna", "Heated pool".' },
-      fields: [
-        { name: 'text', type: 'text', required: true },
-      ],
+      fields: [{ name: 'text', type: 'text', required: true }],
     },
     {
       name: 'openingHours',
