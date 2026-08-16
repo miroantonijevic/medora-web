@@ -33,11 +33,11 @@ export function MedoraFooter() {
       ],
     },
     {
-      title: t('experience'),
+      title: t('amenities'),
       links: [
-        { label: t('wellness'), href: '/wellness' },
-        { label: t('dining'), href: '/dining' },
-        { label: t('activeVacation'), href: '/activities' },
+        { label: t('wellness'), href: '/amenities/wellness' },
+        { label: t('dining'), href: '/amenities/dining-bars' },
+        { label: t('activeVacation'), href: '/amenities/active-vacation' },
         { label: t('aboutRiviera'), href: '/destination/makarska-riviera' },
       ],
     },
