@@ -67,12 +67,30 @@
     "getInTouch": "Stupite u kontakt",
     "findUs": "Pronađite nas",
     "faqItems": [
-      { "q": "Što je uključeno u cijenu sobe?", "a": "Sve sobe uključuju doručak, besplatan parking, besplatne ležaljke na plaži i bezalkoholna pića uz bazen. Djeca borave besplatno." },
-      { "q": "Imate li direktan pristup plaži?", "a": "Da — Medora Auri se nalazi neposredno uz Jadransko more s privatnom plažom i područjem ležaljka za goste." },
-      { "q": "Imate li kids club?", "a": "Imamo potpuno nadgledani kids club koji radi svakodnevno tijekom ljetne sezone, besplatno za djecu od 4 do 12 godina." },
-      { "q": "Mogu li rezervirati aktivnosti (izleti, izleti brodom) iz hotela?", "a": "Da. Naša recepcija organizira izlete na Skywalk Biokovo, izlete brodom na otoke i druge lokalne aktivnosti. Neke su uključene u cijenu sobe — pogledajte naše trenutne ponude." },
-      { "q": "Kakva je vaša politika otkazivanja?", "a": "Standardne rezervacije mogu se besplatno otkazati do 14 dana prije dolaska. Za rane rezervacije i nepovratne tarife vrijede drugi uvjeti. Kontaktirajte nas za detalje." },
-      { "q": "Prihvaćate li ljubimce?", "a": "Mali ljubimci (do 10 kg) su prihvaćeni u odabranim kategorijama soba uz prethodno obavještavanje. Primjenjuje se mala dnevna naknada." }
+      {
+        "q": "Što je uključeno u cijenu sobe?",
+        "a": "Sve sobe uključuju doručak, besplatan parking, besplatne ležaljke na plaži i bezalkoholna pića uz bazen. Djeca borave besplatno."
+      },
+      {
+        "q": "Imate li direktan pristup plaži?",
+        "a": "Da — Medora Auri se nalazi neposredno uz Jadransko more s privatnom plažom i područjem ležaljka za goste."
+      },
+      {
+        "q": "Imate li kids club?",
+        "a": "Imamo potpuno nadgledani kids club koji radi svakodnevno tijekom ljetne sezone, besplatno za djecu od 4 do 12 godina."
+      },
+      {
+        "q": "Mogu li rezervirati aktivnosti (izleti, izleti brodom) iz hotela?",
+        "a": "Da. Naša recepcija organizira izlete na Skywalk Biokovo, izlete brodom na otoke i druge lokalne aktivnosti. Neke su uključene u cijenu sobe — pogledajte naše trenutne ponude."
+      },
+      {
+        "q": "Kakva je vaša politika otkazivanja?",
+        "a": "Standardne rezervacije mogu se besplatno otkazati do 14 dana prije dolaska. Za rane rezervacije i nepovratne tarife vrijede drugi uvjeti. Kontaktirajte nas za detalje."
+      },
+      {
+        "q": "Prihvaćate li ljubimce?",
+        "a": "Mali ljubimci (do 10 kg) su prihvaćeni u odabranim kategorijama soba uz prethodno obavještavanje. Primjenjuje se mala dnevna naknada."
+      }
     ]
   },
   "gallery": {
@@ -80,29 +98,29 @@
     "subtitle": "Otkrijte Medora Hotels kroz našu foto galeriju."
   },
   "header": {
-    "quickInquiry": "Brzi upit"
+    "quickInquiry": "Brzi upit",
+    "chooseRoom": "Odaberi sobu"
   },
   "footer": {
     "customerServices": "Korisnička podrška",
-    "accommodation": "Smještaj",
     "amenities": "Sadržaji",
-    "contact": "Kontakt",
+    "medoraHotels": "Medora Hotels & Resorts",
+    "contactUs": "Kontaktirajte nas",
     "allContacts": "Svi kontakti",
     "modifyReservation": "Izmjena / Otkazivanje rezervacije",
     "faq": "Česta pitanja",
     "packagesOffers": "Paketi i posebne ponude",
-    "auriResort": "Medora Auri Obiteljsko Odmaralište",
-    "orbis": "Luksuzni Kamp Orbis",
-    "roomsSuites": "Sobe i apartmani",
-    "quickInquiry": "Brzi upit",
     "wellness": "Wellness",
     "dining": "Restorani i barovi",
     "activeVacation": "Aktivan odmor",
     "aboutRiviera": "O Makarskoj rivijeri",
-    "aboutMedora": "O Medora Hotels",
+    "aboutPodgora": "O Podgori",
+    "aboutMedora": "O Medora Hotels & Resorts",
     "awards": "Naše nagrade i postignuća",
     "directions": "Kako doći do nas",
-    "privacyPolicy": "Politika privatnosti"
+    "businessInfo": "Poslovne informacije",
+    "privacyPolicy": "Politika zaštite osobnih podataka",
+    "cookiesPolicy": "Politika kolačića"
   },
   "inquiry": {
     "title": "Brzi upit",

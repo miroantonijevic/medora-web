@@ -55,7 +55,6 @@ export default async function OrbisHomePage({
         benefits: Array.isArray(s.benefits)
           ? s.benefits.map((b) => String((b as { text?: string }).text ?? ''))
           : [],
-        ctaLabel: String(s.ctaLabel ?? 'View offers'),
         ctaHref: String(s.ctaHref ?? '/offers'),
       }
     })

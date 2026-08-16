@@ -59,7 +59,16 @@ export default async function AmenitiesIndexPage({ params: paramsPromise }: Args
         >
           Things to Do
         </h1>
-        <p style={{ color: 'rgba(255,255,255,0.75)', fontSize: 18, margin: 0, maxWidth: 600, marginLeft: 'auto', marginRight: 'auto' }}>
+        <p
+          style={{
+            color: 'rgba(255,255,255,0.75)',
+            fontSize: 18,
+            margin: 0,
+            maxWidth: 600,
+            marginLeft: 'auto',
+            marginRight: 'auto',
+          }}
+        >
           Discover everything included at Medora Auri — from spa &amp; wellness to dining and
           adventure.
         </p>
@@ -86,7 +95,12 @@ export default async function AmenitiesIndexPage({ params: paramsPromise }: Args
               <Link
                 key={group.id}
                 href={`/amenities/${group.slug}`}
-                style={{ textDecoration: 'none', color: 'inherit', display: 'flex', flexDirection: 'column' }}
+                style={{
+                  textDecoration: 'none',
+                  color: 'inherit',
+                  display: 'flex',
+                  flexDirection: 'column',
+                }}
               >
                 <div
                   style={{
@@ -116,7 +130,8 @@ export default async function AmenitiesIndexPage({ params: paramsPromise }: Args
                       style={{
                         position: 'absolute',
                         inset: 0,
-                        background: 'linear-gradient(to top, rgba(1,43,89,0.55) 0%, transparent 55%)',
+                        background:
+                          'linear-gradient(to top, rgba(1,43,89,0.55) 0%, transparent 55%)',
                       }}
                     />
                     <h2

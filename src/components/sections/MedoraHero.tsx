@@ -1,7 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import Link from 'next/link'
+import { useRouter } from '@/i18n/navigation'
 import { useEffect, useState, useCallback } from 'react'
 
 export type HeroSlide = {
@@ -9,7 +9,6 @@ export type HeroSlide = {
   alt: string
   headline: string
   benefits: string[]
-  ctaLabel: string
   ctaHref: string
 }
 
@@ -24,6 +23,8 @@ export function MedoraHero({ slides }: Props) {
   const [current, setCurrent] = useState(0)
   const [paused, setPaused] = useState(false)
 
+  const router = useRouter()
+
   const next = useCallback(() => {
     setCurrent((c) => (c + 1) % slides.length)
   }, [slides.length])
@@ -36,7 +37,14 @@ export function MedoraHero({ slides }: Props) {
 
   return (
     <section
-      style={{ position: 'relative', width: '100%', height: '640px', overflow: 'hidden' }}
+      onClick={() => router.push(slides[current]?.ctaHref ?? '/offers')}
+      style={{
+        position: 'relative',
+        width: '100%',
+        height: '640px',
+        overflow: 'hidden',
+        cursor: 'pointer',
+      }}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
@@ -157,7 +165,10 @@ export function MedoraHero({ slides }: Props) {
         {slides.map((_, i) => (
           <button
             key={i}
-            onClick={() => setCurrent(i)}
+            onClick={(e) => {
+              e.stopPropagation()
+              setCurrent(i)
+            }}
             aria-label={`Go to slide ${i + 1}`}
             style={{
               width: i === current ? '12px' : '10px',

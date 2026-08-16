@@ -46,8 +46,10 @@
     "subtitle": "Buchen Sie direkt und erhalten Sie garantiert den besten Preis.",
     "until": "Bis",
     "validFrom": "Gültig ab",
-    "interested": "Interesse an diesem Angebot?",    "specialOffer": "Sonderangebot",
-    "property": "Unterkunft",    "noOffers": "Derzeit keine aktiven Angebote. Schauen Sie bald wieder vorbei."
+    "interested": "Interesse an diesem Angebot?",
+    "specialOffer": "Sonderangebot",
+    "property": "Unterkunft",
+    "noOffers": "Derzeit keine aktiven Angebote. Schauen Sie bald wieder vorbei."
   },
   "contact": {
     "title": "Kontaktieren Sie uns",
@@ -65,12 +67,30 @@
     "getInTouch": "Kontakt aufnehmen",
     "findUs": "Finden Sie uns",
     "faqItems": [
-      { "q": "Was ist im Zimmerpreis inbegriffen?", "a": "Alle Zimmer beinhalten Frühstück, kostenloses Parken, kostenlose Liegestühle am Strand und alkoholfreie Getränke am Poolbar. Kinder übernachten kostenlos." },
-      { "q": "Gibt es direkten Strandzugang?", "a": "Ja — Medora Auri liegt direkt am Adriatischen Meer mit einem privaten Strand und einem Liegebereich für Gäste." },
-      { "q": "Haben Sie einen Kinderclub?", "a": "Wir haben einen voll beaufsichtigten Kinderclub, der täglich während der Sommersaison läuft, kostenlos für Kinder von 4 bis 12 Jahren." },
-      { "q": "Kann ich Aktivitäten (Ausflüge, Bootsfahrten) vom Hotel aus buchen?", "a": "Ja. Unser Rezeptionsteam organisiert Ausflüge zum Skywalk Biokovo, Bootsfahrten zu den Inseln und andere lokale Aktivitäten. Einige sind im Zimmerpreis inbegriffen." },
-      { "q": "Wie lautet Ihre Stornierungspolitik?", "a": "Standardbuchungen können bis 14 Tage vor Anreise kostenlos storniert werden. Für Frühbucher- und nicht erstattungsfähige Tarife gelten andere Bedingungen." },
-      { "q": "Nehmen Sie Haustiere an?", "a": "Kleine Haustiere (bis 10 kg) werden in ausgewählten Zimmerkategorien nach vorheriger Ankündigung akzeptiert. Eine kleine Tagesgebühr wird erhoben." }
+      {
+        "q": "Was ist im Zimmerpreis inbegriffen?",
+        "a": "Alle Zimmer beinhalten Frühstück, kostenloses Parken, kostenlose Liegestühle am Strand und alkoholfreie Getränke am Poolbar. Kinder übernachten kostenlos."
+      },
+      {
+        "q": "Gibt es direkten Strandzugang?",
+        "a": "Ja — Medora Auri liegt direkt am Adriatischen Meer mit einem privaten Strand und einem Liegebereich für Gäste."
+      },
+      {
+        "q": "Haben Sie einen Kinderclub?",
+        "a": "Wir haben einen voll beaufsichtigten Kinderclub, der täglich während der Sommersaison läuft, kostenlos für Kinder von 4 bis 12 Jahren."
+      },
+      {
+        "q": "Kann ich Aktivitäten (Ausflüge, Bootsfahrten) vom Hotel aus buchen?",
+        "a": "Ja. Unser Rezeptionsteam organisiert Ausflüge zum Skywalk Biokovo, Bootsfahrten zu den Inseln und andere lokale Aktivitäten. Einige sind im Zimmerpreis inbegriffen."
+      },
+      {
+        "q": "Wie lautet Ihre Stornierungspolitik?",
+        "a": "Standardbuchungen können bis 14 Tage vor Anreise kostenlos storniert werden. Für Frühbucher- und nicht erstattungsfähige Tarife gelten andere Bedingungen."
+      },
+      {
+        "q": "Nehmen Sie Haustiere an?",
+        "a": "Kleine Haustiere (bis 10 kg) werden in ausgewählten Zimmerkategorien nach vorheriger Ankündigung akzeptiert. Eine kleine Tagesgebühr wird erhoben."
+      }
     ]
   },
   "gallery": {
@@ -78,29 +98,29 @@
     "subtitle": "Entdecken Sie Medora Hotels in unserer Fotogalerie."
   },
   "header": {
-    "quickInquiry": "Schnellanfrage"
+    "quickInquiry": "Schnellanfrage",
+    "chooseRoom": "Zimmer wählen"
   },
   "footer": {
     "customerServices": "Kundendienst",
-    "accommodation": "Unterkunft",
     "amenities": "Angebote",
-    "contact": "Kontakt",
+    "medoraHotels": "Medora Hotels & Resorts",
+    "contactUs": "Kontakt",
     "allContacts": "Alle Kontakte",
     "modifyReservation": "Reservierung ändern / stornieren",
     "faq": "Häufige Fragen",
     "packagesOffers": "Pakete & Sonderangebote",
-    "auriResort": "Medora Auri Familienstrandresort",
-    "orbis": "Luxuscamping Orbis",
-    "roomsSuites": "Zimmer & Suiten",
-    "quickInquiry": "Schnellanfrage",
     "wellness": "Wellness",
     "dining": "Restaurants & Bars",
     "activeVacation": "Aktiver Urlaub",
     "aboutRiviera": "Über die Makarska Riviera",
-    "aboutMedora": "Über Medora Hotels",
+    "aboutPodgora": "Über Podgora",
+    "aboutMedora": "Über Medora Hotels & Resorts",
     "awards": "Unsere Auszeichnungen & Erfolge",
     "directions": "Anreise",
-    "privacyPolicy": "Datenschutz"
+    "businessInfo": "Geschäftsinformationen",
+    "privacyPolicy": "Datenschutzerklärung",
+    "cookiesPolicy": "Cookie-Richtlinie"
   },
   "inquiry": {
     "title": "Schnelle Anfrage",

@@ -4,14 +4,18 @@ import type { Page } from '@/payload-types'
 
 import { ArchiveBlock } from '@/blocks/ArchiveBlock/Component'
 import { CallToActionBlock } from '@/blocks/CallToAction/Component'
+import { CardGridBlock } from '@/blocks/CardGrid/Component'
 import { ContentBlock } from '@/blocks/Content/Component'
+import { ContentSectionBlock } from '@/blocks/ContentSection/Component'
 import { FormBlock } from '@/blocks/Form/Component'
 import { MediaBlock } from '@/blocks/MediaBlock/Component'
 import { MedoraHeroBlockComponent } from '@/blocks/medora/Component'
 
 const blockComponents = {
   archive: ArchiveBlock,
+  cardGrid: CardGridBlock,
   content: ContentBlock,
+  contentSection: ContentSectionBlock,
   cta: CallToActionBlock,
   formBlock: FormBlock,
   mediaBlock: MediaBlock,

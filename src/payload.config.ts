@@ -69,7 +69,7 @@ export default buildConfig({
     user: Users.slug,
     livePreview: {
       globals: ['auri-homepage', 'orbis-homepage'],
-      collections: ['rooms'],
+      collections: ['rooms', 'amenities', 'pages'],
       breakpoints: [
         {
           label: 'Mobile',

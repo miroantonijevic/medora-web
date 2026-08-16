@@ -312,7 +312,7 @@ export interface FolderInterface {
   createdAt: string;
 }
 /**
- * Custom CMS pages built with a drag-and-drop block layout builder.
+ * CMS-managed pages: destination sub-pages, landing pages, and any ad-hoc content page.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "pages".
@@ -320,6 +320,10 @@ export interface FolderInterface {
 export interface Page {
   id: number;
   title: string;
+  /**
+   * Full URL path without locale prefix, e.g. destination/beaches. Leave blank for flat-slug pages.
+   */
+  path?: string | null;
   hero: {
     type: 'none' | 'highImpact' | 'mediumImpact' | 'lowImpact';
     richText?: {
@@ -363,17 +367,25 @@ export interface Page {
       | null;
     media?: (number | null) | Media;
   };
-  layout: (CallToActionBlock | ContentBlock | MediaBlock | ArchiveBlock | FormBlock)[];
-  meta?: {
-    title?: string | null;
-    description?: string | null;
-  };
+  layout: (
+    | CallToActionBlock
+    | ContentBlock
+    | ContentSectionBlock
+    | CardGridBlock
+    | MediaBlock
+    | ArchiveBlock
+    | FormBlock
+  )[];
   publishedAt?: string | null;
   /**
    * When enabled, the slug will auto-generate from the title field on save and autosave.
    */
   generateSlug?: boolean | null;
   slug: string;
+  meta?: {
+    title?: string | null;
+    description?: string | null;
+  };
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
@@ -577,6 +589,68 @@ export interface ContentBlock {
   id?: string | null;
   blockName?: string | null;
   blockType: 'content';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ContentSectionBlock".
+ */
+export interface ContentSectionBlock {
+  /**
+   * H2 section heading.
+   */
+  heading?: string | null;
+  body?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  /**
+   * Optional image beside or below the text.
+   */
+  image?: (number | null) | Media;
+  imagePosition?: ('right' | 'below') | null;
+  /**
+   * Optional 'Read more' button URL.
+   */
+  ctaLink?: string | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'contentSection';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "CardGridBlock".
+ */
+export interface CardGridBlock {
+  /**
+   * Optional intro text above the cards.
+   */
+  intro?: string | null;
+  cards?:
+    | {
+        image?: (number | null) | Media;
+        title: string;
+        excerpt?: string | null;
+        /**
+         * URL path the card links to, e.g. /destination/beaches
+         */
+        link?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'cardGrid';
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1367,6 +1441,7 @@ export interface PayloadMigration {
  */
 export interface PagesSelect<T extends boolean = true> {
   title?: T;
+  path?: T;
   hero?:
     | T
     | {
@@ -1394,19 +1469,21 @@ export interface PagesSelect<T extends boolean = true> {
     | {
         cta?: T | CallToActionBlockSelect<T>;
         content?: T | ContentBlockSelect<T>;
+        contentSection?: T | ContentSectionBlockSelect<T>;
+        cardGrid?: T | CardGridBlockSelect<T>;
         mediaBlock?: T | MediaBlockSelect<T>;
         archive?: T | ArchiveBlockSelect<T>;
         formBlock?: T | FormBlockSelect<T>;
       };
+  publishedAt?: T;
+  generateSlug?: T;
+  slug?: T;
   meta?:
     | T
     | {
         title?: T;
         description?: T;
       };
-  publishedAt?: T;
-  generateSlug?: T;
-  slug?: T;
   updatedAt?: T;
   createdAt?: T;
   _status?: T;
@@ -1456,6 +1533,37 @@ export interface ContentBlockSelect<T extends boolean = true> {
               label?: T;
               appearance?: T;
             };
+        id?: T;
+      };
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ContentSectionBlock_select".
+ */
+export interface ContentSectionBlockSelect<T extends boolean = true> {
+  heading?: T;
+  body?: T;
+  image?: T;
+  imagePosition?: T;
+  ctaLink?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "CardGridBlock_select".
+ */
+export interface CardGridBlockSelect<T extends boolean = true> {
+  intro?: T;
+  cards?:
+    | T
+    | {
+        image?: T;
+        title?: T;
+        excerpt?: T;
+        link?: T;
         id?: T;
       };
   id?: T;

@@ -7,6 +7,8 @@ import { setRequestLocale, getTranslations } from 'next-intl/server'
 import { getAmenityBySlug, getAmenityGroupBySlug, getAmenitiesByGroup } from '@/lib/queries'
 import { RoomGallery } from '@/components/sections/RoomGallery'
 import { RichText } from '@/components/RichText'
+import { LivePreviewListener } from '@/components/LivePreviewListener'
+import { draftMode } from 'next/headers'
 
 type Args = {
   params: Promise<{ groupSlug: string; amenitySlug: string; locale: string }>
@@ -47,6 +49,7 @@ export default async function AmenityDetailPage({ params: paramsPromise }: Args)
   ])
 
   if (!amenity || !group) return notFound()
+  const { isEnabled: draft } = await draftMode()
 
   type MediaDoc = { url?: string; alt?: string }
   const heroImage = amenity.heroImage as MediaDoc | null
@@ -58,6 +61,7 @@ export default async function AmenityDetailPage({ params: paramsPromise }: Args)
 
   return (
     <main>
+      {draft && <LivePreviewListener />}
       {/* ── HERO ── */}
       <div
         style={{

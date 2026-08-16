@@ -121,9 +121,21 @@ async function seedAuriHomepage(
       inclusionsHeadline: 'Children stay for FREE! Save \u20ac483 compared to other hotels for:',
       inclusionsSubtitle: 'Free of charge in Medora, because we appreciate our guests!',
       inclusions: [
-        { icon: ids.parking, label: '1 parking space', href: '/accommodation' },
-        { icon: ids.sunloungers, label: 'Sunloungers & beach towel', href: '/accommodation' },
-        { icon: ids.drinks, label: 'Soft drinks & wine with dinner', href: '/accommodation' },
+        {
+          icon: ids.parking,
+          label: '1 parking space',
+          href: '/offers/book-directly-and-feel-safe',
+        },
+        {
+          icon: ids.sunloungers,
+          label: 'Sunloungers & beach towel',
+          href: '/offers/book-directly-and-feel-safe',
+        },
+        {
+          icon: ids.drinks,
+          label: 'Soft drinks & wine with dinner',
+          href: '/offers/book-directly-and-feel-safe',
+        },
       ],
     },
   })
@@ -200,7 +212,16 @@ async function seedAuriHomepage(
 
 async function seedOrbisHomepage(
   payload: Payload,
-  ids: { skywalk: number; hotel: number; room: number; parking: number; sunloungers: number },
+  ids: {
+    skywalk: number
+    hotel: number
+    room: number
+    parking: number
+    sunloungers: number
+    washer: number
+    pet: number
+    bicycle: number
+  },
 ) {
   const en = await payload.updateGlobal({
     slug: 'orbis-homepage',
@@ -211,32 +232,41 @@ async function seedOrbisHomepage(
           image: ids.skywalk,
           headline: HERO_HEADLINE.en,
           benefits: HERO_BENEFITS.en,
-          ctaLabel: 'Find out more',
-          ctaHref: '/offers',
+          ctaHref: '/offers/book-directly-and-feel-safe',
         },
         {
           image: ids.hotel,
           headline: HERO_HEADLINE.en,
           benefits: HERO_BENEFITS.en,
-          ctaLabel: 'View accommodation',
-          ctaHref: '/orbis',
+          ctaHref: '/offers/book-directly-and-feel-safe',
         },
         {
           image: ids.room,
           headline: HERO_HEADLINE.en,
           benefits: HERO_BENEFITS.en,
-          ctaLabel: 'Quick inquiry',
-          ctaHref: '/inquiry',
+          ctaHref: '/offers/book-directly-and-feel-safe',
         },
       ],
       inclusionsHeadline: 'Free of charge in Medora, because we love our guests!',
       inclusionsSubtitle: 'Free of charge in Medora, because we love our guests!',
       inclusions: [
-        { icon: ids.parking, label: 'Parking', href: '/orbis' },
-        { icon: ids.sunloungers, label: 'Sunloungers & beach towel', href: '/orbis' },
-        { label: 'Washer and dryer', href: '/orbis' },
-        { label: 'A gift for your pet', href: '/orbis' },
-        { label: 'Bicycle', href: '/orbis' },
+        { icon: ids.parking, label: 'Parking', href: '/offers/book-directly-and-feel-safe' },
+        {
+          icon: ids.sunloungers,
+          label: 'Sunloungers & beach towel',
+          href: '/offers/book-directly-and-feel-safe',
+        },
+        {
+          icon: ids.washer,
+          label: 'Washer and dryer',
+          href: '/offers/book-directly-and-feel-safe',
+        },
+        {
+          icon: ids.pet,
+          label: 'A gift for your pet',
+          href: '/offers/book-directly-and-feel-safe',
+        },
+        { icon: ids.bicycle, label: 'Bicycle', href: '/offers/book-directly-and-feel-safe' },
       ],
     },
   })
@@ -384,6 +414,12 @@ export async function seedHomepages({
     })
   }
 
+  const [washerIconId, petIconId, bicycleIconId] = await Promise.all([
+    getOrUploadMedia(payload, 'washer.svg', 'brand/washer.svg', 'image/svg+xml'),
+    getOrUploadMedia(payload, 'pet.svg', 'brand/pet.svg', 'image/svg+xml'),
+    getOrUploadMedia(payload, 'bicycle.svg', 'brand/bicycle.svg', 'image/svg+xml'),
+  ])
+
   const existingOrbis = await payload.findGlobal({ slug: 'orbis-homepage', locale: 'en', depth: 0 })
   if (!force && existingOrbis.slides?.length) {
     payload.logger.info('  orbis-homepage already seeded - use force=true to reseed.')
@@ -394,6 +430,9 @@ export async function seedHomepages({
       room: roomId,
       parking: parkingId,
       sunloungers: sunloungersId,
+      washer: washerIconId,
+      pet: petIconId,
+      bicycle: bicycleIconId,
     })
   }
 

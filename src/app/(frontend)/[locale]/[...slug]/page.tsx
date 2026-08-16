@@ -23,40 +23,40 @@ export async function generateStaticParams() {
     pagination: false,
     select: {
       slug: true,
+      path: true,
     },
   })
 
-  const params = pages.docs
-    ?.filter((doc) => {
-      return doc.slug !== 'home'
+  return pages.docs
+    .filter((doc) => {
+      const identifier = (doc.path || doc.slug) as string
+      return identifier && identifier !== 'home'
     })
-    .map(({ slug }) => {
-      return { slug }
+    .map((doc) => {
+      const fullPath = (doc.path || doc.slug) as string
+      return { slug: fullPath.split('/') }
     })
-
-  return params
 }
 
 type Args = {
   params: Promise<{
-    slug?: string
+    slug?: string[]
+    locale?: string
   }>
 }
 
 export default async function Page({ params: paramsPromise }: Args) {
   const { isEnabled: draft } = await draftMode()
-  const { slug = 'home' } = await paramsPromise
-  // Decode to support slugs with special characters
-  const decodedSlug = decodeURIComponent(slug)
-  const url = '/' + decodedSlug
+  const { slug: slugArray = ['home'] } = await paramsPromise
+  const path = slugArray.join('/')
+  const url = '/' + path
+
   let page: RequiredDataFromCollectionSlug<'pages'> | null
 
-  page = await queryPageBySlug({
-    slug: decodedSlug,
-  })
+  page = await queryPageByPath({ path })
 
   // Remove this code once your website is seeded
-  if (!page && slug === 'home') {
+  if (!page && path === 'home') {
     page = homeStatic
   }
 
@@ -81,17 +81,16 @@ export default async function Page({ params: paramsPromise }: Args) {
 }
 
 export async function generateMetadata({ params: paramsPromise }: Args): Promise<Metadata> {
-  const { slug = 'home' } = await paramsPromise
-  // Decode to support slugs with special characters
-  const decodedSlug = decodeURIComponent(slug)
-  const page = await queryPageBySlug({
-    slug: decodedSlug,
-  })
+  const { slug: slugArray = ['home'] } = await paramsPromise
+  const path = slugArray.join('/')
+  const page = await queryPageByPath({ path })
 
   return generateMeta({ doc: page })
 }
 
-const queryPageBySlug = cache(async ({ slug }: { slug: string }) => {
+// Queries by `path` field first, then falls back to `slug` — supports both
+// nested paths (destination/beaches) and legacy flat slugs (home, about)
+const queryPageByPath = cache(async ({ path }: { path: string }) => {
   const { isEnabled: draft } = await draftMode()
 
   const payload = await getPayload({ config: configPromise })
@@ -103,9 +102,7 @@ const queryPageBySlug = cache(async ({ slug }: { slug: string }) => {
     pagination: false,
     overrideAccess: draft,
     where: {
-      slug: {
-        equals: slug,
-      },
+      or: [{ path: { equals: path } }, { slug: { equals: path } }],
     },
   })
 

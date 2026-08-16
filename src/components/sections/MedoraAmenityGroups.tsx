@@ -35,7 +35,16 @@ export function MedoraAmenityGroups({ groups, title = 'Amenities', subtitle }: P
           {title}
         </h2>
         {subtitle && (
-          <p style={{ fontSize: 16, color: '#666', margin: 0, maxWidth: 640, marginLeft: 'auto', marginRight: 'auto' }}>
+          <p
+            style={{
+              fontSize: 16,
+              color: '#666',
+              margin: 0,
+              maxWidth: 640,
+              marginLeft: 'auto',
+              marginRight: 'auto',
+            }}
+          >
             {subtitle}
           </p>
         )}

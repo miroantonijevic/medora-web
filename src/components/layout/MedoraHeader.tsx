@@ -3,7 +3,18 @@
 import Image from 'next/image'
 import { useState, useRef, useEffect } from 'react'
 import { useLocale, useTranslations } from 'next-intl'
-import { Link } from '@/i18n/navigation'
+import { Link, usePathname } from '@/i18n/navigation'
+
+interface NavChild {
+  label: string
+  href: string
+}
+
+interface NavItem {
+  label: string
+  href: string
+  children?: NavChild[]
+}
 
 const PROPERTIES = [
   { label: 'Medora Auri', href: '/' },
@@ -16,37 +27,20 @@ const LOCALES = [
   { code: 'de', label: 'Deutsch', flag: '🇩🇪' },
 ]
 
-export function MedoraHeader() {
+export function MedoraHeader({ navItems = [] }: { navItems?: NavItem[] }) {
   const tCommon = useTranslations('common')
   const tHeader = useTranslations('header')
-  const tNav = useTranslations('navigation')
-  const tOffers = useTranslations('offers')
-  const tFooter = useTranslations('footer')
-  const [activeProperty, setActiveProperty] = useState(0)
-
-  // Sync active tab with current URL on mount and navigation
-  useEffect(() => {
-    const path = window.location.pathname.replace(/^\/(en|hr|de)(\/|$)/, '/')
-    const idx = PROPERTIES.findIndex((p) =>
-      p.href === '/' ? path === '/' : path.startsWith(p.href),
-    )
-    setActiveProperty(idx >= 0 ? idx : 0)
-  }, [])
+  const pathname = usePathname()
+  const activeProperty = PROPERTIES.findIndex((p) =>
+    p.href === '/' ? pathname === '/' : pathname.startsWith(p.href),
+  )
+  const [expandedItem, setExpandedItem] = useState<string | null>(null)
   const [contactOpen, setContactOpen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [langOpen, setLangOpen] = useState(false)
   const langRef = useRef<HTMLDivElement>(null)
   const locale = useLocale()
   const currentLang = LOCALES.find((l) => l.code === locale) ?? LOCALES[0]!
-
-  const NAV_LINKS = [
-    { label: tFooter('accommodation'), href: '/properties' },
-    { label: tOffers('title'), href: '/offers' },
-    { label: tNav('gallery'), href: '/gallery' },
-    { label: tNav('destination'), href: '/destination' },
-    { label: tNav('weThinkGreen'), href: '/we-think-green' },
-    { label: tNav('contactFaq'), href: '/contact' },
-  ]
 
   function switchLocale(code: string) {
     // With localePrefix: 'always', every URL starts with /<locale>/...
@@ -78,12 +72,13 @@ export function MedoraHeader() {
           background: '#fff',
           height: '72px',
           boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-          display: 'flex',
+          display: 'grid',
+          gridTemplateColumns: '1fr auto 1fr',
           alignItems: 'center',
         }}
       >
         {/* Logo */}
-        <div style={{ marginLeft: '24px', flexShrink: 0 }}>
+        <div style={{ marginLeft: '24px', flexShrink: 0, display: 'flex', alignItems: 'center' }}>
           <Link href="/">
             <Image
               src="/brand/medora-logo-typo.svg"
@@ -96,13 +91,12 @@ export function MedoraHeader() {
           </Link>
         </div>
 
-        {/* Center: ONLY property tabs */}
+        {/* Center: property tabs — grid center column keeps them truly centered */}
         <nav
           style={{
-            flex: 1,
             display: 'flex',
-            justifyContent: 'center',
             alignItems: 'stretch',
+            justifyContent: 'center',
             height: '100%',
           }}
         >
@@ -110,7 +104,6 @@ export function MedoraHeader() {
             <Link
               key={prop.href}
               href={prop.href}
-              onClick={() => setActiveProperty(i)}
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -135,8 +128,10 @@ export function MedoraHeader() {
             display: 'flex',
             alignItems: 'center',
             gap: '8px',
+            marginLeft: 'auto',
             marginRight: '16px',
             flexShrink: 0,
+            justifyContent: 'flex-end',
           }}
         >
           {/* Contact us dropdown */}
@@ -144,9 +139,9 @@ export function MedoraHeader() {
             <button
               onClick={() => setContactOpen((v) => !v)}
               style={{
-                background: 'none',
-                border: '1px solid #012B59',
-                color: '#012B59',
+                background: '#009bdb',
+                border: 'none',
+                color: '#fff',
                 fontSize: '13px',
                 fontWeight: 600,
                 padding: '8px 16px',
@@ -156,6 +151,7 @@ export function MedoraHeader() {
                 alignItems: 'center',
                 gap: '6px',
                 fontFamily: 'inherit',
+                whiteSpace: 'nowrap',
               }}
             >
               {tCommon('contactUs')}{' '}
@@ -330,41 +326,192 @@ export function MedoraHeader() {
         </div>
       </header>
 
-      {/* Full nav drawer (hamburger) */}
+      {/* Blue booking strip */}
+      <div
+        style={{
+          position: 'fixed',
+          top: '72px',
+          left: 0,
+          right: 0,
+          height: '52px',
+          background: '#009bdb',
+          zIndex: 999,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <Link
+          href={
+            activeProperty === 1
+              ? '/properties/luxury-camp-orbis/rooms'
+              : '/properties/medora-auri/rooms'
+          }
+          style={{
+            background: '#fff',
+            color: '#012B59',
+            fontSize: '14px',
+            fontWeight: 700,
+            padding: '8px 28px',
+            borderRadius: '24px',
+            textDecoration: 'none',
+            whiteSpace: 'nowrap',
+            fontFamily: 'inherit',
+            letterSpacing: '0.02em',
+          }}
+        >
+          {tHeader('chooseRoom')}
+        </Link>
+      </div>
+
+      {/* Backdrop */}
+      {menuOpen && (
+        <div
+          onClick={() => {
+            setMenuOpen(false)
+            setExpandedItem(null)
+          }}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0,0,0,0.45)',
+            zIndex: 1000,
+          }}
+        />
+      )}
+
+      {/* Right-side nav drawer */}
       {menuOpen && (
         <div
           style={{
             position: 'fixed',
-            top: '72px',
-            left: 0,
+            top: 0,
             right: 0,
-            background: '#fff',
-            borderTop: '1px solid #eee',
-            boxShadow: '0 4px 16px rgba(0,0,0,0.1)',
-            padding: '16px 40px 24px',
-            zIndex: 999,
+            width: '340px',
+            height: '100vh',
+            background: '#002B59',
+            boxShadow: '-4px 0 24px rgba(0,0,0,0.15)',
+            zIndex: 1001,
+            overflowY: 'auto',
+            display: 'flex',
+            flexDirection: 'column',
           }}
         >
-          {NAV_LINKS.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={() => setMenuOpen(false)}
+          {/* Panel header */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '20px 24px 16px',
+              borderBottom: '1px solid rgba(255,255,255,0.12)',
+            }}
+          >
+            <p
               style={{
-                display: 'block',
-                padding: '12px 0',
-                fontSize: '15px',
-                fontWeight: 500,
-                color: '#11131e',
-                textDecoration: 'none',
-                borderBottom: '1px solid #f0f0f0',
+                fontSize: '11px',
+                fontWeight: 700,
+                color: 'rgba(255,255,255,0.5)',
+                letterSpacing: '0.12em',
+                margin: 0,
               }}
-              onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.color = '#009bdb')}
-              onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.color = '#11131e')}
             >
-              {item.label}
-            </Link>
-          ))}
+              EXPLORE
+            </p>
+            <button
+              onClick={() => {
+                setMenuOpen(false)
+                setExpandedItem(null)
+              }}
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                padding: '4px',
+                color: '#fff',
+                fontSize: '20px',
+                lineHeight: 1,
+              }}
+              aria-label="Close menu"
+            >
+              ✕
+            </button>
+          </div>
+
+          {/* Nav items */}
+          <div style={{ padding: '8px 24px 40px' }}>
+            {navItems.map((item) => {
+              const hasChildren = (item.children?.length ?? 0) > 0
+              const isExpanded = expandedItem === item.href
+              return (
+                <div key={item.href}>
+                  {hasChildren ? (
+                    <button
+                      onClick={() => setExpandedItem(isExpanded ? null : item.href)}
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        width: '100%',
+                        padding: '14px 0',
+                        fontSize: '15px',
+                        fontWeight: 500,
+                        color: '#fff',
+                        background: 'none',
+                        border: 'none',
+                        borderBottom: '1px solid rgba(255,255,255,0.12)',
+                        cursor: 'pointer',
+                        fontFamily: 'inherit',
+                        textAlign: 'left',
+                      }}
+                    >
+                      {item.label}
+                      <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)' }}>
+                        {isExpanded ? '▲' : '▼'}
+                      </span>
+                    </button>
+                  ) : (
+                    <Link
+                      href={item.href}
+                      onClick={() => setMenuOpen(false)}
+                      style={{
+                        display: 'block',
+                        padding: '14px 0',
+                        fontSize: '15px',
+                        fontWeight: 500,
+                        color: '#fff',
+                        textDecoration: 'none',
+                        borderBottom: '1px solid rgba(255,255,255,0.12)',
+                      }}
+                    >
+                      {item.label}
+                    </Link>
+                  )}
+                  {isExpanded &&
+                    item.children?.map((child) => (
+                      <Link
+                        key={child.href}
+                        href={child.href}
+                        onClick={() => {
+                          setMenuOpen(false)
+                          setExpandedItem(null)
+                        }}
+                        style={{
+                          display: 'block',
+                          padding: '11px 0 11px 20px',
+                          fontSize: '14px',
+                          color: 'rgba(255,255,255,0.7)',
+                          textDecoration: 'none',
+                          borderBottom: '1px solid rgba(255,255,255,0.08)',
+                        }}
+                      >
+                        {child.label}
+                      </Link>
+                    ))}
+                </div>
+              )
+            })}
+          </div>
         </div>
       )}
     </>

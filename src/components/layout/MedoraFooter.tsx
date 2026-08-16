@@ -4,10 +4,30 @@ import { useTranslations } from 'next-intl'
 import { Link } from '@/i18n/navigation'
 
 const SOCIAL = [
-  { label: 'Facebook', href: 'https://www.facebook.com/MedoraHotels/', color: '#1877F2', char: 'f' },
-  { label: 'Instagram', href: 'https://www.instagram.com/lovepodgora/', color: '#E1306C', char: 'in' },
-  { label: 'YouTube', href: 'https://www.youtube.com/channel/UCTtE8QDM52-BZKFvfgjqm9Q', color: '#FF0000', char: 'yt' },
-  { label: 'TripAdvisor', href: 'https://www.tripadvisor.com/Hotel_Review-g656736-d671497', color: '#34E0A1', char: 'ta' },
+  {
+    label: 'Facebook',
+    href: 'https://www.facebook.com/MedoraHotels/',
+    color: '#1877F2',
+    char: 'f',
+  },
+  {
+    label: 'Instagram',
+    href: 'https://www.instagram.com/lovepodgora/',
+    color: '#E1306C',
+    char: 'in',
+  },
+  {
+    label: 'YouTube',
+    href: 'https://www.youtube.com/channel/UCTtE8QDM52-BZKFvfgjqm9Q',
+    color: '#FF0000',
+    char: 'yt',
+  },
+  {
+    label: 'TripAdvisor',
+    href: 'https://www.tripadvisor.com/Hotel_Review-g656736-d671497',
+    color: '#34E0A1',
+    char: 'ta',
+  },
 ]
 
 export function MedoraFooter() {
@@ -17,40 +37,38 @@ export function MedoraFooter() {
     {
       title: t('customerServices'),
       links: [
-        { label: t('allContacts'), href: '/contacts' },
-        { label: t('modifyReservation'), href: '/modify-reservation' },
-        { label: t('faq'), href: '/faq' },
-        { label: t('packagesOffers'), href: '/offers' },
-      ],
-    },
-    {
-      title: t('accommodation'),
-      links: [
-        { label: t('auriResort'), href: '/accommodation/auri' },
-        { label: t('orbis'), href: '/orbis' },
-        { label: t('roomsSuites'), href: '/accommodation/rooms' },
-        { label: t('quickInquiry'), href: '/inquiry' },
+        { label: t('allContacts'), href: '/contact' },
+        { label: t('modifyReservation'), href: '/contact' },
+        { label: t('faq'), href: '/help-center' },
+        { label: t('packagesOffers'), href: '/packages-special-offers' },
       ],
     },
     {
       title: t('amenities'),
       links: [
-        { label: t('wellness'), href: '/amenities/wellness' },
-        { label: t('dining'), href: '/amenities/dining-bars' },
-        { label: t('activeVacation'), href: '/amenities/active-vacation' },
-        { label: t('aboutRiviera'), href: '/destination/makarska-riviera' },
+        { label: t('wellness'), href: '/destination/wellness' },
+        { label: t('dining'), href: '/destination/dining-bars' },
+        { label: t('activeVacation'), href: '/destination/active-vacation' },
+        { label: t('aboutRiviera'), href: '/destination/about-makarska-riviera' },
+        { label: t('aboutPodgora'), href: '/destination/location' },
       ],
     },
     {
-      title: t('contact'),
+      title: t('medoraHotels'),
       links: [
         { label: t('aboutMedora'), href: '/about' },
-        { label: t('awards'), href: '/awards' },
-        { label: t('directions'), href: '/directions' },
-        { label: t('privacyPolicy'), href: '/privacy-policy' },
+        { label: t('awards'), href: '/about/awards' },
+        { label: t('directions'), href: '/how-to-reach-us' },
+        { label: t('businessInfo'), href: 'https://mhr-podgora.com/', external: true },
+        { label: t('privacyPolicy'), href: '/personal-data-protection-policy' },
+        { label: t('cookiesPolicy'), href: '/cookies-policy' },
       ],
+    },
+    {
+      title: t('contactUs'),
+      links: [],
       contact: {
-        phone: '+385 21 607 990',
+        phone: '+385 (0)21 601 701',
         email: 'reservations@medorahotels.com',
       },
     },
@@ -151,24 +169,40 @@ export function MedoraFooter() {
               </h4>
               <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
                 {group.links.map((link) => (
-                  <li key={link.href} style={{ marginBottom: '8px' }}>
-                    <Link
-                      href={link.href}
-                      style={{
-                        fontSize: '14px',
-                        color: '#11131e',
-                        textDecoration: 'none',
-                        transition: 'color 0.15s',
-                      }}
-                      onMouseEnter={(e) =>
-                        ((e.currentTarget as HTMLElement).style.color = '#009bdb')
-                      }
-                      onMouseLeave={(e) =>
-                        ((e.currentTarget as HTMLElement).style.color = '#11131e')
-                      }
-                    >
-                      {link.label}
-                    </Link>
+                  <li key={link.label} style={{ marginBottom: '8px' }}>
+                    {(link as any).external ? (
+                      <a
+                        href={link.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                          fontSize: '14px',
+                          color: '#11131e',
+                          textDecoration: 'none',
+                          transition: 'color 0.15s',
+                        }}
+                      >
+                        {link.label}
+                      </a>
+                    ) : (
+                      <Link
+                        href={link.href}
+                        style={{
+                          fontSize: '14px',
+                          color: '#11131e',
+                          textDecoration: 'none',
+                          transition: 'color 0.15s',
+                        }}
+                        onMouseEnter={(e) =>
+                          ((e.currentTarget as HTMLElement).style.color = '#009bdb')
+                        }
+                        onMouseLeave={(e) =>
+                          ((e.currentTarget as HTMLElement).style.color = '#11131e')
+                        }
+                      >
+                        {link.label}
+                      </Link>
+                    )}
                   </li>
                 ))}
                 {'contact' in group && group.contact && (

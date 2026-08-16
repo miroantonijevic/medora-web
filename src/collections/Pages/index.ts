@@ -4,13 +4,15 @@ import { authenticated } from '../../access/authenticated'
 import { authenticatedOrPublished } from '../../access/authenticatedOrPublished'
 import { Archive } from '../../blocks/ArchiveBlock/config'
 import { CallToAction } from '../../blocks/CallToAction/config'
+import { CardGrid } from '../../blocks/CardGrid/config'
 import { Content } from '../../blocks/Content/config'
+import { ContentSection } from '../../blocks/ContentSection/config'
 import { FormBlock } from '../../blocks/Form/config'
 import { MediaBlock } from '../../blocks/MediaBlock/config'
 import { hero } from '@/heros/config'
 import { slugField } from 'payload'
 import { populatePublishedAt } from '../../hooks/populatePublishedAt'
-import { generatePreviewPath } from '../../utilities/generatePreviewPath'
+import { getServerSideURL } from '../../utilities/getURL'
 import { revalidateDelete, revalidatePage } from './hooks/revalidatePage'
 
 import {
@@ -35,26 +37,30 @@ export const Pages: CollectionConfig<'pages'> = {
   defaultPopulate: {
     title: true,
     slug: true,
+    path: true,
   },
   admin: {
-    hidden: true,
-    group: 'Blog',
-    description: 'Custom CMS pages built with a drag-and-drop block layout builder.',
-    defaultColumns: ['title', 'slug', 'updatedAt'],
+    group: 'Content',
+    description:
+      'CMS-managed pages: destination sub-pages, landing pages, and any ad-hoc content page.',
+    defaultColumns: ['title', 'path', 'updatedAt'],
     livePreview: {
-      url: ({ data, req }) =>
-        generatePreviewPath({
-          slug: data?.slug,
-          collection: 'pages',
-          req,
-        }),
+      url: ({ data, locale }) => {
+        const localeCode = (locale as { code?: string })?.code ?? 'en'
+        const pagePath = (data?.path as string) || (data?.slug as string)
+        if (!pagePath) return null as unknown as string
+        const secret = process.env.PAYLOAD_DRAFT_SECRET ?? 'draft-secret'
+        const pageURL = `/${localeCode}/${pagePath}`
+        return `${getServerSideURL()}/api/draft?url=${encodeURIComponent(pageURL)}&secret=${secret}&locale=${localeCode}`
+      },
     },
-    preview: (data, { req }) =>
-      generatePreviewPath({
-        slug: data?.slug as string,
-        collection: 'pages',
-        req,
-      }),
+    preview: (data) => {
+      const pagePath = (data?.path as string) || (data?.slug as string)
+      if (!pagePath) return null
+      const secret = process.env.PAYLOAD_DRAFT_SECRET ?? 'draft-secret'
+      const pageURL = `/en/${pagePath}`
+      return `${getServerSideURL()}/api/draft?url=${encodeURIComponent(pageURL)}&secret=${secret}&locale=en`
+    },
     useAsTitle: 'title',
   },
   fields: [
@@ -62,6 +68,17 @@ export const Pages: CollectionConfig<'pages'> = {
       name: 'title',
       type: 'text',
       required: true,
+    },
+    {
+      name: 'path',
+      type: 'text',
+      unique: true,
+      index: true,
+      admin: {
+        position: 'sidebar',
+        description:
+          'Full URL path without locale prefix, e.g. destination/beaches. Leave blank for flat-slug pages.',
+      },
     },
     {
       type: 'tabs',
@@ -75,7 +92,15 @@ export const Pages: CollectionConfig<'pages'> = {
             {
               name: 'layout',
               type: 'blocks',
-              blocks: [CallToAction, Content, MediaBlock, Archive, FormBlock],
+              blocks: [
+                CallToAction,
+                Content,
+                ContentSection,
+                CardGrid,
+                MediaBlock,
+                Archive,
+                FormBlock,
+              ],
               required: true,
               admin: {
                 initCollapsed: true,
@@ -83,33 +108,6 @@ export const Pages: CollectionConfig<'pages'> = {
             },
           ],
           label: 'Content',
-        },
-        {
-          name: 'meta',
-          label: 'SEO',
-          fields: [
-            OverviewField({
-              titlePath: 'meta.title',
-              descriptionPath: 'meta.description',
-              imagePath: 'meta.image',
-            }),
-            MetaTitleField({
-              hasGenerateFn: true,
-            }),
-            MetaImageField({
-              relationTo: 'media',
-            }),
-
-            MetaDescriptionField({}),
-            PreviewField({
-              // if the `generateUrl` function is configured
-              hasGenerateFn: true,
-
-              // field paths to match the target field for data
-              titlePath: 'meta.title',
-              descriptionPath: 'meta.description',
-            }),
-          ],
         },
       ],
     },

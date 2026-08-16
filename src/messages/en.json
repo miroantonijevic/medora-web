@@ -67,12 +67,30 @@
     "getInTouch": "Get in Touch",
     "findUs": "Find us",
     "faqItems": [
-      { "q": "What is included in the room price?", "a": "All rooms include breakfast, free parking, free sun loungers on the beach, and complimentary non-alcoholic drinks at the pool bar. Children stay free." },
-      { "q": "Is there a direct beach?", "a": "Yes \u2014 Medora Auri is located directly on the Adriatic Sea with a private beach and sun lounger area for guests." },
-      { "q": "Do you have a kids club?", "a": "We have a fully supervised kids club running daily during the summer season, free of charge for children aged 4\u201312." },
-      { "q": "Can I book activities (excursions, boat trips) from the hotel?", "a": "Yes. Our reception team arranges excursions to Skywalk Biokovo, boat trips to the islands, and other local activities. Some are included in the room rate \u2014 see our current offers." },
-      { "q": "What is your cancellation policy?", "a": "Standard bookings can be cancelled free of charge up to 14 days before arrival. Early-bird and non-refundable rates apply different conditions. Contact us for details." },
-      { "q": "Do you accept pets?", "a": "Small pets (up to 10 kg) are accepted in selected room categories with prior notification. A small daily fee applies." }
+      {
+        "q": "What is included in the room price?",
+        "a": "All rooms include breakfast, free parking, free sun loungers on the beach, and complimentary non-alcoholic drinks at the pool bar. Children stay free."
+      },
+      {
+        "q": "Is there a direct beach?",
+        "a": "Yes \u2014 Medora Auri is located directly on the Adriatic Sea with a private beach and sun lounger area for guests."
+      },
+      {
+        "q": "Do you have a kids club?",
+        "a": "We have a fully supervised kids club running daily during the summer season, free of charge for children aged 4\u201312."
+      },
+      {
+        "q": "Can I book activities (excursions, boat trips) from the hotel?",
+        "a": "Yes. Our reception team arranges excursions to Skywalk Biokovo, boat trips to the islands, and other local activities. Some are included in the room rate \u2014 see our current offers."
+      },
+      {
+        "q": "What is your cancellation policy?",
+        "a": "Standard bookings can be cancelled free of charge up to 14 days before arrival. Early-bird and non-refundable rates apply different conditions. Contact us for details."
+      },
+      {
+        "q": "Do you accept pets?",
+        "a": "Small pets (up to 10 kg) are accepted in selected room categories with prior notification. A small daily fee applies."
+      }
     ]
   },
   "gallery": {
@@ -80,29 +98,29 @@
     "subtitle": "Discover Medora Hotels through our photo gallery."
   },
   "header": {
-    "quickInquiry": "Quick inquiry"
+    "quickInquiry": "Quick inquiry",
+    "chooseRoom": "Choose a room"
   },
   "footer": {
     "customerServices": "Customer Services",
-    "accommodation": "Accommodation",
     "amenities": "Amenities",
-    "contact": "Contact",
+    "medoraHotels": "Medora Hotels & Resorts",
+    "contactUs": "Contact us",
     "allContacts": "All contacts",
     "modifyReservation": "Modify / Cancel reservation",
     "faq": "FAQ",
     "packagesOffers": "Packages & Special offers",
-    "auriResort": "Medora Auri Family Beach Resort",
-    "orbis": "Luxury Camp Orbis",
-    "roomsSuites": "Rooms & Suites",
-    "quickInquiry": "Quick inquiry",
     "wellness": "Wellness",
     "dining": "Dining & Bars",
     "activeVacation": "Active vacation",
     "aboutRiviera": "About Makarska Riviera",
-    "aboutMedora": "About Medora Hotels",
-    "awards": "Our awards & Achievements",
+    "aboutPodgora": "About Podgora",
+    "aboutMedora": "About Medora Hotels & Resorts",
+    "awards": "Our prizes & Achievements",
     "directions": "How to reach us",
-    "privacyPolicy": "Privacy Policy"
+    "businessInfo": "Business information",
+    "privacyPolicy": "Personal Data Protection Policy",
+    "cookiesPolicy": "Cookies policy"
   },
   "inquiry": {
     "title": "Quick Inquiry",

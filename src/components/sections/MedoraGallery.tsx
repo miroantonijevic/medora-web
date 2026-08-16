@@ -1,8 +1,10 @@
 'use client'
 
 import Image from 'next/image'
-import Link from 'next/link'
-import { useRef } from 'react'
+import { Link } from '@/i18n/navigation'
+import { useRef, useState } from 'react'
+import Lightbox from 'yet-another-react-lightbox'
+import 'yet-another-react-lightbox/styles.css'
 
 const GALLERY_IMAGES = [
   { src: '/gallery/mainpage_hotel.png', alt: 'Medora Auri hotel exterior' },
@@ -22,17 +24,17 @@ type Props = {
 
 export function MedoraGallery({ title = 'Gallery', viewAllLabel = 'view all' }: Props) {
   const rowRef = useRef<HTMLDivElement>(null)
+  const [lightboxIndex, setLightboxIndex] = useState(-1)
 
   return (
     <section style={{ padding: '60px 0', background: '#fffaf5' }}>
       {/* Header */}
       <div
         style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
+          position: 'relative',
           padding: '0 40px',
           marginBottom: '32px',
+          textAlign: 'center',
         }}
       >
         <h2
@@ -48,6 +50,10 @@ export function MedoraGallery({ title = 'Gallery', viewAllLabel = 'view all' }: 
         <Link
           href="/gallery"
           style={{
+            position: 'absolute',
+            right: '40px',
+            top: '50%',
+            transform: 'translateY(-50%)',
             fontSize: '13px',
             color: '#009bdb',
             textDecoration: 'none',
@@ -69,6 +75,7 @@ export function MedoraGallery({ title = 'Gallery', viewAllLabel = 'view all' }: 
           display: 'flex',
           gap: '12px',
           overflowX: 'auto',
+          justifyContent: 'center',
           paddingLeft: '40px',
           paddingRight: '40px',
           paddingBottom: '8px',
@@ -76,9 +83,10 @@ export function MedoraGallery({ title = 'Gallery', viewAllLabel = 'view all' }: 
           msOverflowStyle: 'none',
         }}
       >
-        {GALLERY_IMAGES.map((img, i) => (
+        {GALLERY_IMAGES.slice(0, 4).map((img, i) => (
           <div
             key={i}
+            onClick={() => setLightboxIndex(i)}
             style={{
               position: 'relative',
               flexShrink: 0,
@@ -101,6 +109,13 @@ export function MedoraGallery({ title = 'Gallery', viewAllLabel = 'view all' }: 
           </div>
         ))}
       </div>
+
+      <Lightbox
+        open={lightboxIndex >= 0}
+        index={lightboxIndex}
+        close={() => setLightboxIndex(-1)}
+        slides={GALLERY_IMAGES.map((img) => ({ src: img.src, alt: img.alt }))}
+      />
     </section>
   )
 }

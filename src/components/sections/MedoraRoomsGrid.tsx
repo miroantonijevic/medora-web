@@ -25,11 +25,10 @@ export function MedoraRoomsGrid({
       {/* Header */}
       <div
         style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
+          position: 'relative',
           padding: '0 40px',
           marginBottom: '32px',
+          textAlign: 'center',
         }}
       >
         <h2
@@ -45,6 +44,10 @@ export function MedoraRoomsGrid({
         <Link
           href={viewAllHref}
           style={{
+            position: 'absolute',
+            right: '40px',
+            top: '50%',
+            transform: 'translateY(-50%)',
             fontSize: '13px',
             color: '#009bdb',
             textDecoration: 'none',
@@ -66,6 +69,7 @@ export function MedoraRoomsGrid({
           display: 'flex',
           gap: '16px',
           overflowX: 'auto',
+          justifyContent: 'center',
           paddingLeft: '40px',
           paddingRight: '40px',
           paddingBottom: '8px',

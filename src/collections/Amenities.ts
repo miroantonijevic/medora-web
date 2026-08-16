@@ -1,4 +1,5 @@
 import type { CollectionConfig } from 'payload'
+import { getServerSideURL } from '@/utilities/getURL'
 
 export const Amenities: CollectionConfig = {
   slug: 'amenities',
@@ -8,6 +9,33 @@ export const Amenities: CollectionConfig = {
     description:
       'Individual amenity items (Spa, Restaurant, Fitness…) each belonging to an amenity group.',
     defaultColumns: ['name', 'group', 'slug'],
+    livePreview: {
+      url: async ({ data, locale, req }) => {
+        const localeCode = (locale as { code?: string })?.code ?? 'en'
+        const amenitySlug = data?.slug as string | undefined
+        if (!amenitySlug) return null as unknown as string
+        const groupRel = data?.group
+        let groupSlug: string | null = null
+        if (typeof groupRel === 'object' && groupRel !== null) {
+          groupSlug = (groupRel as { slug?: string }).slug ?? null
+        } else if ((typeof groupRel === 'number' || typeof groupRel === 'string') && req?.payload) {
+          try {
+            const group = await req.payload.findByID({
+              collection: 'amenity-groups',
+              id: Number(groupRel),
+              depth: 0,
+            })
+            groupSlug = (group as { slug?: string })?.slug ?? null
+          } catch {
+            groupSlug = null
+          }
+        }
+        if (!groupSlug) return null as unknown as string
+        const secret = process.env.PAYLOAD_DRAFT_SECRET ?? 'draft-secret'
+        const pageURL = `/${localeCode}/amenities/${groupSlug}/${amenitySlug}`
+        return `${getServerSideURL()}/api/draft?url=${encodeURIComponent(pageURL)}&secret=${secret}&locale=${localeCode}`
+      },
+    },
   },
   access: { read: () => true },
   fields: [

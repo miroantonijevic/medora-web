@@ -67,7 +67,6 @@ export default async function PropertyHomePage({ params: paramsPromise }: Args) 
         benefits: Array.isArray(s.benefits)
           ? s.benefits.map((b) => String((b as { text?: string }).text ?? ''))
           : [],
-        ctaLabel: String(s.ctaLabel ?? 'View offers'),
         ctaHref: String(s.ctaHref ?? '/offers'),
       }
     })
@@ -114,12 +113,26 @@ export default async function PropertyHomePage({ params: paramsPromise }: Args) 
 
       {/* 3. Room categories photo grid */}
       {roomSubGroupsData.length > 0 && (
-        <section style={{ background: "#fffaf5", padding: "60px 24px" }}>
-          <div style={{ maxWidth: 1200, margin: "0 auto" }}>
-            <h2 style={{ fontSize: 28, fontWeight: 700, color: "#012B59", margin: "0 0 32px", textAlign: "center" }}>
+        <section style={{ background: '#fffaf5', padding: '60px 24px' }}>
+          <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+            <h2
+              style={{
+                fontSize: 28,
+                fontWeight: 700,
+                color: '#012B59',
+                margin: '0 0 32px',
+                textAlign: 'center',
+              }}
+            >
               Sobe
             </h2>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 4 }}>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+                gap: 4,
+              }}
+            >
               {roomSubGroupsData.map((group) => {
                 const heroImage = group.heroImage as { url?: string; alt?: string } | null
                 const groupName = String(group.name)
@@ -127,29 +140,47 @@ export default async function PropertyHomePage({ params: paramsPromise }: Args) 
                   <Link
                     key={group.slug}
                     href={`/properties/${propertySlug}/rooms/${group.slug}`}
-                    style={{ textDecoration: "none", display: "block" }}
+                    style={{ textDecoration: 'none', display: 'block' }}
                   >
-                    <article style={{ position: "relative", overflow: "hidden", aspectRatio: "4/3", cursor: "pointer" }}>
+                    <article
+                      style={{
+                        position: 'relative',
+                        overflow: 'hidden',
+                        aspectRatio: '4/3',
+                        cursor: 'pointer',
+                      }}
+                    >
                       {heroImage?.url ? (
                         <Image
                           src={heroImage.url}
                           alt={heroImage.alt ?? groupName}
                           fill
-                          style={{ objectFit: "cover" }}
+                          style={{ objectFit: 'cover' }}
                           sizes="(max-width: 768px) 100vw, 33vw"
                         />
                       ) : (
-                        <div style={{ background: "#c8bfb0", width: "100%", height: "100%" }} />
+                        <div style={{ background: '#c8bfb0', width: '100%', height: '100%' }} />
                       )}
-                      <div style={{
-                        position: "absolute", inset: 0,
-                        background: "linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 50%)",
-                      }} />
-                      <h3 style={{
-                        position: "absolute", bottom: 20, left: 20,
-                        color: "#fff", fontSize: "clamp(16px, 1.8vw, 22px)", fontWeight: 700,
-                        margin: 0, textShadow: "0 1px 4px rgba(0,0,0,0.4)",
-                      }}>
+                      <div
+                        style={{
+                          position: 'absolute',
+                          inset: 0,
+                          background:
+                            'linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 50%)',
+                        }}
+                      />
+                      <h3
+                        style={{
+                          position: 'absolute',
+                          bottom: 20,
+                          left: 20,
+                          color: '#fff',
+                          fontSize: 'clamp(16px, 1.8vw, 22px)',
+                          fontWeight: 700,
+                          margin: 0,
+                          textShadow: '0 1px 4px rgba(0,0,0,0.4)',
+                        }}
+                      >
                         {groupName}
                       </h3>
                     </article>
@@ -174,13 +205,33 @@ export default async function PropertyHomePage({ params: paramsPromise }: Args) 
         <div style={{ display: 'flex', gap: 32, flexWrap: 'wrap', marginBottom: 40 }}>
           {property.starRating && (
             <div>
-              <span style={{ fontSize: 12, textTransform: 'uppercase', color: '#888', display: 'block' }}>Rating</span>
-              <span style={{ fontSize: 20, color: '#012B59', fontWeight: 700 }}>{'â˜…'.repeat(property.starRating)}</span>
+              <span
+                style={{
+                  fontSize: 12,
+                  textTransform: 'uppercase',
+                  color: '#888',
+                  display: 'block',
+                }}
+              >
+                Rating
+              </span>
+              <span style={{ fontSize: 20, color: '#012B59', fontWeight: 700 }}>
+                {'â˜…'.repeat(property.starRating)}
+              </span>
             </div>
           )}
           {property.address && (
             <div>
-              <span style={{ fontSize: 12, textTransform: 'uppercase', color: '#888', display: 'block' }}>Location</span>
+              <span
+                style={{
+                  fontSize: 12,
+                  textTransform: 'uppercase',
+                  color: '#888',
+                  display: 'block',
+                }}
+              >
+                Location
+              </span>
               <span style={{ fontSize: 15, color: '#333' }}>{String(property.address)}</span>
             </div>
           )}

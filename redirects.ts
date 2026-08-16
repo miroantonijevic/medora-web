@@ -20,5 +20,41 @@ export const redirects: NextConfig['redirects'] = async () => {
     permanent: true,
   }
 
-  return [internetExplorerRedirect, homeDuplicateRedirect]
+  const accommodationRedirects = [
+    { source: '/en/accommodation', destination: '/en/properties/medora-auri', permanent: false },
+    { source: '/hr/accommodation', destination: '/hr/properties/medora-auri', permanent: false },
+    { source: '/de/accommodation', destination: '/de/properties/medora-auri', permanent: false },
+    {
+      source: '/en/accommodation/auri',
+      destination: '/en/properties/medora-auri',
+      permanent: false,
+    },
+    {
+      source: '/hr/accommodation/auri',
+      destination: '/hr/properties/medora-auri',
+      permanent: false,
+    },
+    {
+      source: '/de/accommodation/auri',
+      destination: '/de/properties/medora-auri',
+      permanent: false,
+    },
+    {
+      source: '/en/accommodation/rooms',
+      destination: '/en/properties/medora-auri',
+      permanent: false,
+    },
+    {
+      source: '/hr/accommodation/rooms',
+      destination: '/hr/properties/medora-auri',
+      permanent: false,
+    },
+    {
+      source: '/de/accommodation/rooms',
+      destination: '/de/properties/medora-auri',
+      permanent: false,
+    },
+  ]
+
+  return [internetExplorerRedirect, homeDuplicateRedirect, ...accommodationRedirects]
 }

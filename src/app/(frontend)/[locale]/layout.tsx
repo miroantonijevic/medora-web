@@ -8,6 +8,8 @@ import { AdminBar } from '@/components/AdminBar'
 import { MedoraHeader } from '@/components/layout/MedoraHeader'
 import { MedoraFooter } from '@/components/layout/MedoraFooter'
 import { Providers } from '@/providers'
+import configPromise from '@payload-config'
+import { getPayload } from 'payload'
 
 type Props = {
   children: React.ReactNode
@@ -26,13 +28,19 @@ export default async function LocaleLayout({ children, params }: Props) {
 
   const messages = await getMessages()
   const { isEnabled } = await draftMode()
+  const payload = await getPayload({ config: configPromise })
+  const navData = await payload.findGlobal({
+    slug: 'main-nav',
+    depth: 0,
+    locale: locale as 'en' | 'hr' | 'de',
+  })
 
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
       <Providers>
         <AdminBar adminBarProps={{ preview: isEnabled }} />
-        <MedoraHeader />
-        <div style={{ paddingTop: '72px' }}>{children}</div>
+        <MedoraHeader navItems={(navData as any)?.items ?? []} />
+        <div style={{ paddingTop: '124px' }}>{children}</div>
         <MedoraFooter />
       </Providers>
     </NextIntlClientProvider>
