@@ -9,6 +9,7 @@ import { Content } from '../../blocks/Content/config'
 import { ContentSection } from '../../blocks/ContentSection/config'
 import { FormBlock } from '../../blocks/Form/config'
 import { MediaBlock } from '../../blocks/MediaBlock/config'
+import { PhotoGallery } from '../../blocks/PhotoGallery/config'
 import { hero } from '@/heros/config'
 import { slugField } from 'payload'
 import { populatePublishedAt } from '../../hooks/populatePublishedAt'
@@ -100,6 +101,7 @@ export const Pages: CollectionConfig<'pages'> = {
                 MediaBlock,
                 Archive,
                 FormBlock,
+                PhotoGallery,
               ],
               required: true,
               admin: {

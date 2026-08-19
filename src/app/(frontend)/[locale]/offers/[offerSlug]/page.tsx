@@ -54,6 +54,7 @@ export default async function OfferDetailPage({ params: paramsPromise }: Args) {
   const property = offer.property as { slug?: string; name?: string } | null | undefined
   const bookingLink = bookingService.getBookingLink({
     propertySlug: property?.slug,
+    locale,
   })
 
   return (
@@ -101,20 +102,47 @@ export default async function OfferDetailPage({ params: paramsPromise }: Args) {
       </section>
 
       {/* Breadcrumb */}
-      <nav style={{ background: '#f9f5f1', padding: '12px 48px', fontSize: 13, color: '#666' }} aria-label="breadcrumb">
-        <Link href="/" style={{ color: '#009bdb', textDecoration: 'none' }}>{tNav('home')}</Link>{' '}
+      <nav
+        style={{ background: '#f9f5f1', padding: '12px 48px', fontSize: 13, color: '#666' }}
+        aria-label="breadcrumb"
+      >
+        <Link href="/" style={{ color: '#009bdb', textDecoration: 'none' }}>
+          {tNav('home')}
+        </Link>{' '}
         /{' '}
-        <Link href="/offers" style={{ color: '#009bdb', textDecoration: 'none' }}>{tNav('offers')}</Link>{' '}
+        <Link href="/offers" style={{ color: '#009bdb', textDecoration: 'none' }}>
+          {tNav('offers')}
+        </Link>{' '}
         / {String(offer.title)}
       </nav>
 
-      <div style={{ maxWidth: 900, margin: '0 auto', padding: '48px 24px', display: 'grid', gridTemplateColumns: '1fr 300px', gap: 48, alignItems: 'start' }}>
+      <div
+        style={{
+          maxWidth: 900,
+          margin: '0 auto',
+          padding: '48px 24px',
+          display: 'grid',
+          gridTemplateColumns: '1fr 300px',
+          gap: 48,
+          alignItems: 'start',
+        }}
+      >
         {/* Description */}
         <div>
           {(offer.validFrom || offer.validUntil) && (
             <p style={{ fontSize: 14, color: '#888', marginBottom: 24 }}>
-            {offer.validFrom && <>{tOffers('validFrom')} <strong>{formatDate(offer.validFrom, locale)}</strong></>}
-              {offer.validUntil && <> {tOffers('until').toLowerCase()} <strong>{formatDate(offer.validUntil, locale)}</strong></>}
+              {offer.validFrom && (
+                <>
+                  {tOffers('validFrom')} <strong>{formatDate(offer.validFrom, locale)}</strong>
+                </>
+              )}
+              {offer.validUntil && (
+                <>
+                  {' '}
+                  {tOffers('until').toLowerCase()}{' '}
+                  <strong>{formatDate(offer.validUntil, locale)}</strong>
+                </>
+              )}
             </p>
           )}
 

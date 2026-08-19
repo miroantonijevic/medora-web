@@ -290,3 +290,29 @@ export const getOfferBySlug = cache(async (slug: string, locale = 'en') => {
   })
   return result.docs[0] ?? null
 })
+
+// ─── FAQ ─────────────────────────────────────────────────────────────────────
+
+export const getFaqCategories = cache(async (locale = 'en') => {
+  const payload = await getPayloadClient()
+  const result = await payload.find({
+    collection: 'faq-categories',
+    depth: 1,
+    locale: locale as 'en' | 'hr' | 'de',
+    sort: 'order',
+    limit: 50,
+  })
+  return result.docs
+})
+
+export const getFaqCategoryBySlug = cache(async (slug: string, locale = 'en') => {
+  const payload = await getPayloadClient()
+  const result = await payload.find({
+    collection: 'faq-categories',
+    where: { slug: { equals: slug } },
+    depth: 1,
+    locale: locale as 'en' | 'hr' | 'de',
+    limit: 1,
+  })
+  return result.docs[0] ?? null
+})

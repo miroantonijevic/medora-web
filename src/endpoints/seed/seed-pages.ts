@@ -117,6 +117,69 @@ function lexBullets(items: string[]) {
   }
 }
 
+// Mixes paragraphs (plain strings) and bullet lists (string arrays) in one rich text body
+function lexMixed(blocks: (string | string[])[]) {
+  return {
+    root: {
+      type: 'root',
+      children: blocks.map((block) =>
+        Array.isArray(block)
+          ? {
+              type: 'list',
+              listType: 'bullet',
+              tag: 'ul',
+              start: 1,
+              children: block.map((text, i) => ({
+                type: 'listitem',
+                value: i + 1,
+                children: [
+                  {
+                    type: 'text',
+                    text,
+                    version: 1,
+                    detail: 0,
+                    format: 0,
+                    mode: 'normal',
+                    style: '',
+                  },
+                ],
+                direction: 'ltr',
+                format: '',
+                indent: 0,
+                version: 1,
+              })),
+              direction: 'ltr',
+              format: '',
+              indent: 0,
+              version: 1,
+            }
+          : {
+              type: 'paragraph',
+              children: [
+                {
+                  type: 'text',
+                  text: block,
+                  version: 1,
+                  detail: 0,
+                  format: 0,
+                  mode: 'normal',
+                  style: '',
+                },
+              ],
+              direction: 'ltr',
+              format: '',
+              indent: 0,
+              version: 1,
+            },
+      ),
+      direction: 'ltr',
+      format: '',
+      indent: 0,
+      version: 1,
+    },
+  }
+}
+
 // ── Block helpers ─────────────────────────────────────────────────────────────
 
 function contentSection(
@@ -149,6 +212,35 @@ function cardGrid(
       excerpt: c.excerpt,
       link: c.link,
     })),
+  }
+}
+
+function infoCardHero(params: {
+  heroImageId: number | null
+  title: string
+  workingHoursText?: string | null
+  phone?: string
+  email?: string
+  cardSubtext?: string | null
+  showInquiryButton?: boolean
+}) {
+  return {
+    type: 'infoCard' as const,
+    heroImage: params.heroImageId,
+    title: params.title,
+    workingHoursText: params.workingHoursText ?? null,
+    phone: params.phone ?? null,
+    email: params.email ?? null,
+    cardSubtext: params.cardSubtext ?? null,
+    showInquiryButton: params.showInquiryButton ?? true,
+  }
+}
+
+function photoGallery(label: string, imageIds: (number | null)[]) {
+  return {
+    blockType: 'photo-gallery' as const,
+    label,
+    images: imageIds.filter(Boolean).map((id) => ({ image: id })),
   }
 }
 
@@ -538,12 +630,34 @@ export async function seedPages({ payload }: { payload: Payload }) {
     ],
   })
 
-  const locationHistoryHeroId = await img(
-    payload,
-    `${BASE}/kategorije/podgora-history-hero.jpg`,
-    'location-history-hero.jpg',
-    'History and culture of Podgora',
-  )
+  const [
+    locationHeroId,
+    locationHistoryHeroId,
+    locationKlimaHeroId,
+    whatToVisitHeroId,
+    secretsHeroId,
+  ] = await Promise.all([
+    img(payload, `${BASE}/kategorije/podgora-hero.jpg`, 'podgora-hero.jpg', 'About Podgora'),
+    img(
+      payload,
+      `${BASE}/kategorije/podgora-history-hero.jpg`,
+      'location-history-hero.jpg',
+      'History and culture of Podgora',
+    ),
+    img(payload, `${BASE}/kategorije/klima-hero.jpg`, 'podgora-klima-hero.jpg', 'Podgora climate'),
+    img(
+      payload,
+      `${BASE}/kategorije/what-to-visit-hero.jpg`,
+      'what-to-visit-hero.jpg',
+      'What you can visit in Podgora',
+    ),
+    img(
+      payload,
+      `${BASE}/kategorije/did-you-know-hero.jpg`,
+      'secrets-podgora-hero.jpg',
+      'Secrets of Podgora',
+    ),
+  ])
 
   // ── Location page ─────────────────────────────────────────────────────────
 
@@ -552,7 +666,7 @@ export async function seedPages({ payload }: { payload: Payload }) {
     hero: locationHistoryHeroId
       ? {
           type: 'highImpact',
-          media: locationHistoryHeroId,
+          media: locationHeroId ?? locationHistoryHeroId,
           richText: lexH1('All is well in Podgora'),
         }
       : { type: 'lowImpact', richText: lexH1('All is well in Podgora') },
@@ -575,21 +689,21 @@ export async function seedPages({ payload }: { payload: Payload }) {
           link: '/destination/location/history-and-culture',
         },
         {
-          imageId: null,
+          imageId: whatToVisitHeroId ?? null,
           title: 'What you can visit',
           excerpt:
             'As soon as you arrive in Podgora, you will want to take 2 steps to the beach — and then explore its many sights and monuments.',
           link: '/destination/location/what-you-can-visit',
         },
         {
-          imageId: null,
+          imageId: secretsHeroId ?? null,
           title: 'Secrets of Podgora',
           excerpt:
             'Discover the legends, traditions, and fascinating stories that shaped Podgora across the centuries.',
           link: '/destination/location/secrets-of-podgora',
         },
         {
-          imageId: null,
+          imageId: locationKlimaHeroId ?? null,
           title: 'Podgora climate',
           excerpt:
             'Experience a true paradise with 2750 sunshine hours per year and a warm Mediterranean climate.',
@@ -600,19 +714,6 @@ export async function seedPages({ payload }: { payload: Payload }) {
   })
 
   // ── About Podgora subpages ────────────────────────────────────────────────
-
-  const whatToVisitHeroId = await img(
-    payload,
-    `${BASE}/kategorije/what-to-visit-hero.jpg`,
-    'what-to-visit-hero.jpg',
-    'What you can visit in Podgora',
-  )
-  const secretsHeroId = await img(
-    payload,
-    `${BASE}/kategorije/did-you-know-hero.jpg`,
-    'secrets-podgora-hero.jpg',
-    'Secrets of Podgora',
-  )
 
   await upsertPage(payload, 'destination/location/history-and-culture', {
     title: 'History and culture of Podgora',
@@ -757,7 +858,9 @@ export async function seedPages({ payload }: { payload: Payload }) {
 
   await upsertPage(payload, 'destination/location/podgora-climate', {
     title: 'Podgora climate',
-    hero: { type: 'lowImpact', richText: lexH1('Podgora climate') },
+    hero: locationKlimaHeroId
+      ? { type: 'highImpact', media: locationKlimaHeroId, richText: lexH1('Podgora climate') }
+      : { type: 'lowImpact', richText: lexH1('Podgora climate') },
     layout: [
       contentSection(
         "It's always sunny here",
@@ -1205,90 +1308,6 @@ export async function seedPages({ payload }: { payload: Payload }) {
       'How to reach Podgora',
     ),
   ])
-
-  // ── Help Center / FAQ ─────────────────────────────────────────────────────
-
-  await upsertPage(payload, 'help-center', {
-    title: 'Medora Help Center',
-    hero: { type: 'lowImpact', richText: lexH1('Medora Help Center') },
-    layout: [
-      cardGrid(
-        'Find answers to the most common questions about your stay at Medora Hotels & Resorts. Browse by topic or contact us directly.',
-        [
-          {
-            imageId: null,
-            title: 'Reservations',
-            excerpt: 'Information about booking, cancellation, and modification of reservations.',
-            link: '/contact',
-          },
-          {
-            imageId: null,
-            title: 'Holiday at the hotel',
-            excerpt:
-              'Everything you need to know about your stay at Medora Auri Family Beach Resort.',
-            link: '/contact',
-          },
-          {
-            imageId: null,
-            title: 'Holiday at the campsite',
-            excerpt: 'All you need to know about staying at Medora Orbis Luxury Homes & Camping.',
-            link: '/contact',
-          },
-          {
-            imageId: null,
-            title: 'Holiday with children',
-            excerpt: 'Kids clubs, programs, and family-friendly facilities at Medora.',
-            link: '/destination/vacation-with-children',
-          },
-          {
-            imageId: null,
-            title: 'Holiday with pets',
-            excerpt: 'Rules and guidelines for bringing your pet to Medora hotels.',
-            link: '/destination/vacation-with-pets',
-          },
-          {
-            imageId: null,
-            title: 'Swimming pools & beaches',
-            excerpt: 'Information about heated pools, beach access, and sunbeds.',
-            link: '/destination/wellness',
-          },
-          {
-            imageId: null,
-            title: 'Wellness center',
-            excerpt: 'Spa, fitness, massages, and wellness facilities at Medora Auri.',
-            link: '/destination/wellness',
-          },
-          {
-            imageId: null,
-            title: 'Arrival in Podgora',
-            excerpt: 'Directions and transport options for reaching Medora in Podgora.',
-            link: '/how-to-reach-us',
-          },
-          {
-            imageId: null,
-            title: 'Food and drink',
-            excerpt: 'Restaurant hours, half-board options, and dining information.',
-            link: '/destination/dining-bars',
-          },
-          {
-            imageId: null,
-            title: 'Hotel parking',
-            excerpt: 'Parking availability, pricing, and EV charging at Medora Auri.',
-            link: '/contact',
-          },
-        ],
-      ),
-      contentSection(
-        "Haven't found your answer?",
-        lexParas(
-          "If you haven't found the answer to your question, contact us directly and our team will be happy to help.",
-        ),
-        null,
-        'right',
-        '/contact',
-      ),
-    ],
-  })
 
   // ── Packages & Special Offers ─────────────────────────────────────────────
 
@@ -1838,88 +1857,150 @@ export async function seedPages({ payload }: { payload: Payload }) {
       contentSection(
         null,
         lexParas(
-          'Updated on 07.2026',
-          'Medora Hotels & Resorts d.o.o. za ugostiteljstvo',
-          'Mrkušića dvori 2, 21327 Podgora, Croatia',
-          'Phone: +385 (0)21 601 700 | Email: privacy@medorahotels.com',
+          'We, at Medora Hotels & Resorts d.o.o za ugostiteljstvo., respect your privacy and protect your personal data in accordance with applicable laws and regulations for the protection of personal data. Our mission is to exceed the expectations of our guests with the quality of our products and services, and we always strive to provide our guests, as well as employees, with a pleasant experience during their stay or work with us, responsibly using the information provided to us.',
+          'With this document, we would like to explain to you how we collect and what we use personal data for when you use our websites, during your stay in our facilities, or during your employment with us, with whom and why we share them, and your rights regarding your personal data that we use, and how we protect them.',
+          'The described Personal Data Protection Policy applies to all business and hospitality facilities of Medora Hotels & Resorts d.o.o za ugostiteljstvo., websites www.medorahotels.com, www.camping-makarska-riviera.com and www.mhr-podgora.com and profiles on social networks.',
         ),
         null,
       ),
       contentSection(
-        null,
-        lexParas(
-          'We, at Medora Hotels & Resorts, respect your privacy and protect your personal data in accordance with applicable laws. Our mission is to exceed the expectations of our guests, responsibly using the information provided to us.',
-        ),
-        null,
-      ),
-      contentSection(
-        '1. Purpose of Collection of Personal Data',
-        lexBullets([
-          'Website improvement and user experience optimisation',
-          'Reservation handling and contractual fulfilment',
-          'Processing of additional service requests',
-          'Payment processing',
-          'Internal statistics and business analysis',
-          'Processing of job applications',
-          'Compliance with legal obligations (Hospitality Act, Accounting Act, Labour Act)',
-          'Video surveillance for security purposes',
+        'Purpose of Collection of Personal Data',
+        lexMixed([
+          'The main purpose of collecting personal data of our guests is to provide and improve our services and fulfill our legal obligations. Personal data is collected for the following purposes:',
+          [
+            'Improving the functionality of our websites www.medorahotels.com and www.camping-makarska-riviera.com',
+            'Reservation of accommodation or communication with clients in order to respond to their interests about our services (through our websites, by email or by phone)',
+            'Execution of the contractual relationship with the guest during his stay',
+            'Purchase of additional services',
+            'Payment for services',
+            'Internal statistical processing of data and preferred services of our guests, and informing our guests about our services, based on our legitimate interest with the aim of improving the quality and sale of our services',
+            'Publication and collection of job applications via e-mail and on the website www.mhr-podgora.com',
+            'Fulfillment of our legal obligations according to the current Act on Hospitality Activities and accompanying regulations, the Act on the provision of services in tourism, the Act on Accounting, the Act on Labor, the Act on Occupational Safety and the Act on the Protection of Financial Institutions.',
+            'Protection of persons and property with a video surveillance system based on our legitimate interest.',
+            'Organization of business processes in business and hospitality facilities of Medora.',
+          ],
         ]),
         null,
       ),
       contentSection(
-        '2. Guest Personal Data Processing',
+        'Guest Personal Data Processing',
+        lexMixed([
+          'If you have asked us for accommodation, we need your personal data to address the appropriate offer to you and forward it to you. In most cases, this is your first and last name and your e-mail address and/or telephone number, but there is a possibility that we will ask you for additional information in order to adapt our offer to your needs and expectations, such as the number of children traveling with you or the language in which you want us to send you the offer. Only authorized employees of our sales department have access to the data. When you decide to accept our offer and book accommodation, we may need additional information for your identification upon arrival and payment security in accordance with our general terms and conditions. After the reservation has been made and on the day of your arrival, access to your data will be provided to authorized persons at our reception. When you book accommodation through our websites, we collect your basic information such as name, email address, telephone number and payment information. This data is used exclusively to process your reservation and provide accommodation services during your stay. Payment data, i.e. your card data, is encrypted and stored exclusively in systems that comply with PS DSS standards that regulate secure payment. If you contacted us by phone or via chat, the conversation with you remains recorded in our call center based on our legitimate interest in the safe processing of your inquiry, the control of our sales employees and the improvement of their work. Data from the call center is processed by authorized employees of our sales department. Medora has ongoing contracts with other, frequently used online sales channels, through which it advertises its available accommodation capacities and current offers, for example:',
+          [
+            'www.booking.com, operated by Booking.com, Herengracht 597, Amsterdam, The Netherlands',
+            'www.expedia.com, operated by Expedia Lodging Partner Services Sar, Geneva 1207, Switzerland.',
+          ],
+          'If you booked your stay in Medora through some of the partner sales channels and not directly with us (in communication by phone or email with our sales staff, directly at the reception desks of some of our facilities or on our website), Medora cannot influence the types of personal data that these online agencies are looking for you for the purposes of registering you as their user, nor the details of the processing of your data by them. From these websites, Medora processes and receives only the data necessary to make the correct accommodation reservation in our systems as stated above.',
+          'When you, as a guest, come to one of our facilities, the laws governing the hospitality industry oblige us to collect legally defined personal data from each guest. In the event that the guest does not provide the minimum information required for guest registration in all relevant registers, we will not be able to provide accommodation services in accordance with the contract and the law. The personal data collected for this purpose by our authorized employees at the reception are:',
+          [
+            'name and surname',
+            'residential address',
+            'date of birth',
+            'number, type of identification document and place of issue',
+            'citizenship',
+            'the name of the facility where you are staying',
+            'accommodation unit number',
+            'date of arrival and departure of the guest',
+            'gender',
+          ],
+          'Medora stores the above data in its guest database and, in accordance with the legal obligation, sends it to the E-visitor system (electronic system for guest registration) to the competent authorities of the Republic of Croatia, and the above data must be kept in the system for 10 years.',
+          'For the purposes of collecting the contract with the guest in accordance with the general terms of business, if payment is not made in cash, data on the account number from which the advance payment was received or data on the debited card are processed. In order to protect our guests as much as possible, your credit card number, which you have entered into the reservation system on our website as a payment guarantee or which we will debit for payment purposes, is recorded in our system in its entirety only until the end of your stay with us and is visible a minimum and strictly defined number of responsible employees. The system we use complies with the highest standard for payment security, the PS DSS standard. After the service has been charged, your card number is masked for further processing in such a way that certain numbers are replaced by an X, and this is also printed on your invoice or payment confirmation. If payment is made by card, your card number is processed exclusively on verified and secure POS devices certified by leading card companies.',
+          "In accordance with legal regulations, Medora is obliged to keep all invoices issued to guests with the guest's personal data for 11 years.",
+          "Other data related to the circumstances of your stay, such as: method of travel, who you are traveling with, marital status, number of children, pets, food allergies and other interests, will also be collected if they are directly related to the provision of our services. For example if you are traveling by car and want to park it during your stay in one of our designated parking lots or enter the camp with it unhindered, we will also need your vehicle's registration plate. Also, if you ask us to organize transportation for you from/to the airport or to another desired destination, or buy an excursion or other arrangement from our offer, your interests and requests will be recorded in our systems, and your data will be forwarded to one of our external associates with the aim of providing the requested services.",
+          'The data we collected during your inquiry, reservation or stay via our website, e-mail, call center or directly at our receptions are stored in our database for a minimum of 5 years, based on our legitimate interest with the aim of improving our services, better and faster response to inquiries in case of return of our guests, and to improve the organization and quality of work of our employees and services in our facilities. Only data that is necessary in accordance with our legal obligations (minimum amount of data prescribed by law) is stored for a longer period. This does not apply to sensitive card payment data that is processed in the system in the manner described above. You can object to the data we process based on our legitimate interest at any time at privacy@medorahotels.com.',
+          "If, for the purposes of sending an offer or booking an accommodation, we communicated with you by e-mail, or you gave us your address during a telephone conversation, online correspondence with our staff, registration at our reception desks, participation in prize games or filling out a customer satisfaction survey e-mail as your personal data, Medora's marketing team may occasionally contact you via it. It is our desire that you come back to us again and be our guest again, and with this goal in mind, and to enable you to receive notifications about our special promotions and discounts related to our services, we reserve our legitimate interest to occasionally contact you at your e-mail address. The information you will receive will refer exclusively to the services offered by Medora, which we believe you, as our client, are still interested in. Medora may also introduce a new channel for sending notifications, such as social networks or online advertising, based on our legitimate interest or if we receive your consent. If we made a mistake and you do not want to receive our notifications, you can file a complaint at privacy@medorahotels.com at any time, and we will stop sending them without delay. Personal data are processed in the system we use to send notifications for 5 years, and contain your first and last name, and your e-mail address.",
+          "For the safety of our guests and employees, but also in accordance with our legal obligations under the Act on Occupational Safety and the Act on the Protection of Financial Institutions, Medora's business and hospitality facilities are monitored by a video surveillance system and an access control system. Video surveillance system recordings are kept for 14 days.",
+        ]),
+        null,
+      ),
+      contentSection(
+        'Processing of Personal Data of Medora Employees',
+        lexMixed([
+          'While you are not yet our employee, your personal data received at the e-mail address posao@medorahotels.com, through published job advertisements or online job application at www.mhr-podgora.com will be used exclusively for the purposes of recruiting Medora hotels and resorts. d.d. By sending your application and CV, you give us your consent to process the personal data received for employment purposes for the needs of currently open positions as well as for our future employment needs. You can withdraw your consent at any time by contacting us at privacy@medorahotels.com, after which we will delete or make your data unavailable for this processing.',
+          'When you become our employee, we process your data for the sake of our legal obligations as your employer in accordance with the Labor Act and other valid legal regulations. Data processed include:',
+          [
+            'Your name and surname',
+            'Your date of birth',
+            'Your address and your contact information',
+            'Your current account number',
+            'Number and type of your personal document',
+            'Data from your job application and your CV',
+            'Additional data necessary for the purposes of employment and exercising your rights (eg, sick leave, tax benefits) as an employee.',
+          ],
+          'Data processed in accordance with the Labor Act are stored permanently, regardless of the duration of your employment relationship with us. For the needs of daily business organization, we process your data in internal software tools that are used for communication, organization of daily schedules, implementation of business processes, records of working hours, etc. The data processed in these systems, in addition to primarily your first and last name, may also include your official e-mail address, name of your workplace, business correspondence, information about your stay during an official trip and other information in accordance with business needs and according to applicable legal regulations. The working time record system can also use your biometric data in accordance with internal decisions and your consent. Depending on the software tool and the purpose of the processing, the storage time of your personal data varies. Medora\u2019s business and hospitality facilities are equipped with a video surveillance system for the safety of our employees, guests and property, and in accordance with the Law on Occupational Safety and the Law on the Protection of Financial Institutions. Recordings of the video surveillance system can also process your personal data, and they are kept for 14 days.',
+        ]),
+        null,
+      ),
+      contentSection(
+        'Use of Social Networks and Our Websites',
         lexParas(
-          'We collect your name, email address, and phone number for enquiries. Additional data is required for booking (identification document, payment card information). At hotel reception, we also collect: name, address, date of birth, ID document details, citizenship, room number, arrival and departure dates, and gender — stored for 10 years as required by the e-visitor system.',
-          'Card data is encrypted and we are PCI-DSS compliant. Invoice data is kept for 11 years. Bookings made via third-party platforms (Booking.com, Expedia) are subject to their respective privacy policies. Data is stored for a minimum of 5 years for operational purposes.',
+          'Our Personal Data Protection Policy is regularly updated on our website and is available to all visitors to our website. By using our websites, filling out an online job application or publishing your own content on our pages, you confirm that you agree with our Personal Data Protection Policy and that you agree that we process your personal data in accordance with the purpose of processing and the published Personal Data Protection Policy. Medora hotels and resorts d.o.o. za ugostiteljstvo. manages and edits profiles on social networks, such as Facebook or Instagram. Visitors to our profiles on social networks can publish content, photos or comments related to our facilities, services or stay with us. Medora hotels and resorts do not encourage or prevent such posts, but they are based solely on the interest and approval of visitors to our profiles. Medora hotels and resorts d.o.o. za ugostiteljstvo will not be liable for any direct or indirect, accidental, material or immaterial damage or expense incurred as a result of the use of Medora\u2019s websites and profiles on social networks or the publication of content by visitors to our pages or profiles. Sometimes we will ask you for your permission to publish these contents on our websites or social network profiles for publicly published content. The contents that we can publish refer exclusively to publicly available images and comments published on Facebook, Instagram or other social networks for which you have given us your consent. With your consent to such publications, you accept the rights and use of your content, which will be presented to you when asking for your consent.',
+          'In order for our websites to work optimally and for us to be able to make further improvements to the pages in order to improve your user experience, we use cookies on our websites. Cookie settings can be controlled and adjusted in your web browser, and the use of cookies can be disabled according to your choice. If you disable cookies, you can still browse our site, but some of its features will not be available to you.',
+          'A cookie is information saved on your computer by the website you visit. Cookies usually store your preferences for a website, such as your preferred language or address. Later, when you open the same website again, the Internet browser sends back the cookies belonging to that page. This allows the site to display information tailored to your needs.',
+          'There are several types of cookies: first-party cookies, session cookies, persistent cookies, and third-party cookies that we use to monitor the success of our digital campaigns and advertising.',
+          "First-party cookies come from the website you are viewing and can be permanent or temporary. With the help of these cookies, websites can store data that will be used again during the next visit to that website (e.g. language selection). Temporary cookies or session cookies are removed from the computer when the Internet browser is closed. Permanent or saved cookies remain on the computer after closing the Internet browser program. With them, websites store information, such as your login name and password, so you don't have to log in every time you visit a particular site. Permanent cookies will remain on the computer until you, as a user, disable/delete them or until your browser deletes them (period defined in browser settings).",
+          'Third-party cookies come from other websites (eg from advertising). Using these cookies, websites can, for example, monitor and improve the success of digital marketing campaigns.',
+          'Medora hotels and resorts d.o.o. za ugostiteljstvo uses cookies on its websites www.medorahotels.com and www.camping-makarska-riviera.com. We use first-party cookies (temporary and permanent) and third-party cookies.',
+          'We use cookies to optimize the pages in terms of system performance, ease of use and offer useful information about our services. With cookies, we automatically collect and store data in log files on your computer. Data collected includes information about your IP address, browser type and language settings, operating system, ISP (Internet Service Provider) name, and date/time stamp.',
+          'Individual user data is not disclosed to us, but the data we process is anonymous and statistical data, as well as demographic data about our users as a whole. We use this data to analyze trends and marketing needs, as well as effectively manage websites, because they help us learn more about the behavior of our users on our pages, the success of some of our marketing campaigns and the primary interests of our website visitors.',
         ),
         null,
       ),
       contentSection(
-        '3. Processing of Personal Data of Medora Employees',
+        'Storage and Deletion of Your Personal Data',
         lexParas(
-          'Job application data sent to posao@medorahotels.com is kept with your consent and can be withdrawn at any time. Employee data includes: name, date of birth, address, bank account, ID, CV, and employment data. Video surveillance recordings are kept for 14 days.',
+          'Your personal data will be stored in a form that can identify you for no longer than is necessary for the purpose for which it is processed. At the end of this time, which for certain processing is regulated by local laws that oblige us to retain data for a longer period, the data will be deleted or made unavailable for further processing.',
         ),
         null,
       ),
       contentSection(
-        '4. Use of Social Networks and Our Websites',
+        'Data Transfer to Third Parties',
+        lexMixed([
+          'In the case of certain data processing, the data you provide to us may be transferred or made available to third parties. In no case do we sell, rent or transfer your data to unauthorized third parties. The transfer of data or access to data is carried out for the following reasons:',
+          [
+            'When we received your consent for such transfer (e.g. purchase of certain services organized by third parties)',
+            'When companies or service providers that Medora hotels use for certain processing purposes access data in a manner that is regulated by the contractual relationship with Medora hotels and resorts d.o.o. za ugostiteljstvo (e.g. billing for services, technical maintenance of certain software tools, archiving and reporting)',
+            'To fulfill our contractual and legal obligations (e.g. registration of guests in the e-visitor system, registration of employees or payment of salaries)',
+          ],
+          'In the event of the need to transfer data, due to one of the above-mentioned reasons, we try to limit the data that is transferred to the necessary minimum. The third parties to whom we transfer your data have undertaken to protect your data in accordance with applicable laws and regulations on the protection of personal data. In the event that your personal data is transferred to third countries outside the European Economic Area (e.g. in the event that the processor is from the USA or uses data resources in the USA), we use standard contractual clauses to ensure adequate data protection during their transfer.',
+        ]),
+        null,
+      ),
+      contentSection(
+        'Right to Access Your Personal Data, Correction or Delete',
+        lexMixed([
+          'At any time, you can request information about your personal data that Medora hotels and resorts d.o.o. za ugostiteljstvo processes, for the purpose of processing, data recipients as well as entities to which we transfer your personal data. In addition, you have the right to update, correct, block or delete your data in accordance with legal provisions.',
+          'We will be happy to fulfill your request to delete your personal data in the following cases:',
+          [
+            'if your personal data are no longer necessary in relation to the purposes for which they were collected or otherwise processed;',
+            'if you withdraw the consent on which the processing is based;',
+            'if you file an objection to the processing and there are no stronger legitimate reasons for the processing, or file an objection to the processing in which the data is processed for the purposes of direct marketing.',
+          ],
+          'You can send us a request for access to personal data to the e-mail address privacy@medorahotels.com or to our address \u201cMedora hoteli i ljetovi\u0161ta d.o.o za ugostiteljstvo., Mrku\u0161i\u0107a dvori 2\u201d, 21327 Podgora, Croatia with your mandatory contact information and the note "Request for access to personal data". We cannot provide access to personal data through a telephone conversation. In order to prevent the misuse of your personal data, we will send you a predefined form and ask you to fill it in personally and return it to us, and we may also ask you for additional proof of your identity. Without establishing the correct identity, we will not be able to fulfill the request for access to personal data.',
+        ]),
+        null,
+      ),
+      contentSection(
+        "Protection of Children's Personal Data",
         lexParas(
-          'This policy applies to medorahotels.com, camping-makarska-riviera.com, mhr-podgora.com, and our social media profiles. We use first-party cookies (temporary and persistent) and third-party cookies. Cookies collect anonymous and statistical data (IP address, browser type, operating system, timestamp). Cookie settings can be adjusted in your browser.',
+          'Medora hotels and resorts d.o.o. za ugostiteljstvo advises parents and guardians to teach children about safe and responsible handling of personal data on the Internet, because although at Medora we do not want or intend to collect information about minors without parental or guardian consent, we cannot always know the age of the person who accesses our websites. As a parent or guardian, you always have the right to request access to all personal data about your child that we have received on one of our websites, during your stay or your employment relationship with us. Also, Medora hotels and resorts d.o.o. za ugostiteljstvo they guarantee the protection of children\u2019s personal data provided for by special laws governing that issue.',
         ),
         null,
       ),
       contentSection(
-        '5. Storage and Deletion of Your Personal Data',
+        'Security Measures for the Protection of Personal Data',
         lexParas(
-          'Data is stored only as long as necessary and is deleted when no longer needed, subject to applicable legal retention periods.',
+          'Medora hotels and resorts d.o.o za ugostiteljstvo. recognize the importance of information security, and we continuously evaluate and upgrade our technical, physical and organizational security measures and procedures. We provide the users of the reservation system with the highest level of data protection. For secure data transfer between your PC and our servers, we use SSL technology with strong encryption. All personal data, numbers of personal documents, credit cards or other means of payment that users submit through the reservation system are transmitted exclusively through a secure connection using data encryption. The data processed in our systems are accessed only by authorized employees in accordance with the needs of business processes that require individual processing and, in some cases, by third parties who have undertaken to protect your data in accordance with applicable laws and regulations on the protection of personal data. Our employees are trained on how to handle personal data in accordance with legal provisions.',
         ),
         null,
       ),
       contentSection(
-        '6. Data Transfer to Third Parties',
-        lexParas(
-          'Data is transferred to third parties only with your consent, for contractual or legal obligations, or to contracted service providers. Standard contractual clauses are used for transfers outside the EEA.',
-        ),
         null,
-      ),
-      contentSection(
-        '7. Your Rights',
         lexParas(
-          'You have the right to access, correct, or request deletion of your personal data at any time. Submit your request to privacy@medorahotels.com or by post to the address above. Identity verification will be required.',
-        ),
-        null,
-      ),
-      contentSection(
-        "8. Protection of Children's Personal Data",
-        lexParas(
-          'Medora does not intentionally collect personal data from minors without verifiable parental consent.',
-        ),
-        null,
-      ),
-      contentSection(
-        '9. Security Measures',
-        lexParas(
-          'We use SSL encryption for all data transfers, PCI-DSS compliant payment systems, strict access controls, and regular employee training on GDPR data handling practices.',
+          'Updated on 07.2026',
+          'Medora Hotels & Resorts d.o.o. za ugostiteljstvo',
+          'Mrku\u0161i\u0107a dvori 2, 21327 Podgora, Croatia',
+          'Tel: +385 (0)21 601 700 | E-mail: privacy@medorahotels.com',
         ),
         null,
       ),
@@ -1995,6 +2076,570 @@ export async function seedPages({ payload }: { payload: Payload }) {
           'Note: disabling all cookies may affect the functionality of websites. We recommend turning off only the cookies you truly do not need.',
         ),
         null,
+      ),
+    ],
+  })
+
+  // ── Wellness → update hub to card grid + create subpages ────────────────
+
+  const [
+    spaHeroId,
+    massageHeroId,
+    poolsBeachesHeroId,
+    fitnessHeroId,
+    fitnessDesktopHeroId,
+    wellnessCoverId,
+    spaGallery1Id,
+    spaGallery3Id,
+    spaGallery4Id,
+    spaGallery6Id,
+    spaGallery7Id,
+    spaGallery8Id,
+    spaGallery9Id,
+    spaGallery10Id,
+    spaGallery11Id,
+    fitnessGallery1Id,
+    fitnessGallery2Id,
+    fitnessGallery3Id,
+    fitnessGallery4Id,
+    fitnessGallery5Id,
+  ] = await Promise.all([
+    img(
+      payload,
+      `${BASE}/galerije/Wellness-Spa/spa%20people%20desktop.jpg`,
+      'spa-hero.jpg',
+      'Spa at Medora Auri',
+    ),
+    img(
+      payload,
+      `${BASE}/galerije/massage%20medora%20auri.jpg`,
+      'massage-hero.jpg',
+      'Massages at Medora Auri',
+    ),
+    img(
+      payload,
+      `${BASE}/kategorije/things-pools-beaches-hero.jpg`,
+      'pools-beaches-hero.jpg',
+      'Pools & Beaches at Medora Auri',
+    ),
+    img(
+      payload,
+      `${BASE}/galerije/Wellness-Spa/gym%20mobile.jpg`,
+      'fitness-hero.jpg',
+      'Fitness Centre at Medora Auri',
+    ),
+    img(
+      payload,
+      `${BASE}/galerije/Wellness-Spa/gym%20desktop.jpg`,
+      'fitness-desktop-hero.jpg',
+      'Fitness Centre at Medora Auri (desktop)',
+    ),
+    img(
+      payload,
+      `${BASE}/galerije/Interijer/welness%20cover.jpg`,
+      'wellness-cover.jpg',
+      'Wellness at Medora Auri',
+    ),
+    img(
+      payload,
+      `${BASE}/galerije/Wellness-Spa/Medora%20Auri%20Wellness%201.jpg`,
+      'spa-gallery-1.jpg',
+      'Medora Auri Wellness',
+    ),
+    img(
+      payload,
+      `${BASE}/galerije/Wellness-Spa/Medora%20Auri%20Wellness%203.jpg`,
+      'spa-gallery-3.jpg',
+      'Medora Auri Wellness',
+    ),
+    img(
+      payload,
+      `${BASE}/galerije/Wellness-Spa/Medora%20Auri%20Wellness%204.jpg`,
+      'spa-gallery-4.jpg',
+      'Medora Auri Wellness',
+    ),
+    img(
+      payload,
+      `${BASE}/galerije/Wellness-Spa/Medora%20Auri%20Wellness%206.jpg`,
+      'spa-gallery-6.jpg',
+      'Medora Auri Wellness',
+    ),
+    img(
+      payload,
+      `${BASE}/galerije/Wellness-Spa/Medora%20Auri%20Wellness%207.jpg`,
+      'spa-gallery-7.jpg',
+      'Medora Auri Wellness',
+    ),
+    img(
+      payload,
+      `${BASE}/galerije/Wellness-Spa/Medora%20Auri%20Wellness%208.jpg`,
+      'spa-gallery-8.jpg',
+      'Medora Auri Wellness',
+    ),
+    img(
+      payload,
+      `${BASE}/galerije/Wellness-Spa/Medora%20Auri%20Wellness%209.jpg`,
+      'spa-gallery-9.jpg',
+      'Medora Auri Wellness',
+    ),
+    img(
+      payload,
+      `${BASE}/galerije/Wellness-Spa/Medora%20Auri%20Wellness%2010.jpg`,
+      'spa-gallery-10.jpg',
+      'Medora Auri Wellness',
+    ),
+    img(
+      payload,
+      `${BASE}/galerije/Wellness-Spa/Medora%20Auri%20Wellness%2011.jpg`,
+      'spa-gallery-11.jpg',
+      'Medora Auri Wellness',
+    ),
+    img(
+      payload,
+      `${BASE}/galerije/Interijer/Medora%20Auri%20Fitness%20I.jpg`,
+      'fitness-gallery-1.jpg',
+      'Fitness Centre at Medora Auri',
+    ),
+    img(
+      payload,
+      `${BASE}/galerije/Interijer/Medora%20Auri%20Fitness%20II.jpg`,
+      'fitness-gallery-2.jpg',
+      'Fitness Centre at Medora Auri',
+    ),
+    img(
+      payload,
+      `${BASE}/galerije/Interijer/Medora%20Auri%20Fitness%20III.jpg`,
+      'fitness-gallery-3.jpg',
+      'Fitness Centre at Medora Auri',
+    ),
+    img(
+      payload,
+      `${BASE}/galerije/Interijer/Medora%20Auri%20Fitness.jpg`,
+      'fitness-gallery-4.jpg',
+      'Fitness Centre at Medora Auri',
+    ),
+    img(
+      payload,
+      `${BASE}/galerije/Interijer/Medora%20Auri%20Girije.jpg`,
+      'fitness-gallery-5.jpg',
+      'Fitness Centre at Medora Auri',
+    ),
+  ])
+
+  await upsertPage(payload, 'destination/wellness', {
+    title: 'Wellness',
+    hero: wellnessHeroId
+      ? { type: 'highImpact', media: wellnessHeroId, richText: lexH1('Dream Holiday') }
+      : { type: 'lowImpact', richText: lexH1('Dream Holiday') },
+    layout: [
+      contentSection(
+        null,
+        lexParas(
+          'Make your stay at Medora Auri a complete wellness experience. Our facilities offer everything you need to relax, recharge, and stay active during your holiday on the Makarska Riviera.',
+        ),
+        null,
+      ),
+      cardGrid(null, [
+        {
+          imageId: spaHeroId,
+          title: 'Spa (9th floor)',
+          excerpt:
+            'Finnish sauna, infrared sauna, whirlpool and relax zone. Working hours: 07:00–21:00 h.',
+          link: '/destination/wellness/spa',
+        },
+        {
+          imageId: massageHeroId,
+          title: 'Massages',
+          excerpt:
+            'Professional therapeutic massages to relax and restore your body. Working hours: 08:30–18:30 h (or on request).',
+          link: '/destination/wellness/massages',
+        },
+        {
+          imageId: poolsBeachesHeroId,
+          title: 'Pools & Beaches',
+          excerpt:
+            'Heated outdoor pools and beach with free sunbeds, umbrellas and towels. Working hours: 08:00–20:00 h.',
+          link: '/destination/wellness/pools-beaches',
+        },
+        {
+          imageId: fitnessHeroId,
+          title: 'Fitness',
+          excerpt:
+            'Fully equipped fitness centre with top quality gear overlooking the sea and islands. Working hours: 07:00–21:00 h.',
+          link: '/destination/fitness',
+        },
+      ]),
+    ],
+  })
+
+  await upsertPage(payload, 'destination/wellness/spa', {
+    title: 'Spa (9th floor)',
+    hero: infoCardHero({
+      heroImageId: spaHeroId,
+      title: 'Spa (9th floor)',
+      phone: '+385 (0)21 602 101',
+      email: 'reservations@medorahotels.com',
+      cardSubtext: 'Finnish & infrared sauna',
+      showInquiryButton: true,
+    }),
+    layout: [
+      contentSection(
+        "Stress doesn't live here anymore",
+        lexParas(
+          'Exposure to stressful situations is a part of everyday life that leaves more or less visible traces on all of us. That is why relaxation is of the utmost importance to our physical and mental health. Why not start right here and right now?',
+          'In accordance with the highest professional standards, and above all in accordance with your needs and expectations, we offer tested methods of relaxation to cleanse your body and soul of any traces of stress.',
+          'For a pleasant and total detoxification, we propose the Finnish or infrared sauna. If you just want to enjoy the peace and tranquillity, we suggest the relaxation room, and if you are a fan of massage or are about to become one, we offer a number of free treatments that you will want to repeat every day.',
+        ),
+        wellnessCoverId,
+        'right',
+      ),
+      contentSection(
+        'Free spa for your enjoyment!',
+        lexBullets(['Finnish sauna', 'Infrared sauna', 'Whirlpool', 'Relax zone']),
+        null,
+      ),
+      photoGallery('Spa photo gallery', [
+        spaGallery6Id,
+        spaGallery7Id,
+        spaGallery10Id,
+        spaGallery1Id,
+        spaGallery11Id,
+        spaGallery3Id,
+        spaGallery4Id,
+        spaGallery8Id,
+        spaGallery9Id,
+      ]),
+    ],
+  })
+
+  await upsertPage(payload, 'destination/wellness/massages', {
+    title: 'Massages',
+    hero: massageHeroId
+      ? { type: 'highImpact', media: massageHeroId, richText: lexH1('Massages') }
+      : { type: 'lowImpact', richText: lexH1('Massages') },
+    layout: [
+      contentSection(
+        'Enjoy your own nature',
+        lexParas(
+          'With its beauty and diversity, Podgora will remind you every time how important it is to keep in touch with nature and its relaxing properties. Vistas of untouched nature, the scents of eternal grasses and Mediterranean tastes will awaken all your senses and breathe life into them.',
+          'We have complemented these natural multi-sensory experiences with a wide range of treatments and massages at the Medora Auri Hotel Wellness Centre, which will help you relax and discover a never-ending source of healthy living energy.',
+          'Enjoy a hydro-massage or let our trained, expert staff treat your spine and neck with care and knowledge to rid you of pain. You can completely enjoy your own nature with a sense of pleasure and relief.',
+          'Working hours: 08:00–21:00 h (or on request) | Location: 9th floor | Tel: +385 (0)21 602 101',
+        ),
+        massageHeroId,
+        'right',
+      ),
+    ],
+  })
+
+  await upsertPage(payload, 'destination/wellness/pools-beaches', {
+    title: 'Pools & Beaches',
+    hero: poolsBeachesHeroId
+      ? { type: 'highImpact', media: poolsBeachesHeroId, richText: lexH1('Pools & Beaches') }
+      : { type: 'lowImpact', richText: lexH1('Pools & Beaches') },
+    layout: [
+      contentSection(
+        'Real refreshment for your vacation',
+        lexParas(
+          'The Makarska Riviera is a synonym for some of the most beautiful beaches on the Adriatic Sea, and that is reason enough to laze on the beach and bathe in the clean water every day. A perfect mix of Mediterranean climate, rich vegetation, crystal clear sea and various types of beaches will leave nobody indifferent; it caters for all tastes.',
+          "The variety of Podgora can be seen on all levels, including our offer. For those who see their enjoyable vacation as extra comfort and services, we have the large and small pools. They are ideal for relaxation with carefree children's play and numerous activities for fun and a true family vacation.",
+        ),
+        null,
+      ),
+      contentSection(
+        'Pool & beach facilities',
+        lexBullets([
+          'Heated outdoor pool for babies and young children',
+          'Heated outdoor pool for older children and adults',
+          'Beach with free sunbeds, umbrellas, and beach towels',
+          'Pool working hours: 08:00–20:00 h',
+          'Beach access included for all hotel guests',
+        ]),
+        poolsBeachesHeroId,
+        'right',
+      ),
+    ],
+  })
+
+  await upsertPage(payload, 'destination/fitness', {
+    title: 'Fitness',
+    hero: infoCardHero({
+      heroImageId: fitnessDesktopHeroId,
+      title: 'Fitness',
+      workingHoursText: '07 - 21 h',
+      phone: '+385 (0)21 602 101',
+      email: 'reservations@medorahotels.com',
+      showInquiryButton: true,
+    }),
+    layout: [
+      contentSection(
+        'An active vacation for active pleasure',
+        lexParas(
+          'An active vacation is not reserved for those who want to fill their daily lives with physical activities and excitement; it is also intended for those who want to explore something different, discover unique content and let new exciting experiences take over. The best place to start your active vacation is definitely the Medora Auri Hotel fitness centre.',
+          'An expertly equipped space to satisfy the highest standards will enable each and every user to enjoy a daily dose of physical activity, and all with a lovely view of the sea.',
+        ),
+        null,
+      ),
+      photoGallery('Fitness photo gallery', [
+        fitnessGallery2Id,
+        fitnessGallery1Id,
+        fitnessGallery3Id,
+        fitnessGallery4Id,
+        fitnessGallery5Id,
+      ]),
+    ],
+  })
+
+  // ── Dining & Bars → update hub to card grid + create subpages ────────────
+
+  const [indigoSubImgId, juiceBarImgId, lobbyBarImgId] = await Promise.all([
+    img(
+      payload,
+      `${BASE}/galerije/Restorani/Taste%20Medora.jpg`,
+      'taste-indigo-img.jpg',
+      'Taste the Indigo restaurant',
+    ),
+    img(
+      payload,
+      `${BASE}/galerije/Restorani/indigo%20cocktail%20bar.jpg`,
+      'juice-bar-img.jpg',
+      'Juice & Cocktail Bar',
+    ),
+    img(payload, `${BASE}/slike/lobby-bar.jpg`, 'lobby-bar-img.jpg', 'Lobby Bar at Medora Auri'),
+  ])
+
+  await upsertPage(payload, 'destination/dining-bars', {
+    title: 'Dining & Bars',
+    hero: diningHeroId
+      ? { type: 'highImpact', media: diningHeroId, richText: lexH1('Dining & Bars') }
+      : { type: 'lowImpact', richText: lexH1('Dining & Bars') },
+    layout: [
+      contentSection(
+        null,
+        lexParas(
+          'Make your vacation at the Makarska Riviera an excellent one with the rich eno-gastronomy in our large choice of quality restaurants and cosy cocktail bars.',
+          'Let our top chefs take you on a crazy journey through a variety of flavours and aromas, while our professional restaurant staff ensure that your every single arrival is transformed into an unforgettable experience.',
+        ),
+        null,
+      ),
+      cardGrid(null, [
+        {
+          imageId: indigoSubImgId,
+          title: 'Taste the Indigo',
+          excerpt:
+            'A new gastronomic magic with a view of the Adriatic Sea. Traditional Mediterranean and modern world cuisine.',
+          link: '/destination/dining-bars/taste-the-indigo',
+        },
+        {
+          imageId: juiceBarImgId,
+          title: 'Juice / Cocktail Bar',
+          excerpt:
+            'Refresh yourself with freshly squeezed juices during the day and enjoy an evening cocktail while watching the sunset.',
+          link: '/destination/dining-bars/juice-cocktail-bar',
+        },
+        {
+          imageId: lobbyBarImgId,
+          title: 'Lobby Bar',
+          excerpt:
+            'Unforgettable moments with a panoramic view of Podgora, golden beaches, crystal blue sea and distant islands.',
+          link: '/destination/dining-bars/lobby-bar',
+        },
+      ]),
+    ],
+  })
+
+  await upsertPage(payload, 'destination/dining-bars/taste-the-indigo', {
+    title: 'Taste the Indigo',
+    hero: indigoSubImgId
+      ? { type: 'highImpact', media: indigoSubImgId, richText: lexH1('Taste the Indigo') }
+      : { type: 'lowImpact', richText: lexH1('Taste the Indigo') },
+    layout: [
+      contentSection(
+        null,
+        lexParas(
+          'We listened to your wishes and created a new gastronomic magic in our restaurant with a view of the Adriatic Sea.',
+          'Follow the paths of aromas and flavors of traditional Mediterranean and modern world cuisine. You can choose from a meat, fish or vegetarian option on site.',
+          'Located on the promenade, Taste the Indigo is the perfect setting for an unforgettable dining experience at the Makarska Riviera.',
+        ),
+        indigoSubImgId,
+        'right',
+      ),
+    ],
+  })
+
+  await upsertPage(payload, 'destination/dining-bars/juice-cocktail-bar', {
+    title: 'Juice / Cocktail Bar',
+    hero: juiceBarImgId
+      ? { type: 'highImpact', media: juiceBarImgId, richText: lexH1('Juice / Cocktail Bar') }
+      : { type: 'lowImpact', richText: lexH1('Juice / Cocktail Bar') },
+    layout: [
+      contentSection(
+        null,
+        lexParas(
+          'Refresh yourself with freshly squeezed juices during the day and enjoy an evening cocktail while watching the sunset over the Adriatic.',
+          'Our cocktail bar offers a wide selection of classic and signature cocktails prepared by our top cocktail masters, while you bask in the view of the coast, the sea or the islands of the Makarska Riviera.',
+        ),
+        juiceBarImgId,
+        'right',
+      ),
+    ],
+  })
+
+  await upsertPage(payload, 'destination/dining-bars/lobby-bar', {
+    title: 'Lobby Bar',
+    hero: lobbyBarImgId
+      ? { type: 'highImpact', media: lobbyBarImgId, richText: lexH1('Lobby Bar') }
+      : { type: 'lowImpact', richText: lexH1('Lobby Bar') },
+    layout: [
+      contentSection(
+        null,
+        lexParas(
+          'Unforgettable moments with a panoramic view of Podgora, golden beaches, crystal blue sea and distant islands.',
+          'The Lobby Bar has a view that you will never forget and which will be the main, heart-warming topic of your conversations for months to come.',
+          'A perfect spot for morning coffee, afternoon drinks, or an evening aperitif.',
+        ),
+        lobbyBarImgId,
+        'right',
+      ),
+    ],
+  })
+
+  // ── Reviews & Rewards → update hub to card grid + create subpages ─────────
+
+  const [rewardsHeroId, guestReviewsHeroId] = await Promise.all([
+    img(payload, `${BASE}/kategorije/1920%20award.jpg`, 'rewards-hero.jpg', 'Medora Awards'),
+    img(
+      payload,
+      `${BASE}/galerije/Desktop%20novo/Medora%20Auri%20reviews%20desktop.jpg`,
+      'guest-reviews-hero.jpg',
+      'Guest Reviews for Medora Auri',
+    ),
+  ])
+
+  await upsertPage(payload, 'about/awards', {
+    title: 'Reviews & Rewards',
+    hero: awardsHeroId
+      ? { type: 'highImpact', media: awardsHeroId, richText: lexH1('Reviews & Rewards') }
+      : { type: 'lowImpact', richText: lexH1('Reviews & Rewards') },
+    layout: [
+      contentSection(
+        null,
+        lexParas(
+          'At Medora Hotels & Resorts, quality and guest satisfaction are our top priorities. These awards and reviews reflect our ongoing commitment to providing the best possible holiday experience on the Makarska Riviera.',
+        ),
+        null,
+      ),
+      cardGrid(null, [
+        {
+          imageId: rewardsHeroId,
+          title: 'Rewards',
+          excerpt:
+            'TUI Blue Star, Travelife Gold, HolidayCheck and Hotels.com awards recognising our commitment to excellence and sustainability.',
+          link: '/about/awards/rewards',
+        },
+        {
+          imageId: guestReviewsHeroId,
+          title: 'Guest reviews for Medora Auri hotel',
+          excerpt:
+            'Read what our guests say about their stay. Score: 9.4 / 10 based on 2304 reviews across 5 booking platforms.',
+          link: '/about/awards/guest-reviews',
+        },
+      ]),
+    ],
+  })
+
+  await upsertPage(payload, 'about/awards/rewards', {
+    title: 'Rewards',
+    hero: rewardsHeroId
+      ? { type: 'highImpact', media: rewardsHeroId, richText: lexH1('Rewards') }
+      : { type: 'lowImpact', richText: lexH1('Rewards') },
+    layout: [
+      contentSection(
+        '2019 TUI Blue Star – Respect environment award',
+        lexParas(
+          'The Medora Auri Hotel won the gold Tui Nordic Blue Star award for respect environment. This award is proof of our effort in the area of sustainability and motivation for further development and assistance in creating a better and healthier future.',
+        ),
+        null,
+      ),
+      contentSection(
+        '2018 TUI Blue Star – Sustainability award GOLD',
+        lexParas(
+          'In 2018, the Medora Auri Hotel won the gold Tui Nordic Blue Star award for sustainable development. Sustainability is an important subject in our business world and we are doing everything in our power to advance operations in that area. This prestigious award is proof of our effort in the area of sustainability and motivation for further development.',
+        ),
+        null,
+      ),
+      contentSection(
+        '2018 Holiday Check award',
+        lexParas(
+          "In 2018, the HolidayCheck portal, one of the world's leading destination reviews portals, gave the Medora Auri Hotel an award as a recommended hotel. Including the grade of 5.5/6, this proves the type of quality service we provide to our guests.",
+        ),
+        null,
+      ),
+      contentSection(
+        '2017–2019 Travelife GOLD Certificate',
+        lexParas(
+          'The Medora Auri Hotel won the Travelife Gold certificate, which means that it satisfies the criteria on socioeconomic and environmental sustainability. We have managed to satisfy up to 150 criteria, such as waste management and advising guests about preserving the environment, helping in the development of Podgora, advancing the knowledge of our employees and improving working conditions.',
+        ),
+        null,
+      ),
+      contentSection(
+        '2017 TUI Blue Star – Hotel General Impression GOLD',
+        lexParas(
+          'The Medora Auri Hotel won the gold Tui Nordic Blue Star award for excellent hotel impression. This award is a great recognition of the effort we have put into providing quality accommodation and it will encourage us to provide the best possible service to our beloved guests.',
+        ),
+        null,
+      ),
+      contentSection(
+        '2017 Hotels.com Loved by Guests award – 8.8',
+        lexParas(
+          'The Medora Auri Hotel is a proud winner of the award of the Hotels.com portal as a hotel loved by guests with a high grade of 8.8/10. This award shows that our service is going in the right direction and we will continue to listen to the comments and proposals of our guests.',
+        ),
+        null,
+      ),
+      contentSection(
+        '2016 TUI Blue Star – Best Wi-Fi service SPECIAL',
+        lexParas(
+          'The Medora Auri Hotel recognises the importance of a quality internet connection in this modern, digital age. That is why we take special pride in this unique TUI Nordic Blue Star award for the best Wi-Fi service among 37 hotels on the Mediterranean.',
+        ),
+        null,
+      ),
+      contentSection(
+        '2016 TUI Blue Star – Hotel Room Standard BRONZE',
+        lexParas(
+          "In 2016, the Medora Auri Hotel won a bronze TUI Nordic Blue Star award for the complete maintenance and cleanliness of the hotel. This recognition is a special thank you for all the effort our employees have put in to create a more beautiful and quality surrounding area for our guests' vacation.",
+        ),
+        null,
+      ),
+    ],
+  })
+
+  await upsertPage(payload, 'about/awards/guest-reviews', {
+    title: 'Guest reviews for Medora Auri hotel',
+    hero: guestReviewsHeroId
+      ? {
+          type: 'highImpact',
+          media: guestReviewsHeroId,
+          richText: lexH1('Guest reviews for Medora Auri hotel'),
+        }
+      : { type: 'lowImpact', richText: lexH1('Guest reviews for Medora Auri hotel') },
+    layout: [
+      contentSection(
+        'Guest Rating Score™',
+        lexParas(
+          'Score: 9.4 / 10 based on 2304 reviews across 5 booking platforms.',
+          'Positive: 2124 reviews | Neutral: 105 reviews | Negative: 75 reviews',
+          'We are proud of the trust and satisfaction of our guests. Every review helps us to improve and continue providing the best possible holiday experience on the Makarska Riviera.',
+        ),
+        null,
+      ),
+      contentSection(
+        null,
+        lexParas(
+          'To read the latest guest reviews, please visit our profile on TripAdvisor, Booking.com, Hotels.com, Expedia, or HolidayCheck.',
+        ),
+        null,
+        'right',
+        '/contact',
       ),
     ],
   })

@@ -10,6 +10,7 @@ import { Pages } from './collections/Pages'
 import { Posts } from './collections/Posts'
 import { Amenities } from './collections/Amenities'
 import { AmenityGroups } from './collections/AmenityGroups'
+import { FaqCategories } from './collections/FaqCategories'
 import { LandingPages } from './collections/LandingPages'
 import { Offers } from './collections/Offers'
 import { Properties } from './collections/Properties'
@@ -111,6 +112,7 @@ export default buildConfig({
     Offers,
     AmenityGroups,
     Amenities,
+    FaqCategories,
     LandingPages,
   ],
   cors: [getServerSideURL()].filter(Boolean),

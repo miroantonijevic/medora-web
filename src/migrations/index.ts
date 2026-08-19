@@ -1,7 +1,8 @@
 import * as migration_20260503_134126_init from './20260503_134126_init';
 import * as migration_20260503_134619_medora_skeleton from './20260503_134619_medora_skeleton';
 import * as migration_20260814_room_groups from './20260814_room_groups';
-import * as migration_20260816_140441 from './20260816_140441';
+import * as migration_20260818_193638 from './20260818_193638';
+import * as migration_20260818_212657 from './20260818_212657';
 
 export const migrations = [
   {
@@ -20,8 +21,13 @@ export const migrations = [
     name: '20260814_room_groups',
   },
   {
-    up: migration_20260816_140441.up,
-    down: migration_20260816_140441.down,
-    name: '20260816_140441'
+    up: migration_20260818_193638.up,
+    down: migration_20260818_193638.down,
+    name: '20260818_193638',
+  },
+  {
+    up: migration_20260818_212657.up,
+    down: migration_20260818_212657.down,
+    name: '20260818_212657'
   },
 ];

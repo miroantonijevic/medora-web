@@ -52,46 +52,50 @@
     "noOffers": "Trenutno nema aktivnih ponuda. Provjerite uskoro."
   },
   "contact": {
-    "title": "Kontaktirajte nas",
-    "subtitle": "Tu smo za vas. Obratite nam se i naš tim će vam odgovoriti u roku od 24 sata.",
-    "getInTouch": "Stupite u kontakt",
-    "findUs": "Pronađite nas",
-    "email": "E-pošta",
-    "phone": "Telefon",
-    "whatsapp": "WhatsApp",
-    "whatsappLabel": "Pišite nam na WhatsApp",
-    "address": "Adresa",
-    "faqTitle": "Često postavljana pitanja",
-    "faqFallback": "Niste pronašli odgovor?",
-    "faqFallbackLink": "Pišite nam",
-    "getInTouch": "Stupite u kontakt",
-    "findUs": "Pronađite nas",
-    "faqItems": [
+    "title": "Svi kontakti",
+    "subtitle": "Stupite u kontakt s Medora Hotels & Resorts.",
+    "departments": [
       {
-        "q": "Što je uključeno u cijenu sobe?",
-        "a": "Sve sobe uključuju doručak, besplatan parking, besplatne ležaljke na plaži i bezalkoholna pića uz bazen. Djeca borave besplatno."
+        "name": "Rezervacije | Call centar",
+        "address": "Mrkušića dvori 2\n21327 Podgora, HRVATSKA",
+        "tel": "+385 (0)21 601 701",
+        "telHref": "tel:+38521601701",
+        "email": "reservations@medorahotels.com"
       },
       {
-        "q": "Imate li direktan pristup plaži?",
-        "a": "Da — Medora Auri se nalazi neposredno uz Jadransko more s privatnom plažom i područjem ležaljka za goste."
+        "name": "Hotel Medora Auri - Recepcija",
+        "address": "Ul. Tina Ujevića 7\n21327 Podgora, HRVATSKA",
+        "tel": "+385 (0)21 602 101",
+        "telHref": "tel:+38521602101",
+        "email": "reservations@medorahotels.com"
       },
       {
-        "q": "Imate li kids club?",
-        "a": "Imamo potpuno nadgledani kids club koji radi svakodnevno tijekom ljetne sezone, besplatno za djecu od 4 do 12 godina."
+        "name": "Kamp Medora Orbis - Recepcija",
+        "address": "Put Sv. Vicenca bb\n21327 Podgora, HRVATSKA",
+        "tel": "+385 (0)21 625 377",
+        "telHref": "tel:+38521625377",
+        "email": "reservations@medorahotels.com"
       },
       {
-        "q": "Mogu li rezervirati aktivnosti (izleti, izleti brodom) iz hotela?",
-        "a": "Da. Naša recepcija organizira izlete na Skywalk Biokovo, izlete brodom na otoke i druge lokalne aktivnosti. Neke su uključene u cijenu sobe — pogledajte naše trenutne ponude."
-      },
-      {
-        "q": "Kakva je vaša politika otkazivanja?",
-        "a": "Standardne rezervacije mogu se besplatno otkazati do 14 dana prije dolaska. Za rane rezervacije i nepovratne tarife vrijede drugi uvjeti. Kontaktirajte nas za detalje."
-      },
-      {
-        "q": "Prihvaćate li ljubimce?",
-        "a": "Mali ljubimci (do 10 kg) su prihvaćeni u odabranim kategorijama soba uz prethodno obavještavanje. Primjenjuje se mala dnevna naknada."
+        "name": "Medora hoteli i ljetovališta - Sjedište",
+        "address": "Mrkušića dvori 2\n21327 Podgora, HRVATSKA",
+        "tel": "+385 (0)21 601 701",
+        "telHref": "tel:+38521601701",
+        "email": "info@medorahotels.com"
       }
     ]
+  },
+  "helpCenter": {
+    "title": "Centar za pomoć",
+    "subtitle": "Pronađite odgovore na najčešća pitanja o vašem boravku.",
+    "noCategories": "Nema tema.",
+    "noQuestions": "Nema pitanja u ovoj kategoriji.",
+    "question": "pitanje",
+    "questions": "pitanja",
+    "allTopics": "Sve teme",
+    "notFound": "Niste pronašli odgovor?",
+    "notFoundSub": "Kontaktirajte nas izravno i naš tim će vam rado pomoći.",
+    "contactUs": "Kontaktirajte nas"
   },
   "gallery": {
     "title": "Galerija",

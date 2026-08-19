@@ -76,7 +76,7 @@ export default async function RoomDetailPage({ params: paramsPromise }: Args) {
     Boolean(img.url),
   )
   const heroImage = images[0]
-  const bookingLink = bookingService.getBookingLink({ propertySlug, roomSlug })
+  const bookingLink = bookingService.getBookingLink({ propertySlug, roomSlug, locale })
   type Inclusion = { label?: unknown }
   const inclusions = (room.inclusions ?? []) as Inclusion[]
 

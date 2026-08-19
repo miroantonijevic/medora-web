@@ -1,5 +1,6 @@
 import React from 'react'
 
+import { Link } from '@/i18n/navigation'
 import { Media } from '@/components/Media'
 import RichText from '@/components/RichText'
 
@@ -30,12 +31,12 @@ export const ContentSectionBlock: React.FC<Props> = ({
             <RichText data={body} className="text-gray-600 leading-relaxed prose max-w-none" />
           )}
           {ctaLink && (
-            <a
+            <Link
               href={ctaLink}
               className="inline-block mt-4 px-6 py-2 bg-[#012B59] text-white text-sm font-semibold rounded-full no-underline hover:bg-[#009bdb] transition-colors"
             >
               Read more
-            </a>
+            </Link>
           )}
         </div>
         {isRight && (

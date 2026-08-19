@@ -80,6 +80,7 @@ export interface Config {
     offers: Offer;
     'amenity-groups': AmenityGroup;
     amenities: Amenity;
+    'faq-categories': FaqCategory;
     'landing-pages': LandingPage;
     redirects: Redirect;
     forms: Form;
@@ -109,6 +110,7 @@ export interface Config {
     offers: OffersSelect<false> | OffersSelect<true>;
     'amenity-groups': AmenityGroupsSelect<false> | AmenityGroupsSelect<true>;
     amenities: AmenitiesSelect<false> | AmenitiesSelect<true>;
+    'faq-categories': FaqCategoriesSelect<false> | FaqCategoriesSelect<true>;
     'landing-pages': LandingPagesSelect<false> | LandingPagesSelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
     forms: FormsSelect<false> | FormsSelect<true>;
@@ -325,7 +327,7 @@ export interface Page {
    */
   path?: string | null;
   hero: {
-    type: 'none' | 'highImpact' | 'mediumImpact' | 'lowImpact';
+    type: 'none' | 'highImpact' | 'mediumImpact' | 'lowImpact' | 'infoCard';
     richText?: {
       root: {
         type: string;
@@ -366,6 +368,22 @@ export interface Page {
         }[]
       | null;
     media?: (number | null) | Media;
+    /**
+     * Full-width hero image for the Info Card hero.
+     */
+    heroImage?: (number | null) | Media;
+    title?: string | null;
+    /**
+     * e.g. "07 - 21 h". Leave blank to hide the hours.
+     */
+    workingHoursText?: string | null;
+    phone?: string | null;
+    email?: string | null;
+    /**
+     * Small line below contact info, e.g. "Finnish & infrared sauna".
+     */
+    cardSubtext?: string | null;
+    showInquiryButton?: boolean | null;
   };
   layout: (
     | CallToActionBlock
@@ -375,6 +393,7 @@ export interface Page {
     | MediaBlock
     | ArchiveBlock
     | FormBlock
+    | PhotoGalleryBlock
   )[];
   publishedAt?: string | null;
   /**
@@ -897,6 +916,25 @@ export interface Form {
   createdAt: string;
 }
 /**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "PhotoGalleryBlock".
+ */
+export interface PhotoGalleryBlock {
+  /**
+   * Section label shown above the grid, e.g. "Spa photo gallery".
+   */
+  label?: string | null;
+  images?:
+    | {
+        image: number | Media;
+        id?: string | null;
+      }[]
+    | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'photo-gallery';
+}
+/**
  * Manage hotels and camps — names, descriptions, images, amenities and star ratings.
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1106,6 +1144,51 @@ export interface Amenity {
    * Controls display order within the group.
    */
   order?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * FAQ categories (Reservations, Wellness, etc.) with their Q&A items.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "faq-categories".
+ */
+export interface FaqCategory {
+  id: number;
+  title: string;
+  /**
+   * URL slug, e.g. "reservations". Auto-set by seed; editable.
+   */
+  slug: string;
+  image?: (number | null) | Media;
+  /**
+   * Lower numbers appear first.
+   */
+  order?: number | null;
+  /**
+   * Questions and answers shown in an accordion on the category page.
+   */
+  items?:
+    | {
+        question: string;
+        answer?: {
+          root: {
+            type: string;
+            children: {
+              type: any;
+              version: number;
+              [k: string]: unknown;
+            }[];
+            direction: ('ltr' | 'rtl') | null;
+            format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+            indent: number;
+            version: number;
+          };
+          [k: string]: unknown;
+        } | null;
+        id?: string | null;
+      }[]
+    | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -1370,6 +1453,10 @@ export interface PayloadLockedDocument {
         value: number | Amenity;
       } | null)
     | ({
+        relationTo: 'faq-categories';
+        value: number | FaqCategory;
+      } | null)
+    | ({
         relationTo: 'landing-pages';
         value: number | LandingPage;
       } | null)
@@ -1463,6 +1550,13 @@ export interface PagesSelect<T extends boolean = true> {
               id?: T;
             };
         media?: T;
+        heroImage?: T;
+        title?: T;
+        workingHoursText?: T;
+        phone?: T;
+        email?: T;
+        cardSubtext?: T;
+        showInquiryButton?: T;
       };
   layout?:
     | T
@@ -1474,6 +1568,7 @@ export interface PagesSelect<T extends boolean = true> {
         mediaBlock?: T | MediaBlockSelect<T>;
         archive?: T | ArchiveBlockSelect<T>;
         formBlock?: T | FormBlockSelect<T>;
+        'photo-gallery'?: T | PhotoGalleryBlockSelect<T>;
       };
   publishedAt?: T;
   generateSlug?: T;
@@ -1600,6 +1695,21 @@ export interface FormBlockSelect<T extends boolean = true> {
   form?: T;
   enableIntro?: T;
   introContent?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "PhotoGalleryBlock_select".
+ */
+export interface PhotoGalleryBlockSelect<T extends boolean = true> {
+  label?: T;
+  images?:
+    | T
+    | {
+        image?: T;
+        id?: T;
+      };
   id?: T;
   blockName?: T;
 }
@@ -1899,6 +2009,25 @@ export interface AmenitiesSelect<T extends boolean = true> {
   location?: T;
   images?: T;
   order?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "faq-categories_select".
+ */
+export interface FaqCategoriesSelect<T extends boolean = true> {
+  title?: T;
+  slug?: T;
+  image?: T;
+  order?: T;
+  items?:
+    | T
+    | {
+        question?: T;
+        answer?: T;
+        id?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
 }

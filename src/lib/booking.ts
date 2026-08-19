@@ -1,6 +1,7 @@
 export type BookingInput = {
   propertySlug?: string
   roomSlug?: string
+  locale: string
 }
 
 export type BookingLink = {
@@ -14,10 +15,13 @@ export interface BookingService {
 
 export class ContactBookingService implements BookingService {
   getBookingLink(input: BookingInput): BookingLink {
-    const subject = [input.propertySlug, input.roomSlug].filter(Boolean).join(' / ')
+    const params = new URLSearchParams()
+    if (input.propertySlug) params.set('property', input.propertySlug)
+    if (input.roomSlug) params.set('room', input.roomSlug)
+    const query = params.toString()
 
     return {
-      href: `mailto:reservations@medorahotels.com?subject=${encodeURIComponent(subject || 'Booking inquiry')}`,
+      href: `/${input.locale}/inquiry${query ? `?${query}` : ''}`,
       label: 'Contact us to book',
     }
   }

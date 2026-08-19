@@ -35,6 +35,10 @@ export const hero: Field = {
           label: 'Low Impact',
           value: 'lowImpact',
         },
+        {
+          label: 'Info Card',
+          value: 'infoCard',
+        },
       ],
       required: true,
     },
@@ -66,6 +70,62 @@ export const hero: Field = {
       },
       relationTo: 'media',
       required: true,
+    },
+    {
+      name: 'heroImage',
+      type: 'upload',
+      relationTo: 'media',
+      admin: {
+        condition: (_, { type } = {}) => type === 'infoCard',
+        description: 'Full-width hero image for the Info Card hero.',
+      },
+    },
+    {
+      name: 'title',
+      type: 'text',
+      localized: true,
+      admin: {
+        condition: (_, { type } = {}) => type === 'infoCard',
+      },
+    },
+    {
+      name: 'workingHoursText',
+      type: 'text',
+      admin: {
+        condition: (_, { type } = {}) => type === 'infoCard',
+        description: 'e.g. "07 - 21 h". Leave blank to hide the hours.',
+      },
+    },
+    {
+      name: 'phone',
+      type: 'text',
+      admin: {
+        condition: (_, { type } = {}) => type === 'infoCard',
+      },
+    },
+    {
+      name: 'email',
+      type: 'text',
+      admin: {
+        condition: (_, { type } = {}) => type === 'infoCard',
+      },
+    },
+    {
+      name: 'cardSubtext',
+      type: 'text',
+      localized: true,
+      admin: {
+        condition: (_, { type } = {}) => type === 'infoCard',
+        description: 'Small line below contact info, e.g. "Finnish & infrared sauna".',
+      },
+    },
+    {
+      name: 'showInquiryButton',
+      type: 'checkbox',
+      defaultValue: true,
+      admin: {
+        condition: (_, { type } = {}) => type === 'infoCard',
+      },
     },
   ],
   label: false,

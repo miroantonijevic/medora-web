@@ -1,5 +1,6 @@
 import React from 'react'
 
+import { Link } from '@/i18n/navigation'
 import { Media } from '@/components/Media'
 
 type Card = {
@@ -46,9 +47,9 @@ export const CardGridBlock: React.FC<Props> = ({ intro, cards }) => {
           )
 
           return card.link ? (
-            <a key={i} href={card.link} className="no-underline text-inherit block">
+            <Link key={i} href={card.link} className="no-underline text-inherit block">
               {inner}
-            </a>
+            </Link>
           ) : (
             <div key={i}>{inner}</div>
           )

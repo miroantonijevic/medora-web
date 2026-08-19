@@ -52,46 +52,50 @@
     "noOffers": "No active offers at the moment. Check back soon."
   },
   "contact": {
-    "title": "Contact Us",
-    "subtitle": "We're here to help. Reach out and our team will get back to you within 24 hours.",
-    "getInTouch": "Get in Touch",
-    "findUs": "Find Us",
-    "email": "Email",
-    "phone": "Phone",
-    "whatsapp": "WhatsApp",
-    "whatsappLabel": "Message us on WhatsApp",
-    "address": "Address",
-    "faqTitle": "Frequently Asked Questions",
-    "faqFallback": "Didn't find the answer?",
-    "faqFallbackLink": "Email us",
-    "getInTouch": "Get in Touch",
-    "findUs": "Find us",
-    "faqItems": [
+    "title": "All contacts",
+    "subtitle": "Get in touch with Medora Hotels & Resorts.",
+    "departments": [
       {
-        "q": "What is included in the room price?",
-        "a": "All rooms include breakfast, free parking, free sun loungers on the beach, and complimentary non-alcoholic drinks at the pool bar. Children stay free."
+        "name": "Reservations | Call center",
+        "address": "Mrkušića dvori 2\n21327 Podgora, CROATIA",
+        "tel": "+385 (0)21 601 701",
+        "telHref": "tel:+38521601701",
+        "email": "reservations@medorahotels.com"
       },
       {
-        "q": "Is there a direct beach?",
-        "a": "Yes \u2014 Medora Auri is located directly on the Adriatic Sea with a private beach and sun lounger area for guests."
+        "name": "Medora Auri Family Beach Resort - Reception",
+        "address": "Ul. Tina Ujevića 7\n21327 Podgora, CROATIA",
+        "tel": "+385 (0)21 602 101",
+        "telHref": "tel:+38521602101",
+        "email": "reservations@medorahotels.com"
       },
       {
-        "q": "Do you have a kids club?",
-        "a": "We have a fully supervised kids club running daily during the summer season, free of charge for children aged 4\u201312."
+        "name": "Medora Orbis Luxury Homes & Camping - Reception",
+        "address": "Put Sv. Vicenca bb\n21327 Podgora, CROATIA",
+        "tel": "+385 (0)21 625 377",
+        "telHref": "tel:+38521625377",
+        "email": "reservations@medorahotels.com"
       },
       {
-        "q": "Can I book activities (excursions, boat trips) from the hotel?",
-        "a": "Yes. Our reception team arranges excursions to Skywalk Biokovo, boat trips to the islands, and other local activities. Some are included in the room rate \u2014 see our current offers."
-      },
-      {
-        "q": "What is your cancellation policy?",
-        "a": "Standard bookings can be cancelled free of charge up to 14 days before arrival. Early-bird and non-refundable rates apply different conditions. Contact us for details."
-      },
-      {
-        "q": "Do you accept pets?",
-        "a": "Small pets (up to 10 kg) are accepted in selected room categories with prior notification. A small daily fee applies."
+        "name": "Medora Hotels & Resorts - Headquarter",
+        "address": "Mrkušića dvori 2\n21327 Podgora, CROATIA",
+        "tel": "+385 (0)21 601 701",
+        "telHref": "tel:+38521601701",
+        "email": "info@medorahotels.com"
       }
     ]
+  },
+  "helpCenter": {
+    "title": "Help Center",
+    "subtitle": "Find answers to the most common questions about your stay.",
+    "noCategories": "No topics found.",
+    "noQuestions": "No questions in this category yet.",
+    "question": "question",
+    "questions": "questions",
+    "allTopics": "All topics",
+    "notFound": "Haven't found your answer?",
+    "notFoundSub": "Contact us directly and our team will be happy to help.",
+    "contactUs": "Contact us"
   },
   "gallery": {
     "title": "Gallery",

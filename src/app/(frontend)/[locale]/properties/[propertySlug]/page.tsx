@@ -237,7 +237,7 @@ export default async function PropertyHomePage({ params: paramsPromise }: Args) 
           )}
         </div>
         {(() => {
-          const link = bookingService.getBookingLink({ propertySlug })
+          const link = bookingService.getBookingLink({ propertySlug, locale })
           return (
             <a
               href={link.href}

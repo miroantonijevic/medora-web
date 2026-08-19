@@ -2,6 +2,8 @@ import type { Block } from 'payload'
 import {
   FixedToolbarFeature,
   InlineToolbarFeature,
+  OrderedListFeature,
+  UnorderedListFeature,
   lexicalEditor,
 } from '@payloadcms/richtext-lexical'
 
@@ -25,6 +27,8 @@ export const ContentSection: Block = {
           ...rootFeatures,
           FixedToolbarFeature(),
           InlineToolbarFeature(),
+          UnorderedListFeature(),
+          OrderedListFeature(),
         ],
       }),
     },

@@ -1,26 +1,53 @@
 import type { Payload } from 'payload'
-import * as fs from 'fs'
-import * as path from 'path'
 
-async function uploadImage(payload: Payload, filename: string, relPath: string, mimeType: string): Promise<number> {
-  const existing = await payload.find({ collection: 'media', where: { filename: { equals: filename } }, limit: 1 })
+async function uploadImage(
+  payload: Payload,
+  filename: string,
+  url: string,
+  alt: string,
+): Promise<number | null> {
+  const existing = await payload.find({
+    collection: 'media',
+    where: { filename: { equals: filename } },
+    limit: 1,
+  })
   if (existing.docs.length > 0) return existing.docs[0]!.id as number
-  const absPath = path.join(process.cwd(), 'public', relPath)
-  const buffer = fs.readFileSync(absPath)
-  const file = { data: buffer, mimetype: mimeType, name: filename, size: buffer.length }
-  const doc = await payload.create({ collection: 'media', data: { alt: filename }, file })
-  payload.logger.info(`  Uploaded: ${filename} => id=${doc.id}`)
-  return doc.id as number
+  try {
+    const res = await fetch(url)
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    const buffer = Buffer.from(await res.arrayBuffer())
+    const mimetype = res.headers.get('content-type') ?? 'image/jpeg'
+    const doc = await payload.create({
+      collection: 'media',
+      data: { alt },
+      file: { data: buffer, mimetype, name: filename, size: buffer.length },
+    })
+    payload.logger.info(`  Uploaded: ${filename} => id=${doc.id}`)
+    return doc.id as number
+  } catch (e) {
+    payload.logger.warn(`  Failed to upload ${filename}: ${e}`)
+    return null
+  }
 }
 
 function lexicalParagraphs(lines: string[]) {
   return {
     root: {
       children: lines.map((line) => ({
-        children: [{ detail: 0, format: 0, mode: 'normal', style: '', text: line, type: 'text', version: 1 }],
-        direction: 'ltr', format: '', indent: 0, type: 'paragraph', version: 1,
+        children: [
+          { detail: 0, format: 0, mode: 'normal', style: '', text: line, type: 'text', version: 1 },
+        ],
+        direction: 'ltr',
+        format: '',
+        indent: 0,
+        type: 'paragraph',
+        version: 1,
       })),
-      direction: 'ltr', format: '', indent: 0, type: 'root', version: 1,
+      direction: 'ltr',
+      format: '',
+      indent: 0,
+      type: 'root',
+      version: 1,
     },
   }
 }
@@ -28,7 +55,8 @@ function lexicalParagraphs(lines: string[]) {
 const OFFERS = [
   {
     slug: 'last-minute-free-lunch',
-    imageFile: 'last-minute-free-lunch.jpg',
+    imageUrl: 'https://medorahotels.com/UserDocsImages//special-offers/Spring offer mobile.jpg',
+    imageFile: 'offer-last-minute-free-lunch.jpg',
     propertySlug: 'medora-auri',
     validFrom: '2026-08-14',
     validUntil: '2026-08-31',
@@ -89,7 +117,9 @@ const OFFERS = [
   },
   {
     slug: 'book-directly-and-feel-safe',
-    imageFile: 'book-directly.jpg',
+    imageUrl:
+      'https://medorahotels.com/UserDocsImages//galerije/Desktop novo/book directly ponuda covid mobile.jpg',
+    imageFile: 'offer-book-directly.jpg',
     propertySlug: 'medora-auri',
     validFrom: '2026-06-20',
     validUntil: '2026-09-01',
@@ -138,7 +168,9 @@ const OFFERS = [
   },
   {
     slug: 'family-holiday-at-medora',
-    imageFile: 'family-holiday.jpg',
+    imageUrl:
+      'https://medorahotels.com/UserDocsImages//galerije/Family superior/Superior family room mobile.jpg',
+    imageFile: 'offer-family-holiday.jpg',
     propertySlug: 'medora-auri',
     validFrom: '2026-06-01',
     validUntil: '2026-09-15',
@@ -187,7 +219,8 @@ const OFFERS = [
   },
   {
     slug: 'one-summer-in-orbis',
-    imageFile: 'orbis-summer.jpg',
+    imageUrl: 'https://medorahotels.com/UserDocsImages//slike za novi web/Mobitel Orbis.jpg',
+    imageFile: 'offer-orbis-summer.jpg',
     propertySlug: 'luxury-camp-orbis',
     validFrom: '2026-06-01',
     validUntil: '2026-09-30',
@@ -234,6 +267,54 @@ const OFFERS = [
       ],
     },
   },
+  {
+    slug: 'luxury-camping-with-hotel-breakfast',
+    imageUrl:
+      'https://medorahotels.com/UserDocsImages//galerije/Premium%204/Premium%202%20spava%C4%87e%20pogled%20desktop.jpg',
+    imageFile: 'offer-luxury-camping-hq.jpg',
+    propertySlug: 'luxury-camp-orbis',
+    validFrom: '2026-06-01',
+    validUntil: '2026-09-30',
+    en: {
+      title: 'Luxury camping with hotel breakfast',
+      description: [
+        'Experience the best of luxury camping with a full hotel breakfast every morning.',
+        'Stay in a premium glamping unit at Medora Orbis and enjoy breakfast at Medora Auri hotel just 5 minutes away.',
+        'The price includes:',
+        '• Free parking',
+        '• Hotel breakfast at Medora Auri',
+        '• Sun loungers and beach towels at the hotel beach',
+        '• Use of fitness and wellness centre',
+        'Send us a quick inquiry with your dates and our team will provide the best possible offer!',
+      ],
+    },
+    hr: {
+      title: 'Luksuzni kampiranje s hotelskim doručkom',
+      description: [
+        'Doživite najbolje luksuznog kampiranja uz puni hotelski doručak svako jutro.',
+        'Odsjedi u premium glamping jedinici u Medori Orbis i uživaj u doručku u hotelu Medora Auri udaljenom samo 5 minuta.',
+        'Cijena uključuje:',
+        '• Besplatan parking',
+        '• Hotelski doručak u Medora Auri',
+        '• Ležaljke i ručnici na hotelskoj plaži',
+        '• Korištenje fitness i wellness centra',
+        'Pošaljite nam brzi upit s datumima i naš tim će vam ponuditi najbolju moguću ponudu!',
+      ],
+    },
+    de: {
+      title: 'Luxuscamping mit Hotelfrühstück',
+      description: [
+        'Erleben Sie das Beste des Luxus-Campings mit einem vollständigen Hotelfrühstück jeden Morgen.',
+        'Übernachten Sie in einer Premium-Glamping-Einheit in Medora Orbis und genießen Sie das Frühstück im Hotel Medora Auri, nur 5 Minuten entfernt.',
+        'Der Preis beinhaltet:',
+        '• Kostenloses Parken',
+        '• Hotelfrühstück im Medora Auri',
+        '• Liegestühle und Strandtücher am Hotelstrand',
+        '• Nutzung des Fitness- und Wellnesszentrums',
+        'Senden Sie uns eine Schnellanfrage mit Ihren Daten und unser Team wird Ihnen das beste Angebot machen!',
+      ],
+    },
+  },
 ]
 
 export async function seedOffers({ payload }: { payload: Payload }) {
@@ -241,8 +322,16 @@ export async function seedOffers({ payload }: { payload: Payload }) {
 
   // Resolve property IDs
   const [auriResult, orbisResult] = await Promise.all([
-    payload.find({ collection: 'properties', where: { slug: { equals: 'medora-auri' } }, limit: 1 }),
-    payload.find({ collection: 'properties', where: { slug: { equals: 'luxury-camp-orbis' } }, limit: 1 }),
+    payload.find({
+      collection: 'properties',
+      where: { slug: { equals: 'medora-auri' } },
+      limit: 1,
+    }),
+    payload.find({
+      collection: 'properties',
+      where: { slug: { equals: 'luxury-camp-orbis' } },
+      limit: 1,
+    }),
   ])
   const auriId = auriResult.docs[0]?.id
   const orbisId = orbisResult.docs[0]?.id
@@ -253,15 +342,29 @@ export async function seedOffers({ payload }: { payload: Payload }) {
   }
 
   for (const offer of OFFERS) {
-    // Skip if already exists
-    const existing = await payload.find({ collection: 'offers', where: { slug: { equals: offer.slug } }, limit: 1 })
+    // Skip content creation if already exists, but still update the image
+    const existing = await payload.find({
+      collection: 'offers',
+      where: { slug: { equals: offer.slug } },
+      limit: 1,
+    })
+
+    const imageId = await uploadImage(payload, offer.imageFile, offer.imageUrl, offer.en.title)
+    const propertyId = offer.propertySlug === 'medora-auri' ? auriId : orbisId
+
     if (existing.docs.length > 0) {
-      payload.logger.info(`  Skip (exists): ${offer.slug}`)
+      if (imageId) {
+        await payload.update({
+          collection: 'offers',
+          id: existing.docs[0]!.id,
+          data: { heroImage: imageId },
+        })
+        payload.logger.info(`  Updated image: ${offer.slug}`)
+      } else {
+        payload.logger.info(`  Skip (exists, no image to update): ${offer.slug}`)
+      }
       continue
     }
-
-    const imageId = await uploadImage(payload, offer.imageFile, `offers/${offer.imageFile}`, 'image/jpeg')
-    const propertyId = offer.propertySlug === 'medora-auri' ? auriId : orbisId
 
     // Create with EN locale
     const created = await payload.create({
@@ -274,7 +377,7 @@ export async function seedOffers({ payload }: { payload: Payload }) {
         validFrom: offer.validFrom,
         validUntil: offer.validUntil,
         description: lexicalParagraphs(offer.en.description),
-        heroImage: imageId,
+        ...(imageId ? { heroImage: imageId } : {}),
         _status: 'published',
       },
     })

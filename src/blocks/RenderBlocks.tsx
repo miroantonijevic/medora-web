@@ -10,6 +10,7 @@ import { ContentSectionBlock } from '@/blocks/ContentSection/Component'
 import { FormBlock } from '@/blocks/Form/Component'
 import { MediaBlock } from '@/blocks/MediaBlock/Component'
 import { MedoraHeroBlockComponent } from '@/blocks/medora/Component'
+import { PhotoGalleryComponent } from '@/blocks/PhotoGallery/Component'
 
 const blockComponents = {
   archive: ArchiveBlock,
@@ -20,6 +21,7 @@ const blockComponents = {
   formBlock: FormBlock,
   mediaBlock: MediaBlock,
   'medora-hero': MedoraHeroBlockComponent,
+  'photo-gallery': PhotoGalleryComponent,
 }
 
 export const RenderBlocks: React.FC<{
@@ -39,8 +41,10 @@ export const RenderBlocks: React.FC<{
             const Block = blockComponents[blockType]
 
             if (Block) {
+              // destination-hero must be flush to the viewport edge — skip the default margin wrapper
+              const isFullWidth = blockType === 'destination-hero'
               return (
-                <div className="my-16" key={index}>
+                <div className={isFullWidth ? '' : 'my-16'} key={index}>
                   {/* @ts-expect-error there may be some mismatch between the expected types here */}
                   <Block {...block} disableInnerContainer />
                 </div>
