@@ -5,9 +5,21 @@ import { useState, useRef, useEffect } from 'react'
 import { useLocale, useTranslations } from 'next-intl'
 import { Link, usePathname } from '@/i18n/navigation'
 
+interface NavGreatGrandchild {
+  label: string
+  href: string
+}
+
+interface NavGrandchild {
+  label: string
+  href: string
+  subLinks?: NavGreatGrandchild[]
+}
+
 interface NavChild {
   label: string
   href: string
+  grandchildren?: NavGrandchild[]
 }
 
 interface NavItem {
@@ -22,10 +34,22 @@ const PROPERTIES = [
 ]
 
 const LOCALES = [
-  { code: 'en', label: 'English', flag: '🇬🇧' },
-  { code: 'hr', label: 'Hrvatski', flag: '🇭🇷' },
-  { code: 'de', label: 'Deutsch', flag: '🇩🇪' },
+  { code: 'en', label: 'English', flagCode: 'gb' },
+  { code: 'hr', label: 'Hrvatski', flagCode: 'hr' },
+  { code: 'de', label: 'Deutsch', flagCode: 'de' },
 ]
+
+// Matches the site's original pun: "We ~~think~~ do green"
+function renderNavLabel(label: string) {
+  if (label === 'We think green') {
+    return (
+      <>
+        We <span style={{ textDecoration: 'line-through' }}>think</span> do green
+      </>
+    )
+  }
+  return <>{label}</>
+}
 
 export function MedoraHeader({ navItems = [] }: { navItems?: NavItem[] }) {
   const tCommon = useTranslations('common')
@@ -35,6 +59,8 @@ export function MedoraHeader({ navItems = [] }: { navItems?: NavItem[] }) {
     p.href === '/' ? pathname === '/' : pathname.startsWith(p.href),
   )
   const [expandedItem, setExpandedItem] = useState<string | null>(null)
+  const [expandedChild, setExpandedChild] = useState<string | null>(null)
+  const [expandedGrandchild, setExpandedGrandchild] = useState<string | null>(null)
   const [contactOpen, setContactOpen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [langOpen, setLangOpen] = useState(false)
@@ -78,7 +104,15 @@ export function MedoraHeader({ navItems = [] }: { navItems?: NavItem[] }) {
         }}
       >
         {/* Logo */}
-        <div style={{ marginLeft: '24px', flexShrink: 0, display: 'flex', alignItems: 'center' }}>
+        <div
+          style={{
+            marginLeft: '24px',
+            flexShrink: 0,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+          }}
+        >
           <Link href="/">
             <Image
               src="/brand/medora-logo-typo.svg"
@@ -89,6 +123,14 @@ export function MedoraHeader({ navItems = [] }: { navItems?: NavItem[] }) {
               style={{ height: '50px', width: 'auto' }}
             />
           </Link>
+          <Image
+            src="/brand/location-pin.svg"
+            alt=""
+            width={30}
+            height={40}
+            aria-hidden="true"
+            style={{ height: '38px', width: 'auto' }}
+          />
         </div>
 
         {/* Center: property tabs — grid center column keeps them truly centered */}
@@ -161,42 +203,89 @@ export function MedoraHeader({ navItems = [] }: { navItems?: NavItem[] }) {
               <div
                 style={{
                   position: 'absolute',
-                  top: '100%',
+                  top: 'calc(100% + 8px)',
                   right: 0,
-                  background: '#fff',
-                  boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
-                  borderRadius: '4px',
-                  minWidth: '260px',
+                  background: '#012B59',
+                  boxShadow: '0 8px 24px rgba(0,0,0,0.25)',
+                  borderRadius: '6px',
+                  minWidth: '280px',
                   zIndex: 200,
-                  padding: '8px 0',
+                  padding: '6px 0',
+                  overflow: 'hidden',
                 }}
               >
                 {[
                   {
                     href: 'mailto:reservations@medorahotels.com',
-                    label: '✉ reservations@medorahotels.com',
+                    label: 'reservations@medorahotels.com',
+                    icon: (
+                      <>
+                        <path d="M2 4h16v12H2z" strokeLinejoin="round" />
+                        <path d="m2 4 8 6 8-6" strokeLinejoin="round" />
+                      </>
+                    ),
                   },
-                  { href: 'tel:+38521607990', label: '☎ +385 21 607 990' },
-                  { href: 'https://wa.me/38521607990', label: '💬 WhatsApp', external: true },
-                ].map(({ href, label, external }) => (
+                  {
+                    href: 'tel:+38521601701',
+                    label: '021 / 601 - 701',
+                    icon: (
+                      <path d="M4 3c-1 0-1 1-1 1 0 8 6 14 14 14 0 0 1 0 1-1v-3l-4-1-1 2c-2-1-4-3-5-5l2-1-1-4H4z" />
+                    ),
+                  },
+                  {
+                    href: 'https://wa.me/38521601701',
+                    label: 'WhatsApp',
+                    external: true,
+                    icon: (
+                      <path d="M10 2a8 8 0 0 0-6.9 12.03L2 18l4.1-1.07A8 8 0 1 0 10 2zm4.64 11.3c-.2.55-1.14 1.05-1.57 1.1-.4.06-.9.08-1.46-.09-.34-.1-.77-.26-1.33-.5-2.33-1-3.86-3.36-3.98-3.51-.12-.16-.95-1.26-.95-2.4 0-1.14.6-1.7.81-1.93.2-.23.45-.29.6-.29.15 0 .3 0 .43.01.14.01.32-.05.5.38.2.46.66 1.6.72 1.72.06.12.1.26.02.42-.08.16-.12.26-.24.4-.12.14-.25.31-.36.42-.12.12-.24.25-.1.49.14.24.6 1 1.3 1.62.9.8 1.65 1.05 1.9 1.17.24.12.38.1.52-.06.14-.16.6-.7.76-.94.16-.24.32-.2.53-.12.22.08 1.38.65 1.62.77.24.12.4.18.46.28.06.1.06.58-.14 1.13z" />
+                    ),
+                  },
+                ].map(({ href, label, external, icon }) => (
                   <a
                     key={href}
                     href={href}
                     {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
                     style={{
-                      display: 'block',
-                      padding: '10px 16px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '14px',
+                      padding: '14px 18px',
                       fontSize: '13px',
-                      color: '#11131e',
+                      fontWeight: 500,
+                      color: '#fff',
                       textDecoration: 'none',
+                      borderBottom: '1px solid rgba(255,255,255,0.12)',
                     }}
                     onMouseEnter={(e) =>
-                      ((e.currentTarget as HTMLElement).style.background = '#f5f5f5')
+                      ((e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.06)')
                     }
                     onMouseLeave={(e) =>
                       ((e.currentTarget as HTMLElement).style.background = 'transparent')
                     }
                   >
+                    <span
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: '30px',
+                        height: '30px',
+                        borderRadius: '50%',
+                        background: '#009bdb',
+                        flexShrink: 0,
+                      }}
+                    >
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 20 20"
+                        fill="none"
+                        stroke="#fff"
+                        strokeWidth="1.5"
+                      >
+                        {icon}
+                      </svg>
+                    </span>
                     {label}
                   </a>
                 ))}
@@ -245,7 +334,13 @@ export function MedoraHeader({ navItems = [] }: { navItems?: NavItem[] }) {
               }}
               aria-label="Select language"
             >
-              <span>{currentLang!.flag}</span>
+              <img
+                src={`https://flagcdn.com/w40/${currentLang!.flagCode}.png`}
+                alt=""
+                width={20}
+                height={15}
+                style={{ width: '20px', height: '15px', objectFit: 'cover', borderRadius: '2px' }}
+              />
               <span>{currentLang!.code.toUpperCase()}</span>
               <span style={{ fontSize: '9px', marginLeft: '2px' }}>{langOpen ? '▲' : '▼'}</span>
             </button>
@@ -284,7 +379,18 @@ export function MedoraHeader({ navItems = [] }: { navItems?: NavItem[] }) {
                       fontFamily: 'inherit',
                     }}
                   >
-                    <span style={{ fontSize: '16px' }}>{l.flag}</span>
+                    <img
+                      src={`https://flagcdn.com/w40/${l.flagCode}.png`}
+                      alt=""
+                      width={20}
+                      height={15}
+                      style={{
+                        width: '20px',
+                        height: '15px',
+                        objectFit: 'cover',
+                        borderRadius: '2px',
+                      }}
+                    />
                     <span>{l.label}</span>
                   </button>
                 ))}
@@ -370,6 +476,8 @@ export function MedoraHeader({ navItems = [] }: { navItems?: NavItem[] }) {
           onClick={() => {
             setMenuOpen(false)
             setExpandedItem(null)
+            setExpandedChild(null)
+            setExpandedGrandchild(null)
           }}
           style={{
             position: 'fixed',
@@ -422,6 +530,8 @@ export function MedoraHeader({ navItems = [] }: { navItems?: NavItem[] }) {
               onClick={() => {
                 setMenuOpen(false)
                 setExpandedItem(null)
+                setExpandedChild(null)
+                setExpandedGrandchild(null)
               }}
               style={{
                 background: 'none',
@@ -447,7 +557,11 @@ export function MedoraHeader({ navItems = [] }: { navItems?: NavItem[] }) {
                 <div key={item.href}>
                   {hasChildren ? (
                     <button
-                      onClick={() => setExpandedItem(isExpanded ? null : item.href)}
+                      onClick={() => {
+                        setExpandedItem(isExpanded ? null : item.href)
+                        setExpandedChild(null)
+                        setExpandedGrandchild(null)
+                      }}
                       style={{
                         display: 'flex',
                         justifyContent: 'space-between',
@@ -484,30 +598,152 @@ export function MedoraHeader({ navItems = [] }: { navItems?: NavItem[] }) {
                         borderBottom: '1px solid rgba(255,255,255,0.12)',
                       }}
                     >
-                      {item.label}
+                      {renderNavLabel(item.label)}
                     </Link>
                   )}
                   {isExpanded &&
-                    item.children?.map((child) => (
-                      <Link
-                        key={child.href}
-                        href={child.href}
-                        onClick={() => {
-                          setMenuOpen(false)
-                          setExpandedItem(null)
-                        }}
-                        style={{
-                          display: 'block',
-                          padding: '11px 0 11px 20px',
-                          fontSize: '14px',
-                          color: 'rgba(255,255,255,0.7)',
-                          textDecoration: 'none',
-                          borderBottom: '1px solid rgba(255,255,255,0.08)',
-                        }}
-                      >
-                        {child.label}
-                      </Link>
-                    ))}
+                    item.children?.map((child) => {
+                      const hasGrandchildren = (child.grandchildren?.length ?? 0) > 0
+                      const childKey = `${item.href}|${child.href}`
+                      const isChildExpanded = expandedChild === childKey
+                      return (
+                        <div key={child.href}>
+                          {hasGrandchildren ? (
+                            <button
+                              onClick={() => {
+                                setExpandedChild(isChildExpanded ? null : childKey)
+                                setExpandedGrandchild(null)
+                              }}
+                              style={{
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                width: '100%',
+                                padding: '11px 0 11px 20px',
+                                fontSize: '14px',
+                                fontWeight: 500,
+                                color: '#fff',
+                                background: 'none',
+                                border: 'none',
+                                borderBottom: '1px solid rgba(255,255,255,0.08)',
+                                cursor: 'pointer',
+                                fontFamily: 'inherit',
+                                textAlign: 'left',
+                              }}
+                            >
+                              {child.label}
+                              <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.35)' }}>
+                                {isChildExpanded ? '▲' : '▼'}
+                              </span>
+                            </button>
+                          ) : (
+                            <Link
+                              href={child.href}
+                              onClick={() => {
+                                setMenuOpen(false)
+                                setExpandedItem(null)
+                                setExpandedChild(null)
+                              }}
+                              style={{
+                                display: 'block',
+                                padding: '11px 0 11px 20px',
+                                fontSize: '14px',
+                                color: '#fff',
+                                textDecoration: 'none',
+                                borderBottom: '1px solid rgba(255,255,255,0.08)',
+                              }}
+                            >
+                              {child.label}
+                            </Link>
+                          )}
+                          {isChildExpanded &&
+                            child.grandchildren?.map((grandchild) => {
+                              const hasGreatGrandchildren = (grandchild.subLinks?.length ?? 0) > 0
+                              const grandchildKey = `${childKey}|${grandchild.href}`
+                              const isGrandchildExpanded = expandedGrandchild === grandchildKey
+                              return (
+                                <div key={grandchild.href}>
+                                  {hasGreatGrandchildren ? (
+                                    <button
+                                      onClick={() =>
+                                        setExpandedGrandchild(
+                                          isGrandchildExpanded ? null : grandchildKey,
+                                        )
+                                      }
+                                      style={{
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center',
+                                        width: '100%',
+                                        padding: '10px 0 10px 36px',
+                                        fontSize: '13px',
+                                        fontWeight: 500,
+                                        color: '#fff',
+                                        background: 'none',
+                                        border: 'none',
+                                        borderBottom: '1px solid rgba(255,255,255,0.06)',
+                                        cursor: 'pointer',
+                                        fontFamily: 'inherit',
+                                        textAlign: 'left',
+                                      }}
+                                    >
+                                      {grandchild.label}
+                                      <span
+                                        style={{ fontSize: '8px', color: 'rgba(255,255,255,0.3)' }}
+                                      >
+                                        {isGrandchildExpanded ? '▲' : '▼'}
+                                      </span>
+                                    </button>
+                                  ) : (
+                                    <Link
+                                      href={grandchild.href}
+                                      onClick={() => {
+                                        setMenuOpen(false)
+                                        setExpandedItem(null)
+                                        setExpandedChild(null)
+                                        setExpandedGrandchild(null)
+                                      }}
+                                      style={{
+                                        display: 'block',
+                                        padding: '10px 0 10px 36px',
+                                        fontSize: '13px',
+                                        color: '#fff',
+                                        textDecoration: 'none',
+                                        borderBottom: '1px solid rgba(255,255,255,0.06)',
+                                      }}
+                                    >
+                                      {grandchild.label}
+                                    </Link>
+                                  )}
+                                  {isGrandchildExpanded &&
+                                    grandchild.subLinks?.map((greatGrandchild) => (
+                                      <Link
+                                        key={greatGrandchild.href}
+                                        href={greatGrandchild.href}
+                                        onClick={() => {
+                                          setMenuOpen(false)
+                                          setExpandedItem(null)
+                                          setExpandedChild(null)
+                                          setExpandedGrandchild(null)
+                                        }}
+                                        style={{
+                                          display: 'block',
+                                          padding: '9px 0 9px 52px',
+                                          fontSize: '12px',
+                                          color: '#fff',
+                                          textDecoration: 'none',
+                                          borderBottom: '1px solid rgba(255,255,255,0.05)',
+                                        }}
+                                      >
+                                        {greatGrandchild.label}
+                                      </Link>
+                                    ))}
+                                </div>
+                              )
+                            })}
+                        </div>
+                      )
+                    })}
                 </div>
               )
             })}

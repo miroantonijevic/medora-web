@@ -2,6 +2,11 @@ import type { Payload } from 'payload'
 
 const BASE = 'https://medorahotels.com/UserDocsImages'
 
+// Public URL for an uploaded Media doc's file, served from the public/media static dir
+function mediaUrl(filename: string) {
+  return `/media/${filename}`
+}
+
 // ── Media upload helper ───────────────────────────────────────────────────────
 
 async function img(
@@ -180,6 +185,79 @@ function lexMixed(blocks: (string | string[])[]) {
   }
 }
 
+// ── Inline node helpers (for paragraphs/list items mixing text and links) ─────
+
+function lexText(text: string, bold = false) {
+  return {
+    type: 'text',
+    text,
+    version: 1,
+    detail: 0,
+    format: bold ? 1 : 0,
+    mode: 'normal',
+    style: '',
+  }
+}
+
+function lexLink(text: string, url: string, newTab = true) {
+  return {
+    type: 'link',
+    fields: { linkType: 'custom' as const, url, newTab },
+    children: [lexText(text)],
+    direction: 'ltr',
+    format: '',
+    indent: 0,
+    version: 2,
+  }
+}
+
+// Builds a richText body where paragraphs/list items can mix plain text and links
+function lexPara(children: (ReturnType<typeof lexText> | ReturnType<typeof lexLink>)[]) {
+  return {
+    type: 'paragraph' as const,
+    children,
+    direction: 'ltr' as const,
+    format: '' as const,
+    indent: 0,
+    version: 1,
+  }
+}
+
+function lexRoot(children: object[]) {
+  return {
+    root: {
+      type: 'root',
+      children,
+      direction: 'ltr',
+      format: '',
+      indent: 0,
+      version: 1,
+    },
+  }
+}
+
+function lexBulletsRich(items: (ReturnType<typeof lexText> | ReturnType<typeof lexLink>)[][]) {
+  return {
+    type: 'list' as const,
+    listType: 'bullet' as const,
+    tag: 'ul' as const,
+    start: 1,
+    children: items.map((children, i) => ({
+      type: 'listitem' as const,
+      value: i + 1,
+      children,
+      direction: 'ltr',
+      format: '',
+      indent: 0,
+      version: 1,
+    })),
+    direction: 'ltr' as const,
+    format: '' as const,
+    indent: 0,
+    version: 1,
+  }
+}
+
 // ── Block helpers ─────────────────────────────────────────────────────────────
 
 function contentSection(
@@ -196,6 +274,16 @@ function contentSection(
     image: imageId,
     imagePosition: imageId ? pos : undefined,
     ctaLink: ctaLink ?? null,
+  }
+}
+
+function mapEmbed(lat: number, lng: number, directionsUrl: string, zoom = 15) {
+  return {
+    blockType: 'mapEmbed' as const,
+    lat,
+    lng,
+    zoom,
+    directionsUrl,
   }
 }
 
@@ -242,6 +330,14 @@ function photoGallery(label: string, imageIds: (number | null)[]) {
     label,
     images: imageIds.filter(Boolean).map((id) => ({ image: id })),
   }
+}
+
+// Builds a medorahotels.com /UserDocsImages/galerije/... URL, encoding each path segment separately
+function galUrl(folder: string, file: string) {
+  return `${BASE}/galerije/${folder
+    .split('/')
+    .map((seg) => encodeURIComponent(seg))
+    .join('/')}/${encodeURIComponent(file)}`
 }
 
 // ── Upsert helper ─────────────────────────────────────────────────────────────
@@ -493,6 +589,42 @@ export async function seedPages({ payload }: { payload: Payload }) {
     ),
   ])
 
+  // ── Upload sustainability report PDFs and the "Did you know?" hero image ──
+  // (PDFs are referenced by their fixed filename via mediaUrl(), so their ids aren't needed)
+
+  const [, , , , greenDidYouKnowHeroId] = await Promise.all([
+    img(
+      payload,
+      `${BASE}/dokumenti/Sustainability%20report%202023.pdf`,
+      'sustainability-report-2023.pdf',
+      'Sustainability report 2023',
+    ),
+    img(
+      payload,
+      `${BASE}/dokumenti/Report-on-sustainability%202020.pdf`,
+      'report-on-sustainability-2020.pdf',
+      'Report on sustainability 2020',
+    ),
+    img(
+      payload,
+      `${BASE}/dokumenti/20-Member-Template-Hazardous-Substance-Register.pdf`,
+      'hazardous-substance-register.pdf',
+      'Hazardous Substance Register',
+    ),
+    img(
+      payload,
+      `${BASE}/dokumenti/Potro%C5%A1nja%20energije%202021-2023.pdf`,
+      'energy-consumption-2021-2023.pdf',
+      'Energy consumption 2021-2023',
+    ),
+    img(
+      payload,
+      `${BASE}/galerije/sustainability/Medora%20sustainability%20.jpg`,
+      'green-did-you-know-hero.jpg',
+      'Did you know? Medora sustainability facts',
+    ),
+  ])
+
   // ── Upload vacation with children images ──────────────────────────────────
 
   const [kidsPlayroomImgId, kidsPoolImgId, kidsEveningImgId, kidsAdultsImgId] = await Promise.all([
@@ -549,18 +681,23 @@ export async function seedPages({ payload }: { payload: Payload }) {
 
   await upsertPage(payload, 'destination', {
     title: 'Destination',
+    meta: {
+      title: 'Destination',
+      description:
+        'Discover Podgora and the Makarska Riviera: location, beaches, weather, things to do and everything around Medora Auri hotel and Medora Orbis camp.',
+    },
     hero: {
       type: 'lowImpact',
-      richText: lexH1('All is well in Podgora'),
+      richText: lexH1('All is well in Podgora (merry differences)'),
     },
     layout: [
       contentSection(
         null,
         lexParas(
           'The Medora Auri hotel complex in Podgora, the jewel of the Makarska Riviera, is an ideal starting point for your exploration of Podgora and the Adriatic coast.',
-          'Located between the mighty Biokovo and the clear blue sea, this place exudes beauty and simplicity.',
-          'The inseparable bond between Podgora and the sea has shaped the life and customs of this place, and historical circumstances have formed the colourful content that every visitor can easily enjoy.',
-          'Whether you are an explorer, sailor, merchant, gourmet or a pure hedonist — Podgora offers you content to which you will always return.',
+          'Located between the mighty Biokovo and the clear blue sea, this place exudes beauty and simplicity, while numerous natural and historic elements make it even more attractive. The unbreakable bond between Podgora and the sea has moulded the lives and customs of this place, while historic circumstances have created a vibrant world in which each visitor can immerse themselves.',
+          'Regardless of whether your inner self is a conqueror, sailor, trader, gourmand or pure hedonist, Podgora offers features that will make you crave more.',
+          'Find out why Podgora is one of the most visited tourist destinations in Dalmatia and the Makarska Riviera, and learn how to best enjoy its variety.',
         ),
         null,
       ),
@@ -583,13 +720,31 @@ export async function seedPages({ payload }: { payload: Payload }) {
         '/destination/vacation-with-children',
       ),
       contentSection(
-        'Things to do',
+        'Wellness',
         lexParas(
-          'Discover our wellness facilities, dining & bars, and active vacation experiences included free of charge.',
+          'Discover our wellness facilities, from the spa and massages to fitness and pools & beaches.',
         ),
         null,
         'right',
-        '/amenities',
+        '/destination/wellness',
+      ),
+      contentSection(
+        'Dining & Bars',
+        lexParas(
+          'Enjoy our restaurants and bars, from Taste the Indigo to the Juice/Cocktail Bar and Lobby Bar.',
+        ),
+        null,
+        'right',
+        '/destination/dining-bars',
+      ),
+      contentSection(
+        'Active Vacation',
+        lexParas(
+          'Fill your holiday with activities, from Biokovo excursions and boat trips to the Medora Fit programme.',
+        ),
+        null,
+        'right',
+        '/destination/active-vacation',
       ),
       contentSection(
         'Beaches',
@@ -662,58 +817,78 @@ export async function seedPages({ payload }: { payload: Payload }) {
   // ── Location page ─────────────────────────────────────────────────────────
 
   await upsertPage(payload, 'destination/location', {
-    title: 'About Podgora',
+    title: 'Location',
     hero: locationHistoryHeroId
       ? {
           type: 'highImpact',
           media: locationHeroId ?? locationHistoryHeroId,
-          richText: lexH1('All is well in Podgora'),
+          richText: lexH1('Location'),
         }
-      : { type: 'lowImpact', richText: lexH1('All is well in Podgora') },
+      : { type: 'lowImpact', richText: lexH1('Location') },
     layout: [
-      contentSection(
-        null,
-        lexParas(
-          'Medora Hotels & Resorts in Podgora is an ideal starting point for your exploration of Podgora and the Adriatic coast.',
-          'Located between the mighty Biokovo and the clear blue sea, this place exudes beauty and simplicity, while numerous natural and historical elements make it even more attractive.',
-          'Regardless of whether your inner self is a conqueror, sailor, trader, gourmand or pure hedonist, Podgora offers content that will make you crave more.',
-        ),
-        null,
-      ),
       cardGrid(null, [
         {
+          imageId: locationHeroId,
+          title: 'Medora Auri Hotel',
+          excerpt: 'Medora Auri Family Beach Resort — Ul. Tina Ujevića, 21327 Podgora',
+          link: '/destination/location/medora-auri-hotel',
+        },
+        {
           imageId: locationHistoryHeroId,
-          title: 'History and culture of Podgora',
-          excerpt:
-            'Although Podgora is mentioned in Venetian documents in 1571, there have been traces of human activity there since the early Stone Age.',
-          link: '/destination/location/history-and-culture',
-        },
-        {
-          imageId: whatToVisitHeroId ?? null,
-          title: 'What you can visit',
-          excerpt:
-            'As soon as you arrive in Podgora, you will want to take 2 steps to the beach — and then explore its many sights and monuments.',
-          link: '/destination/location/what-you-can-visit',
-        },
-        {
-          imageId: secretsHeroId ?? null,
-          title: 'Secrets of Podgora',
-          excerpt:
-            'Discover the legends, traditions, and fascinating stories that shaped Podgora across the centuries.',
-          link: '/destination/location/secrets-of-podgora',
-        },
-        {
-          imageId: locationKlimaHeroId ?? null,
-          title: 'Podgora climate',
-          excerpt:
-            'Experience a true paradise with 2750 sunshine hours per year and a warm Mediterranean climate.',
-          link: '/destination/location/podgora-climate',
+          title: 'Medora Orbis Campsite',
+          excerpt: 'Medora Orbis Luxury Homes and Camping — Put Sv. Vicenca bb, 21327 Podgora',
+          link: '/destination/location/medora-orbis-campsite',
         },
       ]),
     ],
   })
 
-  // ── About Podgora subpages ────────────────────────────────────────────────
+  await upsertPage(payload, 'destination/location/medora-auri-hotel', {
+    title: 'Medora Auri Hotel',
+    hero: locationHeroId
+      ? { type: 'highImpact', media: locationHeroId, richText: lexH1('Medora Auri Hotel') }
+      : { type: 'lowImpact', richText: lexH1('Medora Auri Hotel') },
+    layout: [
+      contentSection(
+        null,
+        lexParas('Medora Auri Family Beach Resort', 'Ul. Tina Ujevića', '21327, Podgora'),
+        null,
+      ),
+      mapEmbed(
+        43.23702,
+        17.07675,
+        'https://www.google.hr/maps/dir//Medora+Auri+Family+Beach+Resort,+Ul.+Tina+Ujevi%C4%87a+7,+21327,+Podgora',
+      ),
+    ],
+  })
+
+  await upsertPage(payload, 'destination/location/medora-orbis-campsite', {
+    title: 'Medora Orbis Campsite',
+    hero: locationHistoryHeroId
+      ? {
+          type: 'highImpact',
+          media: locationHistoryHeroId,
+          richText: lexH1('Medora Orbis Campsite'),
+        }
+      : { type: 'lowImpact', richText: lexH1('Medora Orbis Campsite') },
+    layout: [
+      contentSection(
+        null,
+        lexParas('Medora Orbis Luxury Homes and Camping', 'Put Sv. Vicenca bb', '21327, Podgora'),
+        null,
+      ),
+      mapEmbed(
+        43.233897,
+        17.078811,
+        'https://www.google.com/maps/dir//Medora+Orbis+Camping+%26+Glamping,+Put+Sv.+Vicenca+bb,+21327,+Podgora',
+      ),
+    ],
+  })
+
+  // Note: the following 4 pages (history-and-culture, what-you-can-visit, secrets-of-podgora,
+  // podgora-climate) mirror medorahotels.com's separate "About Podgora" footer section
+  // (footer/amenities/about-podgora/*), NOT the Destination > Location page — kept at their
+  // existing paths below but no longer linked from destination/location.
 
   await upsertPage(payload, 'destination/location/history-and-culture', {
     title: 'History and culture of Podgora',
@@ -887,6 +1062,7 @@ export async function seedPages({ payload }: { payload: Payload }) {
           'Your children can freely enjoy a safe environment and create memories that are remembered and retold for a lifetime.',
           'Upon arrival, you will receive all the necessary information about the facilities and the weekly program of activities at the hotel reception.',
           'Children in clubs are divided by age groups — Mini (4–7 years) and Maxi (7–13 years). During working hours of the clubs, it is possible to leave the children in the care of professional animators/educators who will guide them through a fun educational program while parents enjoy their free time.',
+          'Every day at specific times, special programs for children and adults are performed, provided by a weekly schedule of activities.',
         ),
         null,
       ),
@@ -968,7 +1144,7 @@ export async function seedPages({ payload }: { payload: Payload }) {
         'Plišivac Beach',
         lexParas(
           'Plišivac Beach is located north of the city centre and is rightly considered the most beautiful beach in Podgora. It is covered by pleasant small gravel, which turns into sand at the waterline, so entering the clear sea is as pleasant as walking on a sandy carpet.',
-          'The Plišivac Bay is more than 1 km long. Although it is seemingly far removed from the Podgora bustle, do not look for peace and solitude on this popular beach in July and August. Along the hinterland are pine trees that provide natural shade.',
+          'The Plišivac Bay is more than 1 km long, and some parts are quite narrow, though with enough room for a pleasant stay. Although it is seemingly far removed from the Podgora bustle, do not look for peace and solitude on this popular beach in July and August, as many guests choose to relax and enjoy the summer activities here. Along the hinterland are pine trees that provide natural shade, while refreshments can be found in the nearby restaurants and cafés.',
         ),
         beachPlisivacImgId,
         'right',
@@ -977,7 +1153,7 @@ export async function seedPages({ payload }: { payload: Payload }) {
         'Dračevac Beach',
         lexParas(
           'Dračevac Beach is located about 1 km to the north of the centre of Podgora, in the direction of Tučepi. It is about 400 meters long and covered with beautiful white rounded pebbles that create a visually impressive scene in combination with the turquoise sea.',
-          'It is one of the most popular nudist beaches on the Makarska Riviera. It is surrounded by dense pine trees and other Mediterranean vegetation that create natural shade.',
+          'It is one of the most popular nudist beaches on the Makarska Riviera. It is surrounded by dense pine trees and other Mediterranean vegetation that create natural shade. The entrance into the sea is gradual and very pleasant. Although this beach has no changing rooms, showers and toilets, and the nearest refreshment facilities are a short walk away on the Podgora promenade, this beach will conquer you with its natural beauty and special charm.',
         ),
         beachDracevacImgId,
         'right',
@@ -995,7 +1171,7 @@ export async function seedPages({ payload }: { payload: Payload }) {
         'Sutikla Beach',
         lexParas(
           'Sutikla Beach is located near the camp Orbis in the direction of the village of Čaklje. It is a pebble beach with natural pine tree shade. The beach is narrow and the access to the sea is pleasant.',
-          'Nearby are bars and restaurants, which is why this beach is popular with younger people, but also with families for its easy entrance into the sea.',
+          'Nearby are bars and restaurants, which is why this beach is popular with younger people, but also with families for its easy entrance into the sea and proximity to restaurants.',
         ),
         beachSutiklaImgId,
         'right',
@@ -1003,7 +1179,7 @@ export async function seedPages({ payload }: { payload: Payload }) {
       contentSection(
         'Čaklje Beach',
         lexParas(
-          'The central beach in the village of Čaklje is a beautiful pebble beach with clear water, and a mild and gradual entrance into the water. It is partially covered with pine tree shade and close to many restaurants.',
+          'The central beach in the village of Čaklje is a beautiful pebble beach with clear water, and a mild and gradual entrance into the water. It is partially covered with pine tree shade and close to many restaurants, which is why it is often filled with visitors in July and August — especially families with children.',
         ),
         beachCakljeImgId,
         'right',
@@ -1019,8 +1195,8 @@ export async function seedPages({ payload }: { payload: Payload }) {
       contentSection(
         'Punta Rata Beach',
         lexParas(
-          'Punta Rata Beach is located in Brela, 20 km from Podgora. In 2004, the American magazine Forbes included it in the 10 most beautiful beaches in the world. It has been awarded the Blue Flag for the highest level of cleanliness of the sea.',
-          'The terrain is of tiny pleasant gravel with a sandy entrance into the sea, making the beach a favourite for families with children. Chairs and umbrellas are available for rent.',
+          'Punta Rata Beach is located in Brela, 20 km from Podgora. In 2004, the American magazine Forbes included it in the 10 most beautiful beaches in the world. It has been awarded the Blue Flag for the highest level of cleanliness of the sea, the colour of which changes from azure to deep blue.',
+          'The terrain is of tiny pleasant gravel with a sandy entrance into the sea, making the beach a favourite for families with children. Chairs and umbrellas are available for rent and visitors can enjoy the natural shade of pine trees. Showers and changing rooms are also available, and there are numerous cafés and restaurants nearby.',
         ),
         beachPuntaRataImgId,
         'right',
@@ -1037,15 +1213,24 @@ export async function seedPages({ payload }: { payload: Payload }) {
       contentSection(
         'Tučepi Beach',
         lexParas(
-          'Tučepi Beach is the longest beach on the Makarska Riviera — a 4-kilometre long area of pebbles. It is largely covered with pine trees, which provide natural shade. The sea is clear and turquoise, with a mild, gradual entrance into the water.',
+          'Tučepi Beach is located in Tučepi. It is the longest beach on the Makarska Riviera — a 4-kilometre long area of pebbles. It is largely covered with pine trees, which provide natural shade. The sea is clear and turquoise, with a mild, gradual entrance into the water.',
+          'Visitors can rent chairs and umbrellas, and use the showers and changing rooms. Apart from sunbathing and swimming, the beach has a number of water attractions such as banana rides and parasailing. Above the beach is a long promenade with many shops and restaurants, which is especially good for family visits.',
         ),
         beachTucepiImgId,
         'right',
       ),
       contentSection(
+        'The best known Croatian beaches',
+        lexParas(
+          'During your stay in Podgora, you can visit one of the world famous beaches nearby and enjoy sunbathing, swimming and the natural beauty of the magical landscape of central Dalmatia.',
+        ),
+        null,
+      ),
+      contentSection(
         'Zlatni Rat Beach',
         lexParas(
-          'Zlatni Rat beach is the most famous beach of the Adriatic located in Bol, on Brač island, about 50 km from Podgora. The beach changes its shape according to the currents and waves. It is covered with fine white sand, surrounded by crystal clear azure sea.',
+          'Zlatni Rat beach is the most famous beach of the Adriatic located in Bol, on Brač island, about 50 km from Podgora. The beach changes its shape — that is, the surface — according to the currents and waves. It is covered with fine white sand, surrounded by crystal clear azure sea and bathed in sunshine.',
+          'The deeper hinterland features a pine forest with cafés and restaurants where you can enjoy refreshing summer cocktails in the shade, which is an additional lure for everyone who wants to experience this unique beach.',
           'Zlatni Rat is a winner of the international white flag for water quality and is listed among the 3 best European beaches.',
         ),
         beachZlatniRatImgId,
@@ -1099,49 +1284,204 @@ export async function seedPages({ payload }: { payload: Payload }) {
     hero: { type: 'highImpact', media: petsHeroId, richText: lexH1('Vacation with pets') },
     layout: [
       cardGrid(
-        'The Medora Auri Hotel and Medora Orbis campsite welcome all guests who wish to take their loyal family members on holiday with them. In order for you and your pet, as well as other guests, to enjoy your holiday, please follow the rules of staying with pets.',
+        "The Medora Auri Hotel and Medora Orbis campsite welcome all guests who wish to take their loyal family members on holiday with them - their pets. Due to the hotel options, we are thankful in advance for following all the information on the rules on your pet's stay. In order for you and your pet, as well as other guests of our hotel, to enjoy their holiday, please follow the 12 golden rules of staying at the Medora Auri Hotel and Medora Orbis campsite.",
         [
           {
             imageId: petsAuriImgId,
             title: 'Medora Auri hotel rules of staying with pets',
             excerpt:
               'Find out all the rules and guidelines for bringing your pet to the Medora Auri Family Beach Resort.',
-            link: '/contact',
+            link: '/destination/vacation-with-pets/medora-auri-hotel-rules-of-staying-with-pets',
           },
           {
             imageId: petsOrbisImgId,
             title: 'Medora Orbis campsite rules of staying with pets',
             excerpt:
               'Find out all the rules and guidelines for bringing your pet to the Medora Orbis Luxury Homes & Camping.',
-            link: '/contact',
+            link: '/destination/vacation-with-pets/medora-orbis-campsite-rules-of-staying-with-pets',
           },
           {
             imageId: petsCroatiaImgId,
-            title: 'Rules for entering Croatia with your pet',
+            title: 'Requirements to fulfil before bringing a pet to Croatia',
             excerpt:
               'Information on the required documentation and procedures for bringing your pet into Croatia.',
-            link: '/contact',
+            link: '/destination/vacation-with-pets/requirements-to-fulfil-before-bringing-a-pet-to-croatia',
           },
         ],
       ),
     ],
   })
 
+  // ── Vacation with pets subpages ───────────────────────────────────────────
+
+  await upsertPage(
+    payload,
+    'destination/vacation-with-pets/medora-auri-hotel-rules-of-staying-with-pets',
+    {
+      title: 'Medora Auri hotel rules of staying with pets',
+      hero: petsAuriImgId
+        ? {
+            type: 'highImpact',
+            media: petsAuriImgId,
+            richText: lexH1('Medora Auri hotel rules of staying with pets'),
+          }
+        : { type: 'lowImpact', richText: lexH1('Medora Auri hotel rules of staying with pets') },
+      layout: [
+        contentSection(
+          null,
+          lexBullets([
+            'The price for pet accommodation is € 27.00 per night.',
+            'If a guest does not register a pet at the front desk, the price for pet accommodation is € 100 per night.',
+            'Only trained pets (dogs and cats) up to 9 kg are accepted at the hotel, maximum 2 pets per room with prior notice and pet registration at the front desk.',
+            'In case the guest arrives with a heavier pet, the hotel reserves the right to refuse to accommodate the guest and/or the pet, or to charge a larger fee for pet accommodation at the price of € 50 per night.',
+            'If the pet damages the hotel (urinating inside the hotel, rubbing and scratching the furniture or walls), the hotel reserves the right to deny the guest and/or pet further hospitality, and charge for any damages; equal to the current value of the damaged property, plus 10%.',
+            'Pets will have access to guest rooms, hallways, and they can stay in the lobby and the cocktail bar, only on a lead.',
+            'Pets (except for guide dogs) are not allowed in the common areas of the hotel - swimming pools, restaurant, playroom, wellness centre, gym, and beach. If the guest brings their pet to these areas of the hotel, they will be asked to leave the premises.',
+            'A dog cannot use the bed or sofa in the room, and it is not permitted to bathe the pet in the bathroom. The guest is not allowed to leave their pet on the balcony of the room.',
+            'If the guest leaves their pet alone in the room, the guest is obliged to place a notice on the door which will be provided to them at the front desk during check-in.',
+            "The hotel shall bear no responsibility for the guest's complaints against irregular cleaning of the room, if the guest left their pet unsupervised in the room during the foreseen cleaning time.",
+            'The guest shall follow paragraph 8, Article 17 of the Veterinary Act (Official Gazette 70/79) in the Republic of Croatia.',
+            'The beach in front of the Medora Auri Hotel is not intended for bathing pets. There is a beach in Podgora that is intended for bathing pets (dogs).',
+          ]),
+          null,
+        ),
+      ],
+    },
+  )
+
+  await upsertPage(
+    payload,
+    'destination/vacation-with-pets/medora-orbis-campsite-rules-of-staying-with-pets',
+    {
+      title: 'Medora Orbis campsite rules of staying with pets',
+      hero: petsOrbisImgId
+        ? {
+            type: 'highImpact',
+            media: petsOrbisImgId,
+            richText: lexH1('Medora Orbis campsite rules of staying with pets'),
+          }
+        : {
+            type: 'lowImpact',
+            richText: lexH1('Medora Orbis campsite rules of staying with pets'),
+          },
+      layout: [
+        contentSection(
+          null,
+          lexBullets([
+            'The price for pet accommodation in the mobile home and glamping pad is € 25.00 per night and on the pitches is € 6.70 per night.',
+            'Pet owners are required to check in their pets at the front desk by presenting a vaccination card. Pet owners are required to keep their dogs on a leash and chain them in their designated area. They are also required to pick up and clean up after their pets. Violation of the aforementioned point shall result in charges.',
+            'If the pet damages the campsite units (urinating inside the mobile home, rubbing and scratching the furniture or walls), the campsite reserves the right to deny the guest and/or pet further hospitality, and charge for any damages; equal to the current value of the damaged property, plus 10%.',
+            'The dog is not allowed to use the bed and sofa in the mobile home, it is not allowed to bathe the dog in the bathroom and it is not allowed to leave the pet on the terrace of the house and the dog cannot use the swimming pool at the house.',
+            'If the guest leaves their pet alone in the room, the guest is obliged to place a notice on the door which will be provided to them at the front desk during check-in.',
+            'The guest shall follow paragraph 8, Article 17 of the Veterinary Act (Official Gazette 70/79) in the Republic of Croatia.',
+            'The beach in front of the Medora Orbis campsite is not intended for bathing pets. There is a beach in Podgora that is intended for bathing pets (dogs).',
+          ]),
+          null,
+        ),
+      ],
+    },
+  )
+
+  await upsertPage(
+    payload,
+    'destination/vacation-with-pets/requirements-to-fulfil-before-bringing-a-pet-to-croatia',
+    {
+      title: 'Requirements to fulfil before bringing a pet to Croatia',
+      hero: petsCroatiaImgId
+        ? {
+            type: 'highImpact',
+            media: petsCroatiaImgId,
+            richText: lexH1('Requirements to fulfil before bringing a pet to Croatia'),
+          }
+        : {
+            type: 'lowImpact',
+            richText: lexH1('Requirements to fulfil before bringing a pet to Croatia'),
+          },
+      layout: [
+        contentSection(
+          null,
+          lexMixed([
+            'General conditions for the importation of dogs, cats and domesticated minks (also known as domestic ferrets, white ferrets, African ferrets, weasels, ferrets, domestic weasels or domesticated ferrets) from EU Member States and non-EU countries of low risk:',
+            [
+              'Animals must have an identification system (microchip). If the animal has a microchip that does not comply with ISO 11784 or 11785 standards, the owner must provide a suitable microchip reader. At any given time, it must be possible to determine the name and address of the owner. The passport or certificate of the animal, which is entered together with the animal, must contain the number of the microchip issued by a veterinarian.',
+              'The animal must have a passport or certificate issued by a veterinarian authorised by the authority in question.',
+              'The animal must be vaccinated against rabies.',
+              'Animals from EU or non-EU countries that are considered as low risk, may enter the territory of the Republic of Croatia if the owner or escort has a valid passport, less than three months old and which have not been vaccinated, or certificate if the animals live in the same place of their birth and if they were not in contact with wild animals that could cause them to be infected or if they are travelling with their mother and they are still dependent on her.',
+            ],
+            'Dogs, cats and members of the Mustelidae family from high-risk countries, must meet the following requirements:',
+            [
+              'They must have an identification system (microchip).',
+              'They must have a certificate issued by an official veterinarian or, after re-entry, a passport (dogs from Croatia).',
+              'They must be vaccinated against rabies.',
+              'They must pass an antibody neutralisation test by antibody titration of at least 0.5 IJ/ml per sample, taken by a licensed veterinarian at an authorised laboratory, 30 days after vaccination and three months before entry. The list of authorised institutions is available on the following website: http://ec.europa.eu/food/animal/liveanimals/pets/approval_en.htm.',
+              'The said period of three months shall not apply in the case of re-entry of pets from the Republic of Croatia, whose passports confirm positive test results of antibody titration before the animal has left the Republic of Croatia.',
+              'Animals that have been commercially imported and sent as a package must be screened by a veterinarian prior to dispatchment.',
+              'For further information, please contact the Ministry of Agriculture - Veterinary Directorate. Tel.: +385 1 6443 540. Webpage: www.mps.hr',
+            ],
+          ]),
+          null,
+        ),
+      ],
+    },
+  )
+
   // ── We think green page ───────────────────────────────────────────────────
 
   await upsertPage(payload, 'we-think-green', {
     title: 'We think green!',
-    hero: { type: 'highImpact', media: greenHeroId, richText: lexH1('We think green!') },
+    meta: {
+      title: 'We think green!',
+      description:
+        'Sustainability is our way of doing business. Discover the eco-friendly practices at Medora Auri hotel and Medora Orbis camp.',
+    },
+    hero: { type: 'highImpact', media: greenHeroId, richText: null },
     layout: [
       contentSection(
         null,
-        lexParas(
-          'Sustainability is our way of doing business!',
-          'Medora Auri Hotel was one of the first hotels in Croatia to obtain the Travelife certificate of sustainability in 2017.',
-          'In 2018, we received the Gold medal in sustainability based on customer ratings by the TUI Nordic agency, after competing against 40 Blue Star hotels around the world.',
-          'We pay special attention to sustainable business practices and environmental protection, and we also invite you, our guests, to play an active role in the important mission to preserve the health of our planet.',
-          'During your stay, you will probably notice many different details related to this, especially the following:',
-        ),
+        lexRoot([
+          lexPara([lexText('Sustainability is our way of doing business!', true)]),
+          lexPara([
+            lexText(
+              'Medora Auri Hotel was one of the first hotels in Croatia to obtain the Travelife certificate of sustainability in 2017.',
+            ),
+          ]),
+          lexPara([
+            lexText(
+              'In 2018, we received the Gold medal in sustainability based on customer ratings by the TUI Nordic agency, after competing against 40 Blue Star hotels around the world.',
+            ),
+          ]),
+          lexPara([
+            lexText(
+              'We pay special attention to sustainable business practices and environmental protection, and we also invite you, our guests, to play an active role in the important mission to preserve the health of our planet.',
+            ),
+          ]),
+          lexPara([lexText('Please find Medora Auri report:')]),
+          lexBulletsRich([
+            [
+              lexText('on sustainability '),
+              lexLink('HERE', mediaUrl('sustainability-report-2023.pdf')),
+              lexText(' and '),
+              lexLink('HERE', mediaUrl('report-on-sustainability-2020.pdf')),
+              lexText('.'),
+            ],
+            [
+              lexText('on energy saving '),
+              lexLink('HERE', mediaUrl('hazardous-substance-register.pdf')),
+              lexText(' and '),
+              lexLink('HERE', mediaUrl('energy-consumption-2021-2023.pdf')),
+              lexText('.'),
+            ],
+          ]),
+          lexPara([
+            lexText('Learn more about '),
+            lexLink('our way of doing business.', '/en/we-think-green/did-you-know', false),
+          ]),
+          lexPara([
+            lexText(
+              'During your stay, you will probably notice many different details related to this, especially the following:',
+            ),
+          ]),
+        ]),
         null,
       ),
       contentSection(
@@ -1158,12 +1498,19 @@ export async function seedPages({ payload }: { payload: Payload }) {
         lexBullets([
           'The room key card sleeves are made from recycled paper.',
           'Receipts are printed on recycled paper, which helps preserve our forests.',
+        ]),
+        greenReceptionImgId,
+        'right',
+      ),
+      contentSection(
+        'Hotel room',
+        lexBullets([
           'The air-conditioning unit in a room automatically switches off when the balcony doors are opened. The air-conditioning unit is centrally programmed and can be individually adjusted by +/- 5°C.',
           'The tap water pressure is regulated automatically to ensure optimum water usage.',
           'The bathroom hygiene bags and laundry bags are made from biodegradable material.',
           'All of the hygiene supplies and cosmetic products in the bathroom are paraben-free and enclosed in boxes made from recycled materials.',
         ]),
-        greenReceptionImgId,
+        greenRoomImgId,
         'right',
       ),
       contentSection(
@@ -1200,14 +1547,16 @@ export async function seedPages({ payload }: { payload: Payload }) {
           'The hotel complies with protection and safety regulations that ensure a safe stay for all our guests, especially children.',
           'We are particularly devoted to protecting children from sexual abuse. This is why our staff have been trained on how to act if they suspect a child is in danger.',
         ]),
-        null,
+        greenChildImgId,
+        'right',
       ),
       contentSection(
         'Animal welfare',
         lexBullets([
           'In order to maintain a natural balance in the ecosystem, we kindly ask our guests not to feed or disturb seagulls, sparrows, cats, and other animals found on hotel grounds.',
         ]),
-        null,
+        greenAnimalImgId,
+        'right',
       ),
       contentSection(
         'Local community',
@@ -1217,16 +1566,142 @@ export async function seedPages({ payload }: { payload: Payload }) {
           'We value local suppliers and business owners, and make an effort to buy their products whenever possible.',
           'We encourage employees and guests alike to act responsibly toward environment and our cultural heritage.',
           'We attach great importance to our cultural and natural wealth, for this reason we encourage our guests to behave responsibly towards the environment in the cultural heritage.',
+        ]),
+        null,
+      ),
+      contentSection(
+        'Employees',
+        lexBullets([
           'Our business is fully compliant with the Croatian Labour Act.',
           'We value our employees and treat them fairly and with respect, ensuring no one is discriminated against on the basis of their age, disability, nationality, gender, race, political views, religious beliefs, or sexual orientation.',
           'We place great emphasis on the professional development of our employees and provide them with various forms of training that help them perform their tasks better and build their careers in our company.',
           'We try to employ local people whenever possible.',
           'We educate all of our employees on the importance and benefits of sustainable business practices with the aim of fostering their better understanding and active involvement in the realisation of our goals.',
           'Whenever possible we encourage our employees to use public transport to reduce the negative impact on the environment.',
-          'Vacation has always been a time when we escape our everyday routine and training schedule. This is why we have created the Medora Fit programme, where your health comes first. For more information on the Medora Fit activity programme, please contact our entertainment department staff.',
         ]),
         greenEmployeesImgId,
         'right',
+      ),
+      contentSection(
+        'Medora fit',
+        lexBullets([
+          'Vacation has always been a time when we escape our everyday routine and training schedule. This is why we have created the Medora Fit programme, where your health comes first. For more information on the Medora Fit activity programme, please contact our entertainment department staff.',
+        ]),
+        greenFitImgId,
+        'right',
+      ),
+    ],
+  })
+
+  // ── Did you know? page (sustainability facts, linked from We think green) ─
+
+  await upsertPage(payload, 'we-think-green/did-you-know', {
+    title: 'Did you know?',
+    hero: { type: 'mediumImpact', media: greenDidYouKnowHeroId, richText: lexH1('Did you know?') },
+    layout: [
+      contentSection(
+        null,
+        lexRoot([
+          lexBulletsRich([
+            [
+              lexText(
+                'The Medora Auri Hotel was one of the first hotels in Croatia to obtain the ',
+              ),
+              lexText('Gold Travelife certificate', true),
+              lexText(' of sustainability in 2017.'),
+            ],
+            [
+              lexText('Food waste', true),
+              lexText(' in Medora Auri hotel has been reduced by 33% from 2018.'),
+            ],
+            [
+              lexText(
+                'At the Medora Auri hotel we encourage our guests to donate 1 euro for the protection of the Balkan snow vole, which is an ',
+              ),
+              lexText('endemic species.', true),
+            ],
+            [
+              lexText('All '),
+              lexText('meat products', true),
+              lexText(' used in Medora Hotels are exclusively '),
+              lexText('produced in Croatia', true),
+              lexText('.'),
+            ],
+            [
+              lexText('Fruits and vegetables', true),
+              lexText(' consumed in Medora Hotels are purchased from '),
+              lexText('local distributors', true),
+              lexText(' in Neretva valley.'),
+            ],
+            [
+              lexText('Water consumption', true),
+              lexText(' at the Medora Auri hotel has '),
+              lexText('decreased', true),
+              lexText(' by 10% since 2017.'),
+            ],
+            [
+              lexText('Gas', true),
+              lexText(' consumption at the Medora Auri hotel has '),
+              lexText('decreased', true),
+              lexText(' by 18,5% since 2017.'),
+            ],
+            [
+              lexText('At the reception of the Medora Auri Hotel, there is a '),
+              lexText('Red Cross box', true),
+              lexText(' used to raise funds for families with disabilities.'),
+            ],
+            [
+              lexText('Medora Hotels assist the '),
+              lexText('local community', true),
+              lexText(
+                ' in a range of activities (assisting the elementary school, donating to the fire department, holding traditional fairs, cleaning up the underwater world of Podgora, etc.).',
+              ),
+            ],
+            [
+              lexText('At the Medora Auri Hotel and at the Medora Orbis Camp, we have a '),
+              lexText('charging station for electric vehicles', true),
+              lexText(' and use an electric vehicle to transport guests.'),
+            ],
+            [
+              lexText('In all our facilities we use '),
+              lexText('biodegradable straws', true),
+              lexText(' made from '),
+              lexText('renewable materials', true),
+              lexText('.'),
+            ],
+            [
+              lexText('The napkins used at the Medora Auri Restaurant are made from '),
+              lexText('recycled fibers', true),
+              lexText(' collected from cardboard boxes.'),
+            ],
+            [
+              lexText('All of the '),
+              lexText('hygiene supplies', true),
+              lexText(' and '),
+              lexText('cosmetic products', true),
+              lexText(' in the bathroom of Medora Auri hotel are '),
+              lexText('paraben-free', true),
+              lexText(' and enclosed in boxes made from '),
+              lexText('recycled materials', true),
+              lexText('.'),
+            ],
+            [
+              lexText('Medora hotels employ locals and share of local hotel staff has '),
+              lexText('increased', true),
+              lexText(' by 5% since 2017.'),
+            ],
+            [
+              lexText('Medora Hotels employ '),
+              lexText('people with disability', true),
+              lexText(' through continuous '),
+              lexText('cooperation', true),
+              lexText(
+                ' with the largest local Association of People with Disability "Sunce" from Makarska.',
+              ),
+            ],
+          ]),
+        ]),
+        null,
       ),
     ],
   })
@@ -1760,36 +2235,6 @@ export async function seedPages({ payload }: { payload: Payload }) {
     ],
   })
 
-  // ── Our Prizes & Achievements ─────────────────────────────────────────────
-
-  await upsertPage(payload, 'about/awards', {
-    title: 'Our Prizes & Achievements',
-    hero: awardsHeroId
-      ? { type: 'highImpact', media: awardsHeroId, richText: lexH1('Reviews & Rewards') }
-      : { type: 'lowImpact', richText: lexH1('Reviews & Rewards') },
-    layout: [
-      cardGrid(
-        'A part of the family — we are proud of the recognition we have received from our guests and industry partners over the years.',
-        [
-          {
-            imageId: null,
-            title: 'Rewards',
-            excerpt:
-              'Medora Hotels & Resorts has received numerous awards and certifications recognising our commitment to quality, sustainability, and guest satisfaction.',
-            link: '/contact',
-          },
-          {
-            imageId: null,
-            title: 'Guest reviews for Medora Auri hotel',
-            excerpt:
-              'Read what our guests say about their stay at the Medora Auri Family Beach Resort.',
-            link: '/contact',
-          },
-        ],
-      ),
-    ],
-  })
-
   // ── How to Reach Us ───────────────────────────────────────────────────────
 
   await upsertPage(payload, 'how-to-reach-us', {
@@ -2243,15 +2688,13 @@ export async function seedPages({ payload }: { payload: Payload }) {
         {
           imageId: spaHeroId,
           title: 'Spa (9th floor)',
-          excerpt:
-            'Finnish sauna, infrared sauna, whirlpool and relax zone. Working hours: 07:00–21:00 h.',
+          excerpt: 'Finnish sauna, infrared sauna, whirlpool and relax zone.',
           link: '/destination/wellness/spa',
         },
         {
           imageId: massageHeroId,
           title: 'Massages',
-          excerpt:
-            'Professional therapeutic massages to relax and restore your body. Working hours: 08:30–18:30 h (or on request).',
+          excerpt: 'Working hours: 08:30–18:30 h (or on request).',
           link: '/destination/wellness/massages',
         },
         {
@@ -2295,7 +2738,10 @@ export async function seedPages({ payload }: { payload: Payload }) {
       ),
       contentSection(
         'Free spa for your enjoyment!',
-        lexBullets(['Finnish sauna', 'Infrared sauna', 'Whirlpool', 'Relax zone']),
+        lexMixed([
+          "Medora Auri Spa offers special treatments to revive your body, feel better and can't wait to come back again.",
+          ['Finnish sauna', 'Infrared sauna', 'Whirlpool', 'Relax zone'],
+        ]),
         null,
       ),
       photoGallery('Spa photo gallery', [
@@ -2314,9 +2760,14 @@ export async function seedPages({ payload }: { payload: Payload }) {
 
   await upsertPage(payload, 'destination/wellness/massages', {
     title: 'Massages',
-    hero: massageHeroId
-      ? { type: 'highImpact', media: massageHeroId, richText: lexH1('Massages') }
-      : { type: 'lowImpact', richText: lexH1('Massages') },
+    hero: infoCardHero({
+      heroImageId: massageHeroId,
+      title: 'Massages',
+      workingHoursText: '08:30 - 21:00',
+      phone: '+385 (0)21 602 101',
+      email: 'auri.reception@medorahotels.com',
+      showInquiryButton: true,
+    }),
     layout: [
       contentSection(
         'Enjoy your own nature',
@@ -2324,7 +2775,7 @@ export async function seedPages({ payload }: { payload: Payload }) {
           'With its beauty and diversity, Podgora will remind you every time how important it is to keep in touch with nature and its relaxing properties. Vistas of untouched nature, the scents of eternal grasses and Mediterranean tastes will awaken all your senses and breathe life into them.',
           'We have complemented these natural multi-sensory experiences with a wide range of treatments and massages at the Medora Auri Hotel Wellness Centre, which will help you relax and discover a never-ending source of healthy living energy.',
           'Enjoy a hydro-massage or let our trained, expert staff treat your spine and neck with care and knowledge to rid you of pain. You can completely enjoy your own nature with a sense of pleasure and relief.',
-          'Working hours: 08:00–21:00 h (or on request) | Location: 9th floor | Tel: +385 (0)21 602 101',
+          'The wellness centre is open every day: 08:00 - 21:00 h (or on request)',
         ),
         massageHeroId,
         'right',
@@ -2343,18 +2794,8 @@ export async function seedPages({ payload }: { payload: Payload }) {
         lexParas(
           'The Makarska Riviera is a synonym for some of the most beautiful beaches on the Adriatic Sea, and that is reason enough to laze on the beach and bathe in the clean water every day. A perfect mix of Mediterranean climate, rich vegetation, crystal clear sea and various types of beaches will leave nobody indifferent; it caters for all tastes.',
           "The variety of Podgora can be seen on all levels, including our offer. For those who see their enjoyable vacation as extra comfort and services, we have the large and small pools. They are ideal for relaxation with carefree children's play and numerous activities for fun and a true family vacation.",
+          'Pool working hours: 08 - 20 h',
         ),
-        null,
-      ),
-      contentSection(
-        'Pool & beach facilities',
-        lexBullets([
-          'Heated outdoor pool for babies and young children',
-          'Heated outdoor pool for older children and adults',
-          'Beach with free sunbeds, umbrellas, and beach towels',
-          'Pool working hours: 08:00–20:00 h',
-          'Beach access included for all hotel guests',
-        ]),
         poolsBeachesHeroId,
         'right',
       ),
@@ -2455,7 +2896,7 @@ export async function seedPages({ payload }: { payload: Payload }) {
       : { type: 'lowImpact', richText: lexH1('Taste the Indigo') },
     layout: [
       contentSection(
-        null,
+        'Mediterranean flavours, Adriatic views',
         lexParas(
           'We listened to your wishes and created a new gastronomic magic in our restaurant with a view of the Adriatic Sea.',
           'Follow the paths of aromas and flavors of traditional Mediterranean and modern world cuisine. You can choose from a meat, fish or vegetarian option on site.',
@@ -2463,6 +2904,16 @@ export async function seedPages({ payload }: { payload: Payload }) {
         ),
         indigoSubImgId,
         'right',
+      ),
+      contentSection(
+        'On the menu',
+        lexBullets([
+          'À la carte dinner',
+          'Fish, meat & vegetarian menus',
+          'Sea view terrace',
+          'Homemade wine selection',
+        ]),
+        null,
       ),
     ],
   })
@@ -2474,13 +2925,23 @@ export async function seedPages({ payload }: { payload: Payload }) {
       : { type: 'lowImpact', richText: lexH1('Juice / Cocktail Bar') },
     layout: [
       contentSection(
-        null,
+        'Sip the sunset',
         lexParas(
           'Refresh yourself with freshly squeezed juices during the day and enjoy an evening cocktail while watching the sunset over the Adriatic.',
           'Our cocktail bar offers a wide selection of classic and signature cocktails prepared by our top cocktail masters, while you bask in the view of the coast, the sea or the islands of the Makarska Riviera.',
         ),
         juiceBarImgId,
         'right',
+      ),
+      contentSection(
+        'On the menu',
+        lexBullets([
+          'Fresh juices by day',
+          'Cocktails by night',
+          'Poolside location',
+          'Sunset views',
+        ]),
+        null,
       ),
     ],
   })
@@ -2492,7 +2953,7 @@ export async function seedPages({ payload }: { payload: Payload }) {
       : { type: 'lowImpact', richText: lexH1('Lobby Bar') },
     layout: [
       contentSection(
-        null,
+        'Panoramic views over Podgora',
         lexParas(
           'Unforgettable moments with a panoramic view of Podgora, golden beaches, crystal blue sea and distant islands.',
           'The Lobby Bar has a view that you will never forget and which will be the main, heart-warming topic of your conversations for months to come.',
@@ -2500,6 +2961,16 @@ export async function seedPages({ payload }: { payload: Payload }) {
         ),
         lobbyBarImgId,
         'right',
+      ),
+      contentSection(
+        'Highlights',
+        lexBullets([
+          '360° coastal views',
+          'Morning coffee to evening drinks',
+          'Live music evenings',
+          'Sea and island panorama',
+        ]),
+        null,
       ),
     ],
   })
@@ -2644,6 +3115,576 @@ export async function seedPages({ payload }: { payload: Payload }) {
     ],
   })
 
+  // ── Hotel/Camp facilities & services, Photos & gallery, Orbis guest reviews ─
+
+  const [
+    parkingImgId,
+    wifiImgId,
+    restaurantImgId,
+    bistroImgId,
+    kidsVacationImgId,
+    petsVacationImgId,
+    poolsBeachImgId,
+    roomServiceImgId,
+    teslaImgId,
+    medicalImgId,
+    auriGalleryCoverId,
+    auriVideoCoverId,
+    orbisReviewsHeroId,
+  ] = await Promise.all([
+    img(
+      payload,
+      `${BASE}/galerije/Desktop%20novo/parking%20services%20medora.jpg`,
+      'parking-services.jpg',
+      'Parking at Medora Auri',
+    ),
+    img(
+      payload,
+      `${BASE}/galerije/Desktop%20novo/wi%20fi%20connection%20medora.jpg`,
+      'wifi-connection.jpg',
+      'Wi-Fi at Medora Auri',
+    ),
+    img(
+      payload,
+      `${BASE}/galerije/Medora%20Auri/Hotel%20restaurant%20photo.jpg`,
+      'hotel-restaurant-photo.jpg',
+      'Medora Auri hotel restaurant',
+    ),
+    img(
+      payload,
+      `${BASE}/galerije/benefiti/indigo%20small%20photo.jpg`,
+      'bistro-taste-photo.jpg',
+      'Bistro Taste',
+    ),
+    img(
+      payload,
+      `${BASE}/galerije/Desktop%20novo/vacation%20with%20children%20medora.jpg`,
+      'vacation-children.jpg',
+      'Holiday with children',
+    ),
+    img(
+      payload,
+      `${BASE}/galerije/Desktop%20novo/vacation%20with%20dog%20medora.jpg`,
+      'vacation-pets.jpg',
+      'Holiday with pets',
+    ),
+    img(
+      payload,
+      `${BASE}/galerije/sustainability/solar%20pannels%20small%20photo.jpg`,
+      'pools-beach-services.jpg',
+      'Swimming pools and beach',
+    ),
+    img(
+      payload,
+      `${BASE}/galerije/benefiti/wine%20in%20the%20room%20small%20photo.jpg`,
+      'room-service-wine.jpg',
+      'Additional room services',
+    ),
+    img(
+      payload,
+      `${BASE}/galerije/Desktop%20novo/tesla%20charger%20medora.jpg`,
+      'tesla-charger.jpg',
+      'Tesla charger for electric cars',
+    ),
+    img(
+      payload,
+      `${BASE}/galerije/Desktop%20novo/doctor%20service%20medora.jpg`,
+      'medical-service.jpg',
+      'Medical services',
+    ),
+    img(
+      payload,
+      `${BASE}/galerije/Eksterijer/Medora%20Auri%20cover%20mobile.jpg`,
+      'auri-gallery-cover.jpg',
+      'Photo gallery - Medora Auri hotel',
+    ),
+    img(
+      payload,
+      `${BASE}/galerije/pla%C5%BEe/Video%20gallery%20mobile.jpg`,
+      'auri-video-cover.jpg',
+      'Video gallery',
+    ),
+    img(
+      payload,
+      `${BASE}/galerije/Medora%20Orbis/Medora%20Orbis%20recepcija.jpg`,
+      'orbis-reviews-hero.jpg',
+      'Medora Orbis Luxury Homes & Camping',
+    ),
+  ])
+
+  await upsertPage(payload, 'properties/medora-auri/facilities', {
+    title: 'Hotel facilities & services',
+    hero: { type: 'lowImpact', richText: lexH1('Hotel facilities & services') },
+    layout: [
+      contentSection(
+        null,
+        lexParas(
+          'To be best prepared for your holiday departure to Medora Auri Family beach resort, we have prepared answers to frequently asked questions that you may need before coming to the hotel.',
+          'We want to make your stay at the Medora Auri Hotel as carefree and enjoyable as possible, so our friendly front desk staff will be available 24/7 and answer with smile to any question you might have as well as help booking extra services.',
+        ),
+        null,
+      ),
+      contentSection(
+        'Parking',
+        lexMixed([
+          ['free of charge for one car', 'electric vehicle charging station'],
+          'Hotel Medora Auri provides you with a secure parking space for your car. You can park your car at one of three parking spaces which are distant 30, 100 and 200 meters away. Since the number of parking spaces are limited, they cannot be booked prior to arrival at the hotel.',
+          'Upon arrival and check-in, ask our friendly staff to accompany you to the nearest available parking space and provide you with detailed instructions how to use it.',
+        ]),
+        parkingImgId,
+        'right',
+      ),
+      contentSection(
+        'Internet',
+        lexMixed([
+          ['Free wireless internet access'],
+          "All Medora Auri hotel guests have free wireless internet access throughout the hotel. It doesn't matter if you spend time in the room, on the balcony, have fun at the hotel's cocktail bar, pool or sea, Wi-Fi is available for you all the time. You will be provided with detailed instructions on how login to free Wi-Fi at the front desk in the moment of check-in.",
+        ]),
+        wifiImgId,
+        'right',
+      ),
+      contentSection(
+        'Hotel restaurant',
+        lexMixed([
+          [
+            'breakfast and dinner: drinks free of charge',
+            'dinner supplement - in the case of a bed and breakfast service',
+          ],
+          'Medora Auri hotel restaurant is open daily from 7:00 am to 10:30 am for breakfast and from 6:30 pm to 9:30 pm for dinner. Breakfast and dinner in the hotel restaurant are served as adjusted buffet.',
+          'You can enjoy in discovering local meals in a relaxing atmosphere of our terrace from where extends unavoidable view on the endless space of the Adriatic Sea.',
+        ]),
+        restaurantImgId,
+        'right',
+      ),
+      contentSection(
+        'Bistro Taste',
+        lexMixed([
+          ['Working hours for lunch: 11:00 a.m. - 05:30 p.m.'],
+          'We listened to your wishes and created a new gastronomic magic in our restaurant Taste with a view of the Adriatic Sea.',
+          'Follow the paths of aromas and flavors of traditional Mediterranean and modern world cuisine.',
+          'You can choose from a meat, fish or vegetarian option on site.',
+        ]),
+        bistroImgId,
+        'right',
+      ),
+      contentSection(
+        'Holiday with children',
+        lexMixed([
+          [
+            'additional free room services: baby cot, baby bottle heater, baby bathtubs, socket protection and baby toilet boards, stroller (subject to availability, available at the reception)',
+          ],
+          "Hotel Medora Auri offers a rich selection of activities specially designed for a fun and educational vacation for children and a carefree vacation for parents. The Medora Auri hotel offers specially designed activities for the youngest as part of animation programs such as activities on the beach, children's playrooms and board games, as well as a handful of art workshops and a children's mini-disco, organized in the immediate vicinity of the hotel pool.",
+          'The opening hours of the games room next to the reception are from 08:00 to 22:00. You can find out more information about the facilities for children here or contact our friendly staff at the hotel reception.',
+        ]),
+        kidsVacationImgId,
+        'right',
+      ),
+      contentSection(
+        'Holiday with pets',
+        lexMixed([
+          'Price (per pet, per day): 27 EUR',
+          'If you would like to bring also your pet on holiday in Medora Auri hotel, you must announce it before arrival, by sending an e-mail at reservations@medorahotels.com or by call on phone number +385 (0) 21 602 100.',
+          'In order to enjoy your well-deserved holidays and all hotel benefits, but also respect the comfort of other hotel guests, please pay attention to the four golden rules for pets stay in Medora Auri Hotel:',
+          [
+            'pets (except guide dogs) are not allowed to enter the hotel common areas - swimming pools, restaurant, playrooms, wellness, gym and the beach.',
+            'pets are not allowed to use beds and sofas in hotel rooms and is also not allowed to wash them in room bathrooms.',
+            'beach in front of Medora Auri hotel is not intended for pet swimming. Pet-friendly beach is located 100 metres away from the lower entrance to the hotel.',
+            'finally, we wish you to relax and enjoy your stay with your four-legged friend :)',
+          ],
+          'Detailed rules of behaviour for pets staying in Medora Auri hotel you can read on our Vacation with pets page.',
+        ]),
+        petsVacationImgId,
+        'right',
+      ),
+      contentSection(
+        'Swimming pools and beach',
+        lexMixed([
+          ['pool deck chairs: no additional charge', 'beach deck chairs: no additional charge'],
+          'A perfect holiday in Podgora would not be complete without modern and heated swimming pools and superbly arranged golden beach situated right next to the Medora Auri hotel. Swimming pools and the beach are ideal for families or couples where they will experience a great and authentic holiday experience in Dalmatia.',
+          'To make your holiday in Medora Auri hotel as relaxed as possible you can, for no extra charge, use daily our swimming pool and beach towels. And to help us preserve the wonderful Dalmatian environment for future generations, if they are clean please dry the towels in the warm Podgora sun. For a complete holiday experience, through July and August there are also available Beach bar and Pool bar Indigo where you can relax with the sounds and smells of the sea while enjoying your cold drink.',
+        ]),
+        poolsBeachImgId,
+        'right',
+      ),
+      contentSection(
+        'Additional room services',
+        lexMixed([
+          [
+            'Bottle of wine (red, white, rose, sparkling) - 24,70 - 50€',
+            'Flower petals / Bouquet - 18,5€',
+            'Fruit salad - 10,3€',
+            'Cake - 35 - 46€',
+          ],
+          'If you want to book one of our additional room services upon arrival, feel free to contact our operators on the phone number +385 21 601 701 and the selected service will be waiting for you in the room. If you decide on the need for additional services while you are already in the hotel, simply contact the reception on the phone number +385 21 602 100 and we guarantee that it will be delivered to your room as soon as possible.',
+          "Enjoy a romantic atmosphere with a bottle of fine wine, flower petals and a fruit platter or cake of your choice. All this with the sound of waves and a beautiful sea view. Sounds tempting, doesn't it? :)",
+        ]),
+        roomServiceImgId,
+        'right',
+      ),
+      contentSection(
+        'Tesla charger for electric cars',
+        lexParas(
+          'Holiday time is ideal to take care about the environment. All guests coming in Tesla electric car have a special Tesla electric car charger in front of Medora Auri hotel. For assistance and detailed instructions on using the charger, please contact our friendly staff at the hotel reception.',
+          'Tesla Destination Charging program enables charging Tesla cars at exclusive locations around the world. Thanks to special battery charging technology, after just an hour of fast charging, your car will be able to travel up to 100 kilometres. We are extremely proud of our partnership with Tesla as well as of our contribution to sustainable transportation and business.',
+        ),
+        teslaImgId,
+        'right',
+      ),
+      contentSection(
+        'Medical services',
+        lexParas(
+          'If during your stay in Medora Auri hotel you experience an unplanned situation and you need medical help and service, please contact our friendly staff at the hotel reception who will call a doctor for you.',
+          'The doctor will arrive at the hotel as soon as possible and service will be charged according to the valid price list approved by the Croatian Medical Chamber.',
+          'Hoping that here will be no need for medical intervention we wish you a pleasant and carefree stay at Medora Auri hotel!',
+        ),
+        medicalImgId,
+        'right',
+      ),
+    ],
+  })
+
+  await upsertPage(payload, 'properties/medora-auri/gallery', {
+    title: 'Photos & gallery',
+    hero: { type: 'lowImpact', richText: lexH1('Photos & gallery') },
+    layout: [
+      cardGrid(null, [
+        {
+          imageId: auriGalleryCoverId,
+          title: 'Photo gallery - Medora Auri hotel',
+          excerpt:
+            'Browse photos of the rooms, restaurant, pools and beach at Medora Auri Family Beach Resort.',
+          link: '/properties/medora-auri/gallery/photos',
+        },
+        {
+          imageId: auriVideoCoverId,
+          title: 'Video gallery',
+          excerpt: 'Watch videos of Medora Auri Family Beach Resort.',
+          link: '/properties/medora-auri/gallery/videos',
+        },
+      ]),
+    ],
+  })
+
+  // Real photo-gallery categories from medorahotels.com's Medora Auri photo gallery page
+  const auriGalleryAttractions = [
+    '1.png',
+    '18.png',
+    '28.png',
+    '3.png',
+    '21.png',
+    '10.png',
+    '4.png',
+    '29.jpg',
+    '26.png',
+    '6.png',
+    '8.png',
+    '14.png',
+    '11.png',
+    '12.png',
+    '7.png',
+    '30.jpg',
+    '13.png',
+    '16.png',
+    '22.png',
+    '15.png',
+    '2.png',
+    '17.png',
+    '19.png',
+    '20.png',
+    '23.png',
+    '5.png',
+    '24.png',
+    '25.png',
+    '9.png',
+    '27.png',
+    '31.jpg',
+  ].map((file) => ({ folder: 'Izleti', file }))
+
+  const auriGalleryInterior = [
+    { folder: 'Eksterijer', file: 'Medora Auri hotel dron I.jpg' },
+    { folder: 'Eksterijer', file: 'Medora Auri pool model I (2).jpg' },
+    { folder: 'Medora Auri', file: 'Medora Auri galery VII.png' },
+    { folder: 'Eksterijer', file: '5.2.png' },
+    { folder: 'Eksterijer', file: '_N854080-Edit-ivanisevicivan.com.jpg' },
+    { folder: 'Interijer', file: '0S3A3192.jpg' },
+    { folder: 'Eksterijer', file: 'Medora Auri beach.jpg' },
+    { folder: 'Interijer', file: 'Medora Auri Fitness II.jpg' },
+    { folder: 'Eksterijer', file: '_N853802-ivanisevicivan.jpg' },
+    { folder: 'Eksterijer', file: '_N853719-ivanisevicivan.jpg' },
+    { folder: 'Medora Auri', file: 'Medora Auri galery XVI.png' },
+    { folder: 'Interijer', file: 'Medora Auri šank.jpg' },
+    { folder: 'Interijer', file: 'Medora Auri spa I.jpg' },
+    { folder: 'Interijer', file: 'Medora Auri kafic.jpg' },
+    { folder: 'Interijer', file: 'Medora Auri lobby.jpg' },
+    { folder: 'Interijer', file: 'Medora Auri sauna.jpg' },
+    { folder: 'Interijer', file: 'Medora Auri welness.jpg' },
+    { folder: 'Interijer', file: 'Medora Auri spa.jpg' },
+    { folder: 'Interijer', file: 'Medora Auri welness I.jpg' },
+    { folder: 'Medora Auri', file: 'Medora Auri galery XVII.png' },
+    { folder: 'Eksterijer', file: 'Medora Auri pool model.jpg' },
+    { folder: 'Eksterijer', file: '_N853600-ivanisevicivan.jpg' },
+    { folder: 'Eksterijer', file: 'R2D29362 copy.jpg' },
+    { folder: 'Eksterijer', file: 'Superior room balcony.jpg' },
+    { folder: 'Eksterijer', file: 'Hotel´s beach.jpg' },
+    { folder: 'Eksterijer', file: 'Hotel´s pool.jpg' },
+  ]
+
+  const auriGalleryEntertainment = [
+    'volleyball playground medora auri.jpg',
+    'Medora auri fit program.jpg',
+    'Medora Auri igraonica I.jpg',
+    'playground for children in front of auri.jpg',
+    'Medora Auri disco.jpg',
+    'Medora Auri diving.jpg',
+    'Medora Auri igraonica II.jpg',
+    'Medora Auri fireshow I.jpg',
+    'Medora auri fitness.jpg',
+    'Medora Auri pool.jpg',
+    'Medora auri radionica I.jpg',
+    'Medora auri radionica.jpg',
+    'Medora Auri glasses.jpg',
+    'Medora Auri havana I.jpg',
+    'Medora auri jet ski.jpg',
+    'Medora Auri mountain tour.jpg',
+    'Medora Auri fire show II.jpg',
+    'Medora auri boat.jpg',
+    'Medora Auri dječja igraonica.jpg',
+  ].map((file) => ({ folder: 'zabava', file }))
+
+  const auriGalleryRestaurants = [
+    { folder: 'Restorani', file: 'Medora Auri new buffet restaurant II.jpg' },
+    { folder: 'Restorani', file: 'Medora auri restaurant show cooking.jpg' },
+    { folder: 'Restorani/noveNovi direktorij', file: 'Medora Indigo view.jpg' },
+    { folder: 'Restorani/noveNovi direktorij', file: 'Medora Taste details.jpg' },
+    { folder: 'Restorani/noveNovi direktorij', file: 'Medora Taste salad.jpg' },
+    { folder: 'Restorani', file: 'Medora Auri new buffet restaurant I.jpg' },
+    { folder: 'Restorani/noveNovi direktorij', file: 'Medora cocktails Riva.jpg' },
+    { folder: 'Restorani/noveNovi direktorij', file: 'Taste bistrou terrace.jpg' },
+    { folder: 'Restorani', file: 'Medora Auri new buffet restaurant.jpg' },
+    { folder: 'Restorani/noveNovi direktorij', file: 'Medora Taste table.jpg' },
+    { folder: 'Restorani', file: 'Medora Auri restaurant domestic products.jpg' },
+    { folder: 'Restorani/noveNovi direktorij', file: 'Restoran riva stol.jpg' },
+    { folder: 'Restorani', file: 'Medora Auri new buffet restaurant dinner.jpg' },
+    { folder: 'Restorani', file: 'Medora auri girl cooking dinner.jpg' },
+    { folder: 'Restorani', file: 'Medora Auri sweet corner.jpg' },
+    { folder: 'Restorani', file: 'Medora Auri restaurant kids.jpg' },
+    { folder: 'Restorani', file: 'Medora Auri Indigo II.jpg' },
+    { folder: 'Restorani', file: 'Bistrou taste photo from lobby bar.jpg' },
+    { folder: 'Restorani', file: 'Medora Auri obitelj.jpg' },
+    { folder: 'Restorani', file: 'Medora Auri new buffet restaurant food.jpg' },
+    { folder: 'Restorani', file: 'Medora Auri Taste.jpg' },
+    { folder: 'Restorani', file: 'Medora auri mul.jpg' },
+    { folder: 'Restorani', file: 'Medora Auri family.jpg' },
+    { folder: 'Restorani', file: 'Riva Medora.jpg' },
+    { folder: 'Restorani', file: 'indigo cocktail bar.jpg' },
+  ]
+
+  const auriGalleryCategories = [
+    { label: 'Attractions near Medora', items: auriGalleryAttractions },
+    { label: 'Hotel interior & exterior', items: auriGalleryInterior },
+    { label: 'Entertainment', items: auriGalleryEntertainment },
+    { label: 'Restaurants & bars', items: auriGalleryRestaurants },
+  ]
+
+  const auriGalleryAllItems = auriGalleryCategories.flatMap((cat, catIdx) =>
+    cat.items.map((it, i) => ({ ...it, catIdx, i })),
+  )
+
+  const auriGalleryAllIds = await Promise.all(
+    auriGalleryAllItems.map((it) => {
+      const ext = it.file.split('.').pop()
+      return img(
+        payload,
+        galUrl(it.folder, it.file),
+        `auri-gallery-${it.catIdx}-${it.i}.${ext}`,
+        it.file.replace(/\.(jpg|png)$/i, ''),
+      )
+    }),
+  )
+
+  let auriGalleryOffset = 0
+  const auriGalleryBlocks = auriGalleryCategories.map((cat) => {
+    const ids = auriGalleryAllIds.slice(auriGalleryOffset, auriGalleryOffset + cat.items.length)
+    auriGalleryOffset += cat.items.length
+    return photoGallery(cat.label, ids)
+  })
+
+  await upsertPage(payload, 'properties/medora-auri/gallery/photos', {
+    title: 'Photo gallery - Medora Auri hotel',
+    hero: { type: 'lowImpact', richText: lexH1('Photo gallery - Medora Auri hotel') },
+    layout: auriGalleryBlocks,
+  })
+
+  await upsertPage(payload, 'properties/medora-auri/gallery/videos', {
+    title: 'Video gallery',
+    hero: { type: 'lowImpact', richText: lexH1('Video gallery') },
+    layout: [
+      contentSection(
+        null,
+        lexParas(
+          'Watch our latest videos of Medora Auri Family Beach Resort on our official YouTube channel.',
+        ),
+        null,
+        'right',
+        'https://www.youtube.com/channel/UCTtE8QDM52-BZKFvfgjqm9Q',
+      ),
+    ],
+  })
+
+  await upsertPage(payload, 'properties/luxury-camp-orbis/facilities', {
+    title: 'Camp facilities & services',
+    hero: { type: 'lowImpact', richText: lexH1('Camp facilities & services') },
+    layout: [
+      contentSection(
+        'Additional campsite information',
+        lexBullets([
+          'Category: 4*',
+          'Campsite area: 1.3 ha',
+          'Campsite capacity: 77 accommodation units, 260 persons',
+          'Free Wi-Fi Internet access',
+          'Parking for one vehicle free of charge',
+          'Campsite environmental standards: waste sorting, eco-irrigation, solar collectors, well-maintained and preserved environment',
+          'The campsite is partially accessible to persons with special needs',
+          'Pets are allowed in the designated campsite area with additional charge',
+        ]),
+        null,
+      ),
+      contentSection(
+        'Opening hours',
+        lexBullets([
+          'Reception information: 0-24',
+          'Entering the campsite by car: 7 AM - 11 PM',
+          'Check-in (pitches): from 11 AM',
+          'Check-out (pitches): until 10 AM',
+          'Check-in (luxury homes): from 3 PM',
+          'Check-out (luxury homes): until 10 AM',
+        ]),
+        null,
+      ),
+      contentSection(
+        'Other useful information',
+        lexBullets([
+          'Emergency service (all hours): 112',
+          'Pharmacy: T + 385 21 625 024; opening hours: 7 AM - 2 PM (closed on weekends)',
+          'Shops (town centre); opening hours 7 AM - 10 PM',
+        ]),
+        null,
+      ),
+    ],
+  })
+
+  const orbisGalleryFiles = [
+    'beach in front of orbis campsite.jpg',
+    'campers in medora orbis.png',
+    'Lifestyle HQ - Mesek Mislav-7740.jpg',
+    'Medora Orbis - interior.jpg',
+    'Medora Orbis breakfast.jpg',
+    'Medora Orbis camping and glamping  mountain view.jpg',
+    'Medora Orbis camping and glamping .jpg',
+    'Medora Orbis camping and glamping bird view.jpg',
+    'Medora Orbis camping and glamping I .jpg',
+    'Medora Orbis camping and glamping II.jpg',
+    'Medora Orbis camping and glamping view.jpg',
+    'medora orbis common area.png',
+    'Medora orbis from the top.jpg',
+    'Medora Orbis Glamping HQ - Mesek Mislav-0107.jpg',
+    'Medora Orbis Glamping HQ - Mesek Mislav-0109.jpg',
+    'Medora Orbis Glamping HQ - Mesek Mislav-0226.jpg',
+    'Medora Orbis Glamping HQ - Mesek Mislav-9468.jpg',
+    'Medora Orbis Glamping HQ - Mesek Mislav-9487.jpg',
+    'Medora Orbis Glamping HQ - Mesek Mislav-9555.jpg',
+    'Medora Orbis glamping pads.jpg',
+    'Medora Orbis glamping.jpg',
+    'Medora Orbis HQ - Mesek Mislav-175.jpg',
+    'Medora Orbis HQ - Mesek Mislav-193.jpg',
+    'Medora Orbis HQ - Mesek Mislav-273.jpg',
+    'Medora Orbis HQ - Mesek Mislav-277.jpg',
+    'Medora Orbis HQ - Mesek Mislav-401.jpg',
+    'Medora Orbis HQ - Mesek Mislav-7978.jpg',
+    'Medora Orbis HQ - Mesek Mislav-8328.jpg',
+    'Medora Orbis HQ - Mesek Mislav-8348.jpg',
+    'Medora Orbis HQ - Mesek Mislav-8417.jpg',
+    'Medora orbis mobile homes.jpg',
+    'Medora Orbis nature.jpg',
+    'Medora Orbis pitch.jpg',
+    'Medora Orbis pitches.jpg',
+    'medora orbis playground for kids.png',
+    'Medora Orbis pool.jpg',
+    'Medora Orbis recepcija.jpg',
+    'medora orbis reception and facilities.jpg',
+    'Medora Orbis sunset in mobile home.jpg',
+    'medora orbis toilets and facilities.png',
+    'Medora Orbis welcome basket.jpg',
+    'Mobilehomes with pool and glamping.jpg',
+    'Parcele - Mesek Mislav-9397.jpg',
+    'Parcele - Mesek Mislav-9432.jpg',
+    'View on makarska riviera.jpg',
+  ]
+
+  const orbisGalleryIds = await Promise.all(
+    orbisGalleryFiles.map((filename, i) => {
+      const ext = filename.match(/\.(jpg|png)$/i)?.[1]?.toLowerCase() ?? 'jpg'
+      return img(
+        payload,
+        `${BASE}/galerije/Medora%20Orbis/${encodeURIComponent(filename)}`,
+        `orbis-gallery-${i + 1}.${ext}`,
+        filename.replace(/\.(jpg|png)$/i, ''),
+      )
+    }),
+  )
+
+  const orbisGalleryHeroId = await img(
+    payload,
+    `${BASE}/galerije/Desktop%20novo/Medora%20Orbis%20photo%20gallery%20desktop.jpg`,
+    'orbis-gallery-hero.jpg',
+    'Photos & gallery - Medora Orbis',
+  )
+
+  await upsertPage(payload, 'properties/luxury-camp-orbis/gallery', {
+    title: 'Photos & gallery',
+    hero: orbisGalleryHeroId
+      ? { type: 'highImpact', media: orbisGalleryHeroId, richText: lexH1('Photos & gallery') }
+      : { type: 'lowImpact', richText: lexH1('Photos & gallery') },
+    layout: [
+      contentSection(
+        'Natural luxury',
+        lexParas(
+          'If you are looking for luxury in nature, you might think that this is impossible, but everything is possible! Even luxury has found its place here, in Podgora.',
+          'A modernly equipped camp with all the necessary facilities and services combines luxury and nature. For those who like less traditional camping and dream about sleeping in a tree, we make their dreams come true in the glamping tree-houses. Your comfort is complete with the numerous possibilities that await you here. You might think that you\u2019ve found your new home. And perhaps you have.',
+        ),
+        null,
+      ),
+      photoGallery(null, orbisGalleryIds),
+    ],
+  })
+
+  await upsertPage(payload, 'properties/luxury-camp-orbis/guest-reviews', {
+    title: 'Guest reviews',
+    hero: orbisReviewsHeroId
+      ? { type: 'highImpact', media: orbisReviewsHeroId, richText: lexH1('Guest reviews') }
+      : { type: 'lowImpact', richText: lexH1('Guest reviews') },
+    layout: [
+      contentSection(
+        'Guest Rating Score™',
+        lexParas(
+          'Booking.com score: 9.6 / 10 (Exceptional) based on 367 reviews.',
+          'Google score: 4.7 / 5 (Excellent) based on 1,173 reviews.',
+          'We are proud of the trust and satisfaction of our guests at Medora Orbis Luxury Homes & Camping. Every review helps us to improve and continue providing the best possible holiday experience on the Makarska Riviera.',
+        ),
+        null,
+      ),
+      contentSection(
+        null,
+        lexParas(
+          'To read the latest guest reviews, please visit our profile on Booking.com or Google.',
+        ),
+        null,
+        'right',
+        '/contact',
+      ),
+    ],
+  })
+
   // ── Update MainNav — EN first (gets IDs), then HR/DE reuse those IDs ──────
 
   const navItemsEN = [
@@ -2651,8 +3692,54 @@ export async function seedPages({ payload }: { payload: Payload }) {
       label: 'Accommodation',
       href: '/accommodation',
       children: [
-        { label: 'Medora Auri Family Beach Resort 4*', href: '/' },
-        { label: 'Medora Orbis Luxury Homes & Camping 4*', href: '/orbis' },
+        {
+          label: 'Medora Auri Family Beach Resort 4*',
+          href: '/',
+          grandchildren: [
+            {
+              label: 'Rooms and suites',
+              href: '/properties/medora-auri/rooms',
+              subLinks: [
+                { label: 'Double rooms', href: '/properties/medora-auri/rooms/auri-double-rooms' },
+                { label: 'Family rooms', href: '/properties/medora-auri/rooms/auri-family-rooms' },
+                { label: 'Suites', href: '/properties/medora-auri/rooms/auri-suites' },
+              ],
+            },
+            { label: 'Hotel facilities & services', href: '/properties/medora-auri/facilities' },
+            { label: 'Photos & gallery', href: '/properties/medora-auri/gallery' },
+            { label: 'Reviews & Rewards', href: '/about/awards' },
+          ],
+        },
+        {
+          label: 'Medora Orbis Luxury Homes & Camping 4*',
+          href: '/orbis',
+          grandchildren: [
+            {
+              label: 'Luxury homes & camping experience',
+              href: '/properties/luxury-camp-orbis/rooms',
+              subLinks: [
+                {
+                  label: 'Luxury homes for 2 - 5 persons',
+                  href: '/properties/luxury-camp-orbis/rooms/orbis-cabins-small',
+                },
+                {
+                  label: 'Luxury homes for 6 - 7 persons',
+                  href: '/properties/luxury-camp-orbis/rooms/orbis-cabins-large',
+                },
+                {
+                  label: 'Pitches and camping places',
+                  href: '/properties/luxury-camp-orbis/rooms/orbis-pitches',
+                },
+              ],
+            },
+            {
+              label: 'Camp facilities & services',
+              href: '/properties/luxury-camp-orbis/facilities',
+            },
+            { label: 'Photos & gallery', href: '/properties/luxury-camp-orbis/gallery' },
+            { label: 'Guest reviews', href: '/properties/luxury-camp-orbis/guest-reviews' },
+          ],
+        },
       ],
     },
     {
@@ -2661,7 +3748,7 @@ export async function seedPages({ payload }: { payload: Payload }) {
       children: [
         { label: 'Location', href: '/destination/location' },
         { label: 'Vacation with children', href: '/destination/vacation-with-children' },
-        { label: 'Things to do', href: '/amenities' },
+        { label: 'Things to do', href: '/destination' },
         { label: 'Beaches', href: '/destination/beaches' },
         { label: 'Weather', href: '/destination/weather' },
         { label: 'Transfers', href: '/destination/transfers' },
@@ -2690,6 +3777,16 @@ export async function seedPages({ payload }: { payload: Payload }) {
         item.children?.map((child: any, j: number) => ({
           ...child,
           id: enItems[i]?.children?.[j]?.id,
+          grandchildren:
+            child.grandchildren?.map((grandchild: any, k: number) => ({
+              ...grandchild,
+              id: enItems[i]?.children?.[j]?.grandchildren?.[k]?.id,
+              subLinks:
+                grandchild.subLinks?.map((greatGrandchild: any, l: number) => ({
+                  ...greatGrandchild,
+                  id: enItems[i]?.children?.[j]?.grandchildren?.[k]?.subLinks?.[l]?.id,
+                })) ?? [],
+            })) ?? [],
         })) ?? [],
     }))
   }
@@ -2703,8 +3800,69 @@ export async function seedPages({ payload }: { payload: Payload }) {
           label: 'Smještaj',
           href: '/accommodation',
           children: [
-            { label: 'Medora Auri Family Beach Resort 4*', href: '/' },
-            { label: 'Medora Orbis Luxury Homes & Camping 4*', href: '/orbis' },
+            {
+              label: 'Medora Auri Family Beach Resort 4*',
+              href: '/',
+              grandchildren: [
+                {
+                  label: 'Sobe i suiteovi',
+                  href: '/properties/medora-auri/rooms',
+                  subLinks: [
+                    {
+                      label: 'Dvokrevetne',
+                      href: '/properties/medora-auri/rooms/auri-double-rooms',
+                    },
+                    {
+                      label: 'Obiteljske',
+                      href: '/properties/medora-auri/rooms/auri-family-rooms',
+                    },
+                    { label: 'Suiteovi', href: '/properties/medora-auri/rooms/auri-suites' },
+                  ],
+                },
+                {
+                  label: 'Sadržaji i usluge hotela',
+                  href: '/properties/medora-auri/facilities',
+                },
+                { label: 'Fotografije i galerija', href: '/properties/medora-auri/gallery' },
+                { label: 'Recenzije i nagrade', href: '/about/awards' },
+              ],
+            },
+            {
+              label: 'Medora Orbis Luxury Homes & Camping 4*',
+              href: '/orbis',
+              grandchildren: [
+                {
+                  label: 'Luksuzne kućice i kamp iskustvo',
+                  href: '/properties/luxury-camp-orbis/rooms',
+                  subLinks: [
+                    {
+                      label: 'Luksuzne kućice za 2 - 5 osoba',
+                      href: '/properties/luxury-camp-orbis/rooms/orbis-cabins-small',
+                    },
+                    {
+                      label: 'Luksuzne kućice za 6 - 7 osoba',
+                      href: '/properties/luxury-camp-orbis/rooms/orbis-cabins-large',
+                    },
+                    {
+                      label: 'Parcele i kamp mjesta',
+                      href: '/properties/luxury-camp-orbis/rooms/orbis-pitches',
+                    },
+                  ],
+                },
+                {
+                  label: 'Sadržaji i usluge kampa',
+                  href: '/properties/luxury-camp-orbis/facilities',
+                },
+                {
+                  label: 'Fotografije i galerija',
+                  href: '/properties/luxury-camp-orbis/gallery',
+                },
+                {
+                  label: 'Recenzije gostiju',
+                  href: '/properties/luxury-camp-orbis/guest-reviews',
+                },
+              ],
+            },
           ],
         },
         {
@@ -2713,7 +3871,7 @@ export async function seedPages({ payload }: { payload: Payload }) {
           children: [
             { label: 'Lokacija', href: '/destination/location' },
             { label: 'Odmor s djecom', href: '/destination/vacation-with-children' },
-            { label: 'Aktivnosti', href: '/amenities' },
+            { label: 'Aktivnosti', href: '/destination' },
             { label: 'Plaže', href: '/destination/beaches' },
             { label: 'Klima', href: '/destination/weather' },
             { label: 'Transferi', href: '/destination/transfers' },
@@ -2737,8 +3895,66 @@ export async function seedPages({ payload }: { payload: Payload }) {
           label: 'Unterkunft',
           href: '/accommodation',
           children: [
-            { label: 'Medora Auri Family Beach Resort 4*', href: '/' },
-            { label: 'Medora Orbis Luxury Homes & Camping 4*', href: '/orbis' },
+            {
+              label: 'Medora Auri Family Beach Resort 4*',
+              href: '/',
+              grandchildren: [
+                {
+                  label: 'Zimmer & Suiten',
+                  href: '/properties/medora-auri/rooms',
+                  subLinks: [
+                    {
+                      label: 'Doppelzimmer',
+                      href: '/properties/medora-auri/rooms/auri-double-rooms',
+                    },
+                    {
+                      label: 'Familienzimmer',
+                      href: '/properties/medora-auri/rooms/auri-family-rooms',
+                    },
+                    { label: 'Suiten', href: '/properties/medora-auri/rooms/auri-suites' },
+                  ],
+                },
+                {
+                  label: 'Hotelausstattung & Services',
+                  href: '/properties/medora-auri/facilities',
+                },
+                { label: 'Fotos & Galerie', href: '/properties/medora-auri/gallery' },
+                { label: 'Bewertungen & Auszeichnungen', href: '/about/awards' },
+              ],
+            },
+            {
+              label: 'Medora Orbis Luxury Homes & Camping 4*',
+              href: '/orbis',
+              grandchildren: [
+                {
+                  label: 'Luxushäuser & Camping-Erlebnis',
+                  href: '/properties/luxury-camp-orbis/rooms',
+                  subLinks: [
+                    {
+                      label: 'Luxushäuser für 2 - 5 Personen',
+                      href: '/properties/luxury-camp-orbis/rooms/orbis-cabins-small',
+                    },
+                    {
+                      label: 'Luxushäuser für 6 - 7 Personen',
+                      href: '/properties/luxury-camp-orbis/rooms/orbis-cabins-large',
+                    },
+                    {
+                      label: 'Stellplätze und Camping',
+                      href: '/properties/luxury-camp-orbis/rooms/orbis-pitches',
+                    },
+                  ],
+                },
+                {
+                  label: 'Camp-Ausstattung & Services',
+                  href: '/properties/luxury-camp-orbis/facilities',
+                },
+                { label: 'Fotos & Galerie', href: '/properties/luxury-camp-orbis/gallery' },
+                {
+                  label: 'Gästebewertungen',
+                  href: '/properties/luxury-camp-orbis/guest-reviews',
+                },
+              ],
+            },
           ],
         },
         {
@@ -2747,7 +3963,7 @@ export async function seedPages({ payload }: { payload: Payload }) {
           children: [
             { label: 'Lage', href: '/destination/location' },
             { label: 'Urlaub mit Kindern', href: '/destination/vacation-with-children' },
-            { label: 'Aktivitäten', href: '/amenities' },
+            { label: 'Aktivitäten', href: '/destination' },
             { label: 'Strände', href: '/destination/beaches' },
             { label: 'Klima', href: '/destination/weather' },
             { label: 'Transfers', href: '/destination/transfers' },

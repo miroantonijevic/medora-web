@@ -10,19 +10,7 @@ export const metadata: Metadata = {
   description: 'Discover our latest hotel packages and special offers.',
 }
 
-function formatDate(iso?: string | null, locale = 'en'): string {
-  if (!iso) return ''
-  return new Date(iso).toLocaleDateString(
-    locale === 'hr' ? 'hr-HR' : locale === 'de' ? 'de-DE' : 'en-GB',
-    { day: 'numeric', month: 'short', year: 'numeric' },
-  )
-}
-
-export default async function OffersPage({
-  params,
-}: {
-  params: Promise<{ locale: string }>
-}) {
+export default async function OffersPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params
   setRequestLocale(locale)
   const [tOffers, tCommon, { docs: offers }] = await Promise.all([
@@ -43,13 +31,9 @@ export default async function OffersPage({
       >
         {tOffers('title')}
       </h1>
-      <p style={{ fontSize: 16, color: '#666', marginBottom: 48 }}>
-        {tOffers('subtitle')}
-      </p>
+      <p style={{ fontSize: 16, color: '#666', marginBottom: 48 }}>{tOffers('subtitle')}</p>
 
-      {offers.length === 0 && (
-        <p style={{ color: '#888' }}>{tOffers('noOffers')}</p>
-      )}
+      {offers.length === 0 && <p style={{ color: '#888' }}>{tOffers('noOffers')}</p>}
 
       <div
         style={{
@@ -92,39 +76,22 @@ export default async function OffersPage({
                   ) : (
                     <div style={{ background: '#012B59', height: '100%' }} />
                   )}
-
-                  {/* Date badge */}
-                  {offer.validUntil && (
-                    <span
-                      style={{
-                        position: 'absolute',
-                        top: 12,
-                        right: 12,
-                        background: '#FF914D',
-                        color: '#fff',
-                        fontSize: 11,
-                        fontWeight: 700,
-                        padding: '4px 10px',
-                        borderRadius: 4,
-                      }}
-                    >
-                      {tOffers('until')} {formatDate(offer.validUntil, locale)}
-                    </span>
-                  )}
                 </div>
 
                 {/* Content */}
-                <div style={{ padding: '20px 24px 24px', flex: 1, display: 'flex', flexDirection: 'column' }}>
-                  <h2 style={{ fontSize: 18, fontWeight: 700, color: '#012B59', margin: '0 0 8px' }}>
+                <div
+                  style={{
+                    padding: '20px 24px 24px',
+                    flex: 1,
+                    display: 'flex',
+                    flexDirection: 'column',
+                  }}
+                >
+                  <h2
+                    style={{ fontSize: 18, fontWeight: 700, color: '#012B59', margin: '0 0 8px' }}
+                  >
                     {String(offer.title)}
                   </h2>
-
-                  {offer.validFrom && (
-                    <p style={{ fontSize: 12, color: '#888', margin: '0 0 12px' }}>
-                      {tOffers('validFrom')} {formatDate(offer.validFrom, locale)}
-                      {offer.validUntil ? ` — ${formatDate(offer.validUntil, locale)}` : ''}
-                    </p>
-                  )}
 
                   <span
                     style={{

@@ -61,10 +61,6 @@ const BeforeDashboard = async () => {
           🔍 SEO Defaults
           <small>Fallback meta title &amp; description</small>
         </a>
-        <a className="medora-dashboard__card" href="/admin/collections/amenities">
-          ✅ Amenities
-          <small>Pool, parking, spa icons</small>
-        </a>
       </div>
 
       <div className="medora-dashboard__footer">

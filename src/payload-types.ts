@@ -78,8 +78,6 @@ export interface Config {
     'room-groups': RoomGroup;
     rooms: Room;
     offers: Offer;
-    'amenity-groups': AmenityGroup;
-    amenities: Amenity;
     'faq-categories': FaqCategory;
     'landing-pages': LandingPage;
     redirects: Redirect;
@@ -108,8 +106,6 @@ export interface Config {
     'room-groups': RoomGroupsSelect<false> | RoomGroupsSelect<true>;
     rooms: RoomsSelect<false> | RoomsSelect<true>;
     offers: OffersSelect<false> | OffersSelect<true>;
-    'amenity-groups': AmenityGroupsSelect<false> | AmenityGroupsSelect<true>;
-    amenities: AmenitiesSelect<false> | AmenitiesSelect<true>;
     'faq-categories': FaqCategoriesSelect<false> | FaqCategoriesSelect<true>;
     'landing-pages': LandingPagesSelect<false> | LandingPagesSelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
@@ -394,6 +390,7 @@ export interface Page {
     | ArchiveBlock
     | FormBlock
     | PhotoGalleryBlock
+    | MapEmbedBlock
   )[];
   publishedAt?: string | null;
   /**
@@ -935,6 +932,22 @@ export interface PhotoGalleryBlock {
   blockType: 'photo-gallery';
 }
 /**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "MapEmbedBlock".
+ */
+export interface MapEmbedBlock {
+  lat: number;
+  lng: number;
+  zoom?: number | null;
+  /**
+   * External "Driving directions" link, e.g. a Google Maps directions URL.
+   */
+  directionsUrl: string;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'mapEmbed';
+}
+/**
  * Manage hotels and camps — names, descriptions, images, amenities and star ratings.
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1070,6 +1083,12 @@ export interface Offer {
     [k: string]: unknown;
   } | null;
   heroImage?: (number | null) | Media;
+  gallery?:
+    | {
+        image: number | Media;
+        id?: string | null;
+      }[]
+    | null;
   meta?: {
     title?: string | null;
     description?: string | null;
@@ -1077,75 +1096,6 @@ export interface Offer {
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
-}
-/**
- * Top-level amenity categories shown in the footer: Wellness, Dining & Bars, Active vacation.
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "amenity-groups".
- */
-export interface AmenityGroup {
-  id: number;
-  name: string;
-  slug: string;
-  description?: string | null;
-  heroImage?: (number | null) | Media;
-  /**
-   * Controls display order in navigation.
-   */
-  order?: number | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * Individual amenity items (Spa, Restaurant, Fitness…) each belonging to an amenity group.
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "amenities".
- */
-export interface Amenity {
-  id: number;
-  name: string;
-  slug: string;
-  group: number | AmenityGroup;
-  heroImage?: (number | null) | Media;
-  tagline?: string | null;
-  description?: {
-    root: {
-      type: string;
-      children: {
-        type: any;
-        version: number;
-        [k: string]: unknown;
-      }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-      indent: number;
-      version: number;
-    };
-    [k: string]: unknown;
-  } | null;
-  /**
-   * Bullet-point features, e.g. "Finnish sauna", "Heated pool".
-   */
-  highlights?:
-    | {
-        text: string;
-        id?: string | null;
-      }[]
-    | null;
-  openingHours?: string | null;
-  /**
-   * e.g. "9th Floor" or "Ground floor, pool area".
-   */
-  location?: string | null;
-  images?: (number | Media)[] | null;
-  /**
-   * Controls display order within the group.
-   */
-  order?: number | null;
-  updatedAt: string;
-  createdAt: string;
 }
 /**
  * FAQ categories (Reservations, Wellness, etc.) with their Q&A items.
@@ -1445,14 +1395,6 @@ export interface PayloadLockedDocument {
         value: number | Offer;
       } | null)
     | ({
-        relationTo: 'amenity-groups';
-        value: number | AmenityGroup;
-      } | null)
-    | ({
-        relationTo: 'amenities';
-        value: number | Amenity;
-      } | null)
-    | ({
         relationTo: 'faq-categories';
         value: number | FaqCategory;
       } | null)
@@ -1569,6 +1511,7 @@ export interface PagesSelect<T extends boolean = true> {
         archive?: T | ArchiveBlockSelect<T>;
         formBlock?: T | FormBlockSelect<T>;
         'photo-gallery'?: T | PhotoGalleryBlockSelect<T>;
+        mapEmbed?: T | MapEmbedBlockSelect<T>;
       };
   publishedAt?: T;
   generateSlug?: T;
@@ -1710,6 +1653,18 @@ export interface PhotoGalleryBlockSelect<T extends boolean = true> {
         image?: T;
         id?: T;
       };
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "MapEmbedBlock_select".
+ */
+export interface MapEmbedBlockSelect<T extends boolean = true> {
+  lat?: T;
+  lng?: T;
+  zoom?: T;
+  directionsUrl?: T;
   id?: T;
   blockName?: T;
 }
@@ -1965,6 +1920,12 @@ export interface OffersSelect<T extends boolean = true> {
   validUntil?: T;
   description?: T;
   heroImage?: T;
+  gallery?:
+    | T
+    | {
+        image?: T;
+        id?: T;
+      };
   meta?:
     | T
     | {
@@ -1974,43 +1935,6 @@ export interface OffersSelect<T extends boolean = true> {
   updatedAt?: T;
   createdAt?: T;
   _status?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "amenity-groups_select".
- */
-export interface AmenityGroupsSelect<T extends boolean = true> {
-  name?: T;
-  slug?: T;
-  description?: T;
-  heroImage?: T;
-  order?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "amenities_select".
- */
-export interface AmenitiesSelect<T extends boolean = true> {
-  name?: T;
-  slug?: T;
-  group?: T;
-  heroImage?: T;
-  tagline?: T;
-  description?: T;
-  highlights?:
-    | T
-    | {
-        text?: T;
-        id?: T;
-      };
-  openingHours?: T;
-  location?: T;
-  images?: T;
-  order?: T;
-  updatedAt?: T;
-  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -2397,6 +2321,26 @@ export interface MainNav {
           | {
               label: string;
               href: string;
+              /**
+               * Optional third-level links (e.g. Rooms & suites / Facilities / Gallery / Reviews under a property).
+               */
+              grandchildren?:
+                | {
+                    label: string;
+                    href: string;
+                    /**
+                     * Optional fourth-level links (e.g. Double rooms / Family rooms / Suites under Rooms & suites).
+                     */
+                    subLinks?:
+                      | {
+                          label: string;
+                          href: string;
+                          id?: string | null;
+                        }[]
+                      | null;
+                    id?: string | null;
+                  }[]
+                | null;
               id?: string | null;
             }[]
           | null;
@@ -2629,6 +2573,20 @@ export interface MainNavSelect<T extends boolean = true> {
           | {
               label?: T;
               href?: T;
+              grandchildren?:
+                | T
+                | {
+                    label?: T;
+                    href?: T;
+                    subLinks?:
+                      | T
+                      | {
+                          label?: T;
+                          href?: T;
+                          id?: T;
+                        };
+                    id?: T;
+                  };
               id?: T;
             };
         id?: T;

@@ -8,8 +8,6 @@ import { Categories } from './collections/Categories'
 import { Media } from './collections/Media'
 import { Pages } from './collections/Pages'
 import { Posts } from './collections/Posts'
-import { Amenities } from './collections/Amenities'
-import { AmenityGroups } from './collections/AmenityGroups'
 import { FaqCategories } from './collections/FaqCategories'
 import { LandingPages } from './collections/LandingPages'
 import { Offers } from './collections/Offers'
@@ -70,7 +68,7 @@ export default buildConfig({
     user: Users.slug,
     livePreview: {
       globals: ['auri-homepage', 'orbis-homepage'],
-      collections: ['rooms', 'amenities', 'pages'],
+      collections: ['rooms', 'pages', 'offers'],
       breakpoints: [
         {
           label: 'Mobile',
@@ -110,8 +108,6 @@ export default buildConfig({
     RoomGroups,
     Rooms,
     Offers,
-    AmenityGroups,
-    Amenities,
     FaqCategories,
     LandingPages,
   ],

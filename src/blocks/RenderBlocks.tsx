@@ -8,6 +8,7 @@ import { CardGridBlock } from '@/blocks/CardGrid/Component'
 import { ContentBlock } from '@/blocks/Content/Component'
 import { ContentSectionBlock } from '@/blocks/ContentSection/Component'
 import { FormBlock } from '@/blocks/Form/Component'
+import { MapEmbedComponent } from '@/blocks/MapEmbed/Component'
 import { MediaBlock } from '@/blocks/MediaBlock/Component'
 import { MedoraHeroBlockComponent } from '@/blocks/medora/Component'
 import { PhotoGalleryComponent } from '@/blocks/PhotoGallery/Component'
@@ -19,6 +20,7 @@ const blockComponents = {
   contentSection: ContentSectionBlock,
   cta: CallToActionBlock,
   formBlock: FormBlock,
+  mapEmbed: MapEmbedComponent,
   mediaBlock: MediaBlock,
   'medora-hero': MedoraHeroBlockComponent,
   'photo-gallery': PhotoGalleryComponent,

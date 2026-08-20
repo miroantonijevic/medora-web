@@ -2,11 +2,14 @@ import type { Metadata } from 'next'
 import Image from 'next/image'
 import { Link } from '@/i18n/navigation'
 import { notFound } from 'next/navigation'
+import { draftMode } from 'next/headers'
 import { setRequestLocale, getTranslations } from 'next-intl/server'
 
 import { getOfferBySlug, getPublishedOffers } from '@/lib/queries'
 import { bookingService } from '@/lib/booking'
 import { RichText } from '@/components/RichText'
+import { ExternalImageGallery } from '@/components/sections/ExternalImageGallery'
+import { LivePreviewListener } from '@/components/LivePreviewListener'
 
 type Args = {
   params: Promise<{ offerSlug: string; locale: string }>
@@ -31,17 +34,10 @@ export async function generateMetadata({ params: paramsPromise }: Args): Promise
   }
 }
 
-function formatDate(iso?: string | null, locale = 'en'): string {
-  if (!iso) return ''
-  return new Date(iso).toLocaleDateString(
-    locale === 'hr' ? 'hr-HR' : locale === 'de' ? 'de-DE' : 'en-GB',
-    { day: 'numeric', month: 'long', year: 'numeric' },
-  )
-}
-
 export default async function OfferDetailPage({ params: paramsPromise }: Args) {
   const { offerSlug, locale } = await paramsPromise
   setRequestLocale(locale)
+  const { isEnabled: draft } = await draftMode()
   const [tOffers, tNav, offer] = await Promise.all([
     getTranslations({ locale, namespace: 'offers' }),
     getTranslations({ locale, namespace: 'navigation' }),
@@ -59,6 +55,8 @@ export default async function OfferDetailPage({ params: paramsPromise }: Args) {
 
   return (
     <main>
+      {draft && <LivePreviewListener />}
+
       {/* Hero */}
       <section style={{ position: 'relative', height: 400 }}>
         {heroImg?.url ? (
@@ -129,23 +127,6 @@ export default async function OfferDetailPage({ params: paramsPromise }: Args) {
       >
         {/* Description */}
         <div>
-          {(offer.validFrom || offer.validUntil) && (
-            <p style={{ fontSize: 14, color: '#888', marginBottom: 24 }}>
-              {offer.validFrom && (
-                <>
-                  {tOffers('validFrom')} <strong>{formatDate(offer.validFrom, locale)}</strong>
-                </>
-              )}
-              {offer.validUntil && (
-                <>
-                  {' '}
-                  {tOffers('until').toLowerCase()}{' '}
-                  <strong>{formatDate(offer.validUntil, locale)}</strong>
-                </>
-              )}
-            </p>
-          )}
-
           {/* Rich text description */}
           {offer.description && (
             <RichText data={offer.description as Parameters<typeof RichText>[0]['data']} />
@@ -189,6 +170,17 @@ export default async function OfferDetailPage({ params: paramsPromise }: Args) {
           </a>
         </aside>
       </div>
+
+      {/* Photo gallery */}
+      {Array.isArray(offer.gallery) && offer.gallery.length > 0 && (
+        <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px 56px' }}>
+          <ExternalImageGallery
+            images={(offer.gallery as { image?: { url?: string; alt?: string } | null }[])
+              .filter((g) => g.image?.url)
+              .map((g) => ({ src: g.image!.url!, alt: g.image?.alt ?? String(offer.title) }))}
+          />
+        </div>
+      )}
     </main>
   )
 }

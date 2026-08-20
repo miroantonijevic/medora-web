@@ -24,6 +24,18 @@
 
 @plugin "@tailwindcss/typography";
 
+/* Unlayered so it always wins over the typography plugin's utilities-layer link styles */
+.prose a {
+  color: var(--color-blue);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.prose a:hover {
+  color: var(--color-navy);
+  text-decoration: underline;
+}
+
 @source inline("lg:col-span-4");
 @source inline("lg:col-span-6");
 @source inline("lg:col-span-8");
