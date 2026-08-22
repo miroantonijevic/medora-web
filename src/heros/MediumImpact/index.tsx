@@ -34,7 +34,10 @@ export const MediumImpactHero: React.FC<Page['hero']> = ({ links, media, richTex
               {links.map(({ link }, i) => {
                 return (
                   <li key={i}>
-                    <CMSLink {...link} />
+                    <CMSLink
+                      {...link}
+                      className="rounded-full bg-[#012B59] px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#009bdb]"
+                    />
                   </li>
                 )
               })}

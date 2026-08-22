@@ -61,6 +61,13 @@ export default buildConfig({
         Logo: '@/components/AdminLogo#AdminLogo',
         Icon: '@/components/AdminLogo#AdminIcon',
       },
+      beforeNavLinks: ['@/components/MediaLibrary/NavLink'],
+      views: {
+        mediaLibrary: {
+          Component: '@/components/MediaLibrary#MediaLibraryView',
+          path: '/media-library',
+        },
+      },
     },
     importMap: {
       baseDir: path.resolve(dirname),
@@ -113,6 +120,7 @@ export default buildConfig({
   ],
   cors: [getServerSideURL()].filter(Boolean),
   folders: {
+    // Native folder browsing is replaced by our custom Media Library view
     browseByFolder: false,
   },
   globals: [Header, Footer, MainNav, SiteSettings, SEODefaults, AuriHomepage, OrbisHomepage],

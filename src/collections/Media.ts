@@ -40,7 +40,7 @@ export const Media: CollectionConfig = {
     },
   ],
   admin: {
-    group: 'Media & Files',
+    group: false,
     description: 'All uploaded images and files. Referenced by properties, rooms, offers and the homepage.',
   },
   upload: {

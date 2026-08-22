@@ -54,6 +54,7 @@ const makePropertyHomepage = (
               minRows: 1,
               admin: {
                 components: {
+                  afterInput: ['@/fields/components/MediaGalleryField/AddFolderButtonArray'],
                   RowLabel: '@/globals/RowLabels/SlideRowLabel#SlideRowLabel',
                 },
                 initCollapsed: true,
@@ -138,6 +139,7 @@ const makePropertyHomepage = (
               label: 'Icons',
               admin: {
                 components: {
+                  afterInput: ['@/fields/components/MediaGalleryField/AddFolderButtonArrayIcon'],
                   RowLabel: '@/globals/RowLabels/InclusionRowLabel#InclusionRowLabel',
                 },
                 initCollapsed: true,

@@ -4,6 +4,7 @@ export const PhotoGallery: Block = {
   slug: 'photo-gallery',
   interfaceName: 'PhotoGalleryBlock',
   labels: { singular: 'Photo Gallery', plural: 'Photo Galleries' },
+  imageURL: '/admin-thumbnails/photo-gallery.svg',
   fields: [
     {
       name: 'label',
@@ -15,6 +16,11 @@ export const PhotoGallery: Block = {
       name: 'images',
       type: 'array',
       minRows: 1,
+      admin: {
+        components: {
+          afterInput: ['@/fields/components/MediaGalleryField/AddFolderButtonArray'],
+        },
+      },
       fields: [
         {
           name: 'image',

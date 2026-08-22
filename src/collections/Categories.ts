@@ -16,7 +16,6 @@ export const Categories: CollectionConfig = {
     useAsTitle: 'title',
     group: 'Blog',
     description: 'Categories used to tag blog posts.',
-    hidden: true,
   },
   fields: [
     {

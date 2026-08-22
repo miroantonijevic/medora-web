@@ -55,6 +55,11 @@ export const Properties: CollectionConfig = {
       type: 'upload',
       relationTo: 'media',
       hasMany: true,
+      admin: {
+        components: {
+          afterInput: ['@/fields/components/MediaGalleryField/AddFolderButtonUpload'],
+        },
+      },
     },
     {
       name: 'address',

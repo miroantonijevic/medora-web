@@ -10,6 +10,7 @@ import {
 export const Archive: Block = {
   slug: 'archive',
   interfaceName: 'ArchiveBlock',
+  imageURL: '/admin-thumbnails/archive.svg',
   fields: [
     {
       name: 'introContent',

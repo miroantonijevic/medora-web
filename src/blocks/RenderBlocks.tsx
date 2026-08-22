@@ -2,7 +2,6 @@ import React, { Fragment } from 'react'
 
 import type { Page } from '@/payload-types'
 
-import { ArchiveBlock } from '@/blocks/ArchiveBlock/Component'
 import { CallToActionBlock } from '@/blocks/CallToAction/Component'
 import { CardGridBlock } from '@/blocks/CardGrid/Component'
 import { ContentBlock } from '@/blocks/Content/Component'
@@ -14,7 +13,6 @@ import { MedoraHeroBlockComponent } from '@/blocks/medora/Component'
 import { PhotoGalleryComponent } from '@/blocks/PhotoGallery/Component'
 
 const blockComponents = {
-  archive: ArchiveBlock,
   cardGrid: CardGridBlock,
   content: ContentBlock,
   contentSection: ContentSectionBlock,

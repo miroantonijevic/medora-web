@@ -33,7 +33,12 @@ export const ContentBlock: React.FC<ContentBlockProps> = (props) => {
               >
                 {richText && <RichText data={richText} enableGutter={false} />}
 
-                {enableLink && <CMSLink {...link} />}
+                {enableLink && (
+                  <CMSLink
+                    {...link}
+                    className="mt-4 rounded-full bg-[#012B59] px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#009bdb]"
+                  />
+                )}
               </div>
             )
           })}

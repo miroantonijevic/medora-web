@@ -11,6 +11,7 @@ export const ContentSection: Block = {
   slug: 'contentSection',
   interfaceName: 'ContentSectionBlock',
   labels: { singular: 'Content Section', plural: 'Content Sections' },
+  imageURL: '/admin-thumbnails/content-section.svg',
   fields: [
     {
       name: 'heading',

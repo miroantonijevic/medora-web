@@ -47,7 +47,6 @@ export const Posts: CollectionConfig<'posts'> = {
     },
   },
   admin: {
-    hidden: true,
     group: 'Blog',
     description: 'Blog articles and news posts with full rich-text layout builder.',
     defaultColumns: ['title', 'slug', 'updatedAt'],
@@ -226,7 +225,7 @@ export const Posts: CollectionConfig<'posts'> = {
   versions: {
     drafts: {
       autosave: {
-        interval: 100, // We set this interval for optimal live preview
+        interval: 800,
       },
       schedulePublish: true,
     },

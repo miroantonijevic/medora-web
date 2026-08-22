@@ -74,7 +74,10 @@ export const plugins: Plugin[] = [
     generateURL: (docs) => docs.reduce((url, doc) => `${url}/${doc.slug}`, ''),
   }),
   seoPlugin({
-    collections: ['pages', 'posts', 'properties', 'rooms', 'offers'],
+    // 'posts' is intentionally excluded: it already defines its own `meta` SEO
+    // group field inside its tabs, so adding it here would create a duplicate
+    // conflicting `meta` field and corrupt the stored title/description data.
+    collections: ['pages', 'properties', 'rooms', 'offers'],
     generateTitle,
     generateURL,
   }),
@@ -84,7 +87,7 @@ export const plugins: Plugin[] = [
     },
     formOverrides: {
       admin: {
-        hidden: true,
+        group: 'Content',
       },
       fields: ({ defaultFields }) => {
         return defaultFields.map((field) => {
@@ -108,7 +111,7 @@ export const plugins: Plugin[] = [
     },
     formSubmissionOverrides: {
       admin: {
-        hidden: true,
+        group: 'Content',
       },
     },
   }),

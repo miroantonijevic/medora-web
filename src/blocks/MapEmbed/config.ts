@@ -4,6 +4,7 @@ export const MapEmbed: Block = {
   slug: 'mapEmbed',
   interfaceName: 'MapEmbedBlock',
   labels: { singular: 'Map Embed', plural: 'Map Embeds' },
+  imageURL: '/admin-thumbnails/map-embed.svg',
   fields: [
     {
       name: 'lat',

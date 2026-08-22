@@ -106,6 +106,11 @@ export const Offers: CollectionConfig = {
     {
       name: 'gallery',
       type: 'array',
+      admin: {
+        components: {
+          afterInput: ['@/fields/components/MediaGalleryField/AddFolderButtonArray'],
+        },
+      },
       fields: [
         {
           name: 'image',

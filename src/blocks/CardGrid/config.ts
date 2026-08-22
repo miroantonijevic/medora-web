@@ -4,6 +4,7 @@ export const CardGrid: Block = {
   slug: 'cardGrid',
   interfaceName: 'CardGridBlock',
   labels: { singular: 'Card Grid', plural: 'Card Grids' },
+  imageURL: '/admin-thumbnails/card-grid.svg',
   fields: [
     {
       name: 'intro',
@@ -14,6 +15,11 @@ export const CardGrid: Block = {
     {
       name: 'cards',
       type: 'array',
+      admin: {
+        components: {
+          afterInput: ['@/fields/components/MediaGalleryField/AddFolderButtonArray'],
+        },
+      },
       fields: [
         {
           name: 'image',

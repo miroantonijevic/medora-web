@@ -18,7 +18,7 @@ export const PhotoGalleryComponent: React.FC<Props> = ({ label, images }) => {
     .map((item) => ({ src: item.image!.url!, alt: item.image?.alt ?? '' }))
 
   return (
-    <div style={{ padding: '0 0 24px' }}>
+    <div className="max-w-[1100px] mx-auto px-6 pb-6">
       {label && (
         <p
           style={{

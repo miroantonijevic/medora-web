@@ -135,16 +135,7 @@ export const InfoCardHeroComponent: React.FC<Props> = ({
           {showInquiryButton !== false && (
             <Link
               href="/inquiry"
-              style={{
-                display: 'block',
-                background: '#012B59',
-                color: '#fff',
-                padding: '14px 24px',
-                textDecoration: 'none',
-                fontWeight: 600,
-                fontSize: 14,
-                textAlign: 'center',
-              }}
+              className="block rounded-full bg-[#012B59] px-6 py-3 text-sm font-semibold text-white no-underline transition-colors hover:bg-[#009bdb]"
             >
               Send an inquiry
             </Link>
