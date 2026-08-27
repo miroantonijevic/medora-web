@@ -387,6 +387,7 @@ export interface Page {
     | MapEmbedBlock
   )[];
   publishedAt?: string | null;
+  updatedAt: string;
   /**
    * When enabled, the slug will auto-generate from the title field on save and autosave.
    */
@@ -396,7 +397,6 @@ export interface Page {
     title?: string | null;
     description?: string | null;
   };
-  updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
 }
@@ -745,11 +745,11 @@ export interface Property {
     lng?: number | null;
   };
   starRating?: number | null;
+  updatedAt: string;
   meta?: {
     title?: string | null;
     description?: string | null;
   };
-  updatedAt: string;
   createdAt: string;
 }
 /**
@@ -810,11 +810,11 @@ export interface Room {
         id?: string | null;
       }[]
     | null;
+  updatedAt: string;
   meta?: {
     title?: string | null;
     description?: string | null;
   };
-  updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
 }
@@ -853,11 +853,11 @@ export interface Offer {
         id?: string | null;
       }[]
     | null;
+  updatedAt: string;
   meta?: {
     title?: string | null;
     description?: string | null;
   };
-  updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
 }
@@ -1277,6 +1277,7 @@ export interface PagesSelect<T extends boolean = true> {
         mapEmbed?: T | MapEmbedBlockSelect<T>;
       };
   publishedAt?: T;
+  updatedAt?: T;
   generateSlug?: T;
   slug?: T;
   meta?:
@@ -1285,7 +1286,6 @@ export interface PagesSelect<T extends boolean = true> {
         title?: T;
         description?: T;
       };
-  updatedAt?: T;
   createdAt?: T;
   _status?: T;
 }
@@ -1593,13 +1593,13 @@ export interface PropertiesSelect<T extends boolean = true> {
         lng?: T;
       };
   starRating?: T;
+  updatedAt?: T;
   meta?:
     | T
     | {
         title?: T;
         description?: T;
       };
-  updatedAt?: T;
   createdAt?: T;
 }
 /**
@@ -1637,13 +1637,13 @@ export interface RoomsSelect<T extends boolean = true> {
         label?: T;
         id?: T;
       };
+  updatedAt?: T;
   meta?:
     | T
     | {
         title?: T;
         description?: T;
       };
-  updatedAt?: T;
   createdAt?: T;
   _status?: T;
 }
@@ -1665,13 +1665,13 @@ export interface OffersSelect<T extends boolean = true> {
         image?: T;
         id?: T;
       };
+  updatedAt?: T;
   meta?:
     | T
     | {
         title?: T;
         description?: T;
       };
-  updatedAt?: T;
   createdAt?: T;
   _status?: T;
 }

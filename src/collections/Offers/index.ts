@@ -15,6 +15,10 @@ export const Offers: CollectionConfig = {
     useAsTitle: 'title',
     group: 'Hotel Content',
     description: 'Special deals and packages. Supports draft, scheduled publish and expiry dates.',
+    defaultColumns: ['title', 'property', 'validFrom', 'updatedAt'],
+    components: {
+      beforeListTable: ['@/collections/Offers/components/OffersStatsBar'],
+    },
     livePreview: {
       url: ({ data, locale }) => {
         const localeCode = (locale as { code?: string })?.code ?? 'en'
@@ -53,6 +57,11 @@ export const Offers: CollectionConfig = {
       type: 'text',
       required: true,
       localized: true,
+      admin: {
+        components: {
+          Cell: '@/collections/Offers/components/TitleThumbnailCell',
+        },
+      },
     },
     {
       name: 'slug',
@@ -73,6 +82,9 @@ export const Offers: CollectionConfig = {
       admin: {
         date: {
           pickerAppearance: 'dayOnly',
+        },
+        components: {
+          Cell: '@/collections/Offers/components/ValidityCell',
         },
       },
     },
@@ -119,6 +131,19 @@ export const Offers: CollectionConfig = {
           required: true,
         },
       ],
+    },
+    {
+      // Re-declared to override the auto-generated timestamp field's list Cell.
+      name: 'updatedAt',
+      type: 'date',
+      admin: {
+        disableBulkEdit: true,
+        hidden: true,
+        components: {
+          Cell: '@/components/admin-list/UpdatedCell',
+        },
+      },
+      index: true,
     },
   ],
 }

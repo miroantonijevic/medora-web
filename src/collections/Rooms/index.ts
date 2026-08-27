@@ -10,6 +10,10 @@ export const Rooms: CollectionConfig = {
     group: 'Hotel Content',
     description:
       'Room types per property — photos, capacity, bed type, inclusions and pricing details.',
+    defaultColumns: ['name', 'property', 'group', 'capacity', 'updatedAt'],
+    components: {
+      beforeListTable: ['@/collections/Rooms/components/RoomsStatsBar'],
+    },
     livePreview: {
       url: async ({ data, locale, req }) => {
         const localeCode = (locale as { code?: string })?.code ?? 'en'
@@ -69,6 +73,11 @@ export const Rooms: CollectionConfig = {
       type: 'text',
       required: true,
       localized: true,
+      admin: {
+        components: {
+          Cell: '@/collections/Rooms/components/TitleThumbnailCell',
+        },
+      },
     },
     {
       name: 'slug',
@@ -135,6 +144,19 @@ export const Rooms: CollectionConfig = {
           required: true,
         },
       ],
+    },
+    {
+      // Re-declared to override the auto-generated timestamp field's list Cell.
+      name: 'updatedAt',
+      type: 'date',
+      admin: {
+        disableBulkEdit: true,
+        hidden: true,
+        components: {
+          Cell: '@/components/admin-list/UpdatedCell',
+        },
+      },
+      index: true,
     },
   ],
 }

@@ -9,7 +9,7 @@ export const RoomGroups: CollectionConfig = {
     group: 'Hotel Content',
     description:
       'Hierarchical room groups (e.g. "Sobe i suiteovi" → "Dvokrevetne sobe"). Assign rooms to leaf groups.',
-    defaultColumns: ['name', 'property', 'parent', 'order'],
+    defaultColumns: ['name', 'property', 'order', 'updatedAt'],
   },
   access: {
     read: () => true,
@@ -23,6 +23,11 @@ export const RoomGroups: CollectionConfig = {
       type: 'text',
       required: true,
       localized: true,
+      admin: {
+        components: {
+          Cell: '@/collections/RoomGroups/components/TitleThumbnailCell',
+        },
+      },
     },
     {
       name: 'slug',
@@ -59,6 +64,19 @@ export const RoomGroups: CollectionConfig = {
       name: 'order',
       type: 'number',
       defaultValue: 0,
+    },
+    {
+      // Re-declared to override the auto-generated timestamp field's list Cell.
+      name: 'updatedAt',
+      type: 'date',
+      admin: {
+        disableBulkEdit: true,
+        hidden: true,
+        components: {
+          Cell: '@/components/admin-list/UpdatedCell',
+        },
+      },
+      index: true,
     },
   ],
 }

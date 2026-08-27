@@ -15,6 +15,11 @@ export const FaqCategories: CollectionConfig = {
       type: 'text',
       required: true,
       localized: true,
+      admin: {
+        components: {
+          Cell: '@/collections/FaqCategories/components/TitleThumbnailCell',
+        },
+      },
     },
     {
       name: 'slug',

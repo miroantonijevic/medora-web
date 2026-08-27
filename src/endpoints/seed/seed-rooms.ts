@@ -1807,6 +1807,7 @@ async function getOrCreateRoom(
       collection: 'rooms',
       id,
       locale: 'en',
+      draft: false,
       data: {
         name: room.en.name,
         size: room.en.size,
@@ -1814,12 +1815,14 @@ async function getOrCreateRoom(
         images: mediaIds,
         description: lexicalRich(room.en.title, room.en.description),
         inclusions: room.en.inclusions.map((label) => ({ label })),
+        _status: 'published',
       },
     })
     await payload.update({
       collection: 'rooms',
       id,
       locale: 'hr',
+      draft: false,
       data: {
         name: room.hr.name,
         size: room.hr.size,
@@ -1829,12 +1832,14 @@ async function getOrCreateRoom(
           id: inc.id,
           label: room.hr.inclusions[i] ?? room.en.inclusions[i],
         })),
+        _status: 'published',
       },
     })
     await payload.update({
       collection: 'rooms',
       id,
       locale: 'de',
+      draft: false,
       data: {
         name: room.de.name,
         size: room.de.size,
@@ -1844,6 +1849,7 @@ async function getOrCreateRoom(
           id: inc.id,
           label: room.de.inclusions[i] ?? room.en.inclusions[i],
         })),
+        _status: 'published',
       },
     })
     payload.logger.info(`  Updated room: ${room.slug} => id=${id}`)
@@ -1864,6 +1870,7 @@ async function getOrCreateRoom(
       images: mediaIds,
       description: lexicalRich(room.en.title, room.en.description),
       inclusions: room.en.inclusions.map((label) => ({ label })),
+      _status: 'published',
     },
   })
   const id = doc.id as number
@@ -1872,6 +1879,7 @@ async function getOrCreateRoom(
     collection: 'rooms',
     id,
     locale: 'hr',
+    draft: false,
     data: {
       name: room.hr.name,
       size: room.hr.size,
@@ -1881,6 +1889,7 @@ async function getOrCreateRoom(
         id: inc.id,
         label: room.hr.inclusions[i] ?? room.en.inclusions[i],
       })),
+      _status: 'published',
     },
   })
 
@@ -1888,6 +1897,7 @@ async function getOrCreateRoom(
     collection: 'rooms',
     id,
     locale: 'de',
+    draft: false,
     data: {
       name: room.de.name,
       size: room.de.size,
@@ -1897,6 +1907,7 @@ async function getOrCreateRoom(
         id: inc.id,
         label: room.de.inclusions[i] ?? room.en.inclusions[i],
       })),
+      _status: 'published',
     },
   })
 

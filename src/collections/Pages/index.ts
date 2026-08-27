@@ -44,6 +44,9 @@ export const Pages: CollectionConfig<'pages'> = {
     description:
       'CMS-managed pages: destination sub-pages, landing pages, and any ad-hoc content page.',
     defaultColumns: ['title', 'path', 'updatedAt'],
+    components: {
+      beforeListTable: ['@/collections/Pages/components/PagesStatsBar'],
+    },
     livePreview: {
       url: ({ data, locale }) => {
         const localeCode = (locale as { code?: string })?.code ?? 'en'
@@ -68,6 +71,11 @@ export const Pages: CollectionConfig<'pages'> = {
       name: 'title',
       type: 'text',
       required: true,
+      admin: {
+        components: {
+          Cell: '@/collections/Pages/components/TitleThumbnailCell',
+        },
+      },
     },
     {
       name: 'path',
@@ -117,6 +125,18 @@ export const Pages: CollectionConfig<'pages'> = {
       admin: {
         position: 'sidebar',
       },
+    },
+    {
+      name: 'updatedAt',
+      type: 'date',
+      admin: {
+        disableBulkEdit: true,
+        hidden: true,
+        components: {
+          Cell: '@/collections/Pages/components/UpdatedCell',
+        },
+      },
+      index: true,
     },
     slugField(),
   ],

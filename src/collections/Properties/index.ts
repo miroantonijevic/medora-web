@@ -9,6 +9,7 @@ export const Properties: CollectionConfig = {
     group: 'Hotel Content',
     description:
       'Manage hotels and camps — names, descriptions, images, amenities and star ratings.',
+    defaultColumns: ['name', 'type', 'starRating', 'updatedAt'],
   },
   access: {
     read: () => true,
@@ -22,6 +23,11 @@ export const Properties: CollectionConfig = {
       type: 'text',
       required: true,
       localized: true,
+      admin: {
+        components: {
+          Cell: '@/collections/Properties/components/TitleThumbnailCell',
+        },
+      },
     },
     {
       name: 'slug',
@@ -88,6 +94,19 @@ export const Properties: CollectionConfig = {
       admin: {
         step: 1,
       },
+    },
+    {
+      // Re-declared to override the auto-generated timestamp field's list Cell.
+      name: 'updatedAt',
+      type: 'date',
+      admin: {
+        disableBulkEdit: true,
+        hidden: true,
+        components: {
+          Cell: '@/components/admin-list/UpdatedCell',
+        },
+      },
+      index: true,
     },
   ],
 }
