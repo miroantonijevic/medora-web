@@ -139,6 +139,7 @@
     "roomPreference": "Room / Unit preference",
     "message": "Message (optional)",
     "submit": "Send inquiry",
-    "note": "No payment required. We will confirm availability and send you a personalised offer."
+    "note": "No payment required. We will confirm availability and send you a personalised offer.",
+    "error": "Something went wrong sending your inquiry. Please try again or contact us directly."
   }
 }

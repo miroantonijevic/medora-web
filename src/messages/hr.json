@@ -139,6 +139,7 @@
     "roomPreference": "Soba / smještaj",
     "message": "Poruka (opcionalno)",
     "submit": "Pošalji upit",
-    "note": "Uplata nije potrebna. Potvrditi ćemo dostupnost i poslati vam personaliziranu ponudu."
+    "note": "Uplata nije potrebna. Potvrditi ćemo dostupnost i poslati vam personaliziranu ponudu.",
+    "error": "Došlo je do pogreške prilikom slanja upita. Pokušajte ponovno ili nas kontaktirajte izravno."
   }
 }

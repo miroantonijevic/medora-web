@@ -1,24 +1,24 @@
 @import '@payloadcms/ui/scss';
 
-// Reinsert the custom "Media & Files" nav group after Content, matching its original position.
+// Sidebar group order, most-used/operational first, technical/system last.
 .nav__wrap {
-  > #nav-group-media-library {
-    order: 3;
-  }
-
-  > [id='nav-group-Globals'] {
+  > [id='nav-group-Guest Inquiries'] {
     order: 1;
   }
 
-  > [id='nav-group-Content'] {
+  > [id='nav-group-Hotel Content'] {
     order: 2;
   }
 
-  > [id='nav-group-System'] {
+  > [id='nav-group-Homepages'] {
+    order: 3;
+  }
+
+  > [id='nav-group-Content'] {
     order: 4;
   }
 
-  > [id='nav-group-Hotel Content'] {
+  > #nav-group-media-library {
     order: 5;
   }
 
@@ -30,10 +30,15 @@
     order: 7;
   }
 
-  > .nav__controls {
+  > [id='nav-group-System'] {
     order: 8;
   }
+
+  > .nav__controls {
+    order: 9;
+  }
 }
+
 
 .media-library {
   display: flex;

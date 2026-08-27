@@ -6,7 +6,6 @@ import { CallToAction } from '../../blocks/CallToAction/config'
 import { CardGrid } from '../../blocks/CardGrid/config'
 import { Content } from '../../blocks/Content/config'
 import { ContentSection } from '../../blocks/ContentSection/config'
-import { FormBlock } from '../../blocks/Form/config'
 import { MapEmbed } from '../../blocks/MapEmbed/config'
 import { MediaBlock } from '../../blocks/MediaBlock/config'
 import { PhotoGallery } from '../../blocks/PhotoGallery/config'
@@ -99,7 +98,6 @@ export const Pages: CollectionConfig<'pages'> = {
                 ContentSection,
                 CardGrid,
                 MediaBlock,
-                FormBlock,
                 PhotoGallery,
                 MapEmbed,
               ],

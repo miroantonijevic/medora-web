@@ -9,15 +9,21 @@ import { Media } from './collections/Media'
 import { Pages } from './collections/Pages'
 import { Posts } from './collections/Posts'
 import { FaqCategories } from './collections/FaqCategories'
+import { Inquiries } from './collections/Inquiries'
 import { LandingPages } from './collections/LandingPages'
 import { Offers } from './collections/Offers'
 import { Properties } from './collections/Properties'
 import { RoomGroups } from './collections/RoomGroups'
 import { Rooms } from './collections/Rooms'
 import { Users } from './collections/Users'
-import { Footer } from './Footer/config'
-import { Header } from './Header/config'
-import { AuriHomepage, OrbisHomepage, MainNav, SEODefaults, SiteSettings } from './globals'
+import {
+  AuriHomepage,
+  OrbisHomepage,
+  MainNav,
+  SEODefaults,
+  SiteSettings,
+  EmailSettings,
+} from './globals'
 import { plugins } from './plugins'
 import { defaultLexical } from '@/fields/defaultLexical'
 import { getServerSideURL } from './utilities/getURL'
@@ -117,13 +123,14 @@ export default buildConfig({
     Offers,
     FaqCategories,
     LandingPages,
+    Inquiries,
   ],
   cors: [getServerSideURL()].filter(Boolean),
   folders: {
     // Native folder browsing is replaced by our custom Media Library view
     browseByFolder: false,
   },
-  globals: [Header, Footer, MainNav, SiteSettings, SEODefaults, AuriHomepage, OrbisHomepage],
+  globals: [MainNav, SiteSettings, SEODefaults, AuriHomepage, OrbisHomepage, EmailSettings],
   plugins,
   secret: process.env.PAYLOAD_SECRET,
   sharp,

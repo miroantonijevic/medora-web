@@ -47,6 +47,7 @@ export const Posts: CollectionConfig<'posts'> = {
     },
   },
   admin: {
+    hidden: true,
     group: 'Blog',
     description: 'Blog articles and news posts with full rich-text layout builder.',
     defaultColumns: ['title', 'slug', 'updatedAt'],

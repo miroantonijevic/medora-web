@@ -13,6 +13,7 @@ export const Categories: CollectionConfig = {
     update: authenticated,
   },
   admin: {
+    hidden: true,
     useAsTitle: 'title',
     group: 'Blog',
     description: 'Categories used to tag blog posts.',

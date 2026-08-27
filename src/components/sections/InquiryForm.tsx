@@ -45,31 +45,33 @@ export function InquiryForm() {
     children: '0',
     roomPreference: defaultRoom,
     message: offerTitle ? `Regarding offer: ${offerTitle}` : '',
+    website: '', // honeypot — left empty by real visitors
   })
   const [sent, setSent] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState(false)
 
   function set(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }))
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    const body = [
-      `Name: ${form.name}`,
-      `Email: ${form.email}`,
-      form.phone ? `Phone: ${form.phone}` : null,
-      form.arrival ? `Arrival: ${form.arrival}` : null,
-      form.departure ? `Departure: ${form.departure}` : null,
-      `Adults: ${form.adults}`,
-      `Children: ${form.children}`,
-      form.roomPreference ? `Room/Unit: ${form.roomPreference}` : null,
-      form.message ? `\nMessage:\n${form.message}` : null,
-    ]
-      .filter(Boolean)
-      .join('\n')
-    const subject = `Quick Inquiry${form.roomPreference ? ` — ${form.roomPreference}` : ''}`
-    window.location.href = `mailto:reservations@medorahotels.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
-    setSent(true)
+    setError(false)
+    setIsSubmitting(true)
+    try {
+      const res = await fetch('/api/inquiries', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      })
+      if (!res.ok) throw new Error('Request failed')
+      setSent(true)
+    } catch {
+      setError(true)
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -113,6 +115,16 @@ export function InquiryForm() {
         </p>
 
         <form onSubmit={handleSubmit} noValidate>
+          <input
+            type="text"
+            name="website"
+            value={form.website}
+            onChange={set}
+            tabIndex={-1}
+            autoComplete="off"
+            aria-hidden="true"
+            style={{ position: 'absolute', left: '-9999px', width: 1, height: 1, opacity: 0 }}
+          />
           <div
             style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 20 }}
           >
@@ -212,6 +224,7 @@ export function InquiryForm() {
 
           <button
             type="submit"
+            disabled={isSubmitting}
             style={{
               background: '#009bdb',
               color: '#fff',
@@ -221,7 +234,8 @@ export function InquiryForm() {
               fontWeight: 700,
               letterSpacing: '0.08em',
               textTransform: 'uppercase',
-              cursor: 'pointer',
+              cursor: isSubmitting ? 'default' : 'pointer',
+              opacity: isSubmitting ? 0.7 : 1,
             }}
           >
             {t('submit')}
@@ -230,6 +244,11 @@ export function InquiryForm() {
           {sent && (
             <p style={{ marginTop: 20, fontSize: 14, color: '#009bdb', fontWeight: 600 }}>
               ✓ {t('submit')} — {t('note')}
+            </p>
+          )}
+          {error && (
+            <p style={{ marginTop: 20, fontSize: 14, color: '#c0392b', fontWeight: 600 }}>
+              {t('error')}
             </p>
           )}
         </form>

@@ -1,7 +1,15 @@
 import React from 'react'
+import { getPayload } from 'payload'
+import config from '@payload-config'
 import './index.scss'
 
 const BeforeDashboard = async () => {
+  const payload = await getPayload({ config })
+  const { totalDocs: spamCount } = await payload.count({
+    collection: 'inquiries',
+    where: { status: { equals: 'spam' } },
+  })
+
   return (
     <div className="medora-dashboard">
       {/* Hides Payload auto-generated ModularDashboard rendered below this component */}
@@ -53,6 +61,10 @@ const BeforeDashboard = async () => {
 
       <div className="medora-dashboard__label">Settings</div>
       <div className="medora-dashboard__row">
+        <a className="medora-dashboard__card" href="/admin/collections/inquiries">
+          📩 Inquiries
+          <small>Quick Inquiry form submissions</small>
+        </a>
         <a className="medora-dashboard__card" href="/admin/globals/site-settings">
           ⚙️ Site Settings
           <small>Contact info, favicon, Analytics</small>
@@ -61,7 +73,17 @@ const BeforeDashboard = async () => {
           🔍 SEO Defaults
           <small>Fallback meta title &amp; description</small>
         </a>
+        <a className="medora-dashboard__card" href="/admin/globals/email-settings">
+          ✉️ Email Settings
+          <small>SMTP credentials &amp; inquiry recipients</small>
+        </a>
       </div>
+
+      {spamCount > 0 && (
+        <div className="medora-dashboard__footer">
+          🛡 {spamCount} spam inquir{spamCount === 1 ? 'y' : 'ies'} blocked
+        </div>
+      )}
 
       <div className="medora-dashboard__footer">
         <a href="/admin/globals/main-nav">Navigation menu</a>

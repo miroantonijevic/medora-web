@@ -11,7 +11,7 @@ const makePropertyHomepage = (
   slug,
   label,
   admin: {
-    // No group — these are primary dashboard items, not buried in settings
+    group: 'Homepages',
     description: `Controls every section of the ${label} — slides, inclusions, rooms, offer.`,
     livePreview: {
       url: ({ locale }) => {

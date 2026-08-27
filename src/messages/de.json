@@ -139,6 +139,7 @@
     "roomPreference": "Zimmer / Unterkunft",
     "message": "Nachricht (optional)",
     "submit": "Anfrage senden",
-    "note": "Keine Zahlung erforderlich. Wir bestätigen die Verfügbarkeit und senden Ihnen ein persönliches Angebot."
+    "note": "Keine Zahlung erforderlich. Wir bestätigen die Verfügbarkeit und senden Ihnen ein persönliches Angebot.",
+    "error": "Beim Senden Ihrer Anfrage ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut oder kontaktieren Sie uns direkt."
   }
 }

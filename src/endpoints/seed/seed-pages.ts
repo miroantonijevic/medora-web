@@ -3757,7 +3757,7 @@ export async function seedPages({ payload }: { payload: Payload }) {
     },
     { label: 'We think green', href: '/we-think-green', children: [] },
     { label: 'All contacts', href: '/contact', children: [] },
-    { label: 'FAQ', href: '/faq', children: [] },
+    { label: 'FAQ', href: '/help-center', children: [] },
   ]
 
   const enResult = await payload.updateGlobal({
@@ -3880,7 +3880,7 @@ export async function seedPages({ payload }: { payload: Payload }) {
         },
         { label: 'Zeleno razmišljamo', href: '/we-think-green', children: [] },
         { label: 'Svi kontakti', href: '/contact', children: [] },
-        { label: 'Česta pitanja', href: '/faq', children: [] },
+        { label: 'Česta pitanja', href: '/help-center', children: [] },
       ]),
     },
     context: { disableRevalidate: true },
@@ -3972,7 +3972,7 @@ export async function seedPages({ payload }: { payload: Payload }) {
         },
         { label: 'Wir denken grün', href: '/we-think-green', children: [] },
         { label: 'Alle Kontakte', href: '/contact', children: [] },
-        { label: 'FAQ', href: '/faq', children: [] },
+        { label: 'FAQ', href: '/help-center', children: [] },
       ]),
     },
     context: { disableRevalidate: true },
