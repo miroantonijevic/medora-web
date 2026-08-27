@@ -22,6 +22,7 @@ import { BlocksFeatureClient as BlocksFeatureClient_e70f5e05f09f93e00b997edb1ef0
 import { MetaImageComponent as MetaImageComponent_a8a977ebc872c5d5ea7ee689724c0860 } from '@payloadcms/plugin-seo/client'
 import { FolderTableCell as FolderTableCell_f9c02e79a4aed9a3924487c0cd4cafb1 } from '@payloadcms/next/rsc'
 import { FolderField as FolderField_f9c02e79a4aed9a3924487c0cd4cafb1 } from '@payloadcms/next/rsc'
+import { MediaListRedirectView as MediaListRedirectView_039061ca216648a44fa51c65a4b45ebc } from '@/components/MediaLibrary/ListRedirect'
 import { default as default_bac71bb772b31169663e5a27ac3e4317 } from '@/fields/components/MediaGalleryField/AddFolderButtonUpload'
 import { default as default_e96be7df97f9ccd0b5bc5b1702ca30d7 } from '@/collections/Inquiries/components/InquiryHeaderBanner'
 import { default as default_bd33ea579fe9dafc1393a6f39dc1fecd } from '@/collections/Inquiries/components/SectionHeading'
@@ -71,6 +72,7 @@ export const importMap = {
   "@payloadcms/plugin-seo/client#MetaImageComponent": MetaImageComponent_a8a977ebc872c5d5ea7ee689724c0860,
   "@payloadcms/next/rsc#FolderTableCell": FolderTableCell_f9c02e79a4aed9a3924487c0cd4cafb1,
   "@payloadcms/next/rsc#FolderField": FolderField_f9c02e79a4aed9a3924487c0cd4cafb1,
+  "@/components/MediaLibrary/ListRedirect#MediaListRedirectView": MediaListRedirectView_039061ca216648a44fa51c65a4b45ebc,
   "@/fields/components/MediaGalleryField/AddFolderButtonUpload#default": default_bac71bb772b31169663e5a27ac3e4317,
   "@/collections/Inquiries/components/InquiryHeaderBanner#default": default_e96be7df97f9ccd0b5bc5b1702ca30d7,
   "@/collections/Inquiries/components/SectionHeading#default": default_bd33ea579fe9dafc1393a6f39dc1fecd,

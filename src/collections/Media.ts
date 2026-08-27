@@ -16,7 +16,11 @@ const dirname = path.dirname(filename)
 
 export const Media: CollectionConfig = {
   slug: 'media',
-  folders: true,
+  // browseByFolder disabled: the native folder-browsing view is replaced by
+  // our custom Media Library (the `folder` field/collection is still used by it).
+  folders: {
+    browseByFolder: false,
+  },
   access: {
     create: authenticated,
     delete: authenticated,
@@ -41,7 +45,15 @@ export const Media: CollectionConfig = {
   ],
   admin: {
     group: false,
-    description: 'All uploaded images and files. Referenced by properties, rooms, offers and the homepage.',
+    description:
+      'All uploaded images and files. Referenced by properties, rooms, offers and the homepage.',
+    components: {
+      views: {
+        list: {
+          Component: '@/components/MediaLibrary/ListRedirect#MediaListRedirectView',
+        },
+      },
+    },
   },
   upload: {
     // Upload to the public/media directory in Next.js making them publicly accessible even outside of Payload

@@ -35,6 +35,10 @@
   --style-radius-s: 4px;
   --style-radius-m: 8px;
   --style-radius-l: 12px;
+
+  /* Form field accent — kept separate from the nav/button blue above */
+  --input-accent: #ff914d;
+  --input-accent-soft: rgba(255, 145, 77, 0.15);
 }
 
 /* ─── Nav sidebar — Medora navy ───────────────────────────────────────────── */
@@ -209,4 +213,98 @@
 
 .gutter--right {
   padding-right: 32px !important;
+}
+
+/* ─── Text / number / email / textarea inputs ────────────────────────────── */
+.field-type input:not([type='checkbox']):not([type='radio']),
+.field-type textarea {
+  border: 1px solid var(--theme-elevation-150) !important;
+  border-radius: var(--style-radius-s) !important;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.field-type input:not([type='checkbox']):not([type='radio']):focus,
+.field-type textarea:focus {
+  border-color: var(--input-accent) !important;
+  box-shadow: 0 0 0 3px var(--input-accent-soft) !important;
+}
+
+/* ─── Select / dropdown (react-select) ───────────────────────────────────── */
+.rs__control {
+  border-radius: var(--style-radius-s) !important;
+  border-color: var(--theme-elevation-150) !important;
+}
+
+.rs__control--is-focused {
+  border-color: var(--input-accent) !important;
+  box-shadow: 0 0 0 3px var(--input-accent-soft) !important;
+}
+
+.rs__menu {
+  border-radius: var(--style-radius-s) !important;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(1, 43, 89, 0.12) !important;
+}
+
+.rs__option--is-focused {
+  background-color: var(--input-accent-soft) !important;
+}
+
+.rs__option--is-selected {
+  background-color: var(--input-accent) !important;
+}
+
+.rs__multi-value {
+  border-radius: var(--style-radius-s) !important;
+  background-color: var(--input-accent-soft) !important;
+}
+
+/* ─── Checkboxes ──────────────────────────────────────────────────────────── */
+.checkbox-input__input {
+  border-radius: var(--style-radius-s) !important;
+}
+
+.checkbox-input input[type='checkbox']:checked ~ .checkbox-input__icon,
+.checkbox-input--checked .checkbox-input__input {
+  border-color: var(--input-accent) !important;
+  background-color: var(--input-accent) !important;
+}
+
+/* ─── Upload dropzone ─────────────────────────────────────────────────────── */
+.upload__dropzoneAndUpload,
+.upload__dropzone {
+  border-radius: var(--style-radius-m) !important;
+  border: 1px dashed var(--theme-elevation-150) !important;
+}
+
+.upload__dropzoneAndUpload:hover,
+.upload__dropzone:hover,
+.upload__dropzone--dragging {
+  border-color: var(--input-accent) !important;
+  background-color: var(--input-accent-soft) !important;
+}
+
+/* ─── Relationship / upload pills ─────────────────────────────────────────── */
+.relationship--single-value,
+.upload-relationship-details,
+.file-field__filename {
+  border-radius: var(--style-radius-s) !important;
+}
+
+/* ─── Rich text (Lexical) toolbar ─────────────────────────────────────────── */
+.rich-text-lexical .toolbar-popup,
+.rich-text-lexical .fixed-toolbar {
+  border-radius: var(--style-radius-s) !important;
+  border: 1px solid var(--theme-elevation-150) !important;
+}
+
+.rich-text-lexical .toolbar-popup__button:hover,
+.rich-text-lexical .fixed-toolbar-item:hover {
+  background-color: var(--input-accent-soft) !important;
+}
+
+.rich-text-lexical .toolbar-popup__button--active,
+.rich-text-lexical .fixed-toolbar-item--active {
+  background-color: var(--input-accent-soft) !important;
+  color: var(--input-accent) !important;
 }
