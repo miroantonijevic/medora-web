@@ -41,6 +41,18 @@
     "select": "Select",
     "noRooms": "No rooms available for this property."
   },
+  "bookingCalendar": {
+    "selectDates": "Select your check-in and check-out dates",
+    "checkIn": "Check-in",
+    "checkOut": "Check-out",
+    "loading": "Loading availability\u2026",
+    "error": "Availability is temporarily unavailable. Please try again later.",
+    "available": "Available",
+    "unavailable": "Unavailable",
+    "lowerPrice": "Lower price",
+    "close": "Close",
+    "continueToBook": "Continue to booking"
+  },
   "offers": {
     "title": "Special Offers",
     "subtitle": "Book directly and get the best price guaranteed.",

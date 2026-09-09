@@ -1,5 +1,7 @@
 import type { CollectionConfig } from 'payload'
 
+import { authenticated } from '@/access/authenticated'
+
 export const FaqCategories: CollectionConfig = {
   slug: 'faq-categories',
   admin: {
@@ -8,7 +10,12 @@ export const FaqCategories: CollectionConfig = {
     description: 'FAQ categories (Reservations, Wellness, etc.) with their Q&A items.',
     defaultColumns: ['title', 'slug', 'order'],
   },
-  access: { read: () => true },
+  access: {
+    create: authenticated,
+    delete: authenticated,
+    read: () => true,
+    update: authenticated,
+  },
   fields: [
     {
       name: 'title',

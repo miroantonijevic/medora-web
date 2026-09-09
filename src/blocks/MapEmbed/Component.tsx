@@ -1,17 +1,27 @@
 import React from 'react'
 
+import { cn } from '@/utilities/ui'
+import { getWidthClassName, type LayoutSettings } from '@/utilities/getBlockLayoutClasses'
+
 type Props = {
   lat: number
   lng: number
   zoom?: number | null
   directionsUrl: string
+  layoutSettings?: LayoutSettings
 }
 
-export const MapEmbedComponent: React.FC<Props> = ({ lat, lng, zoom, directionsUrl }) => {
+export const MapEmbedComponent: React.FC<Props> = ({
+  lat,
+  lng,
+  zoom,
+  directionsUrl,
+  layoutSettings,
+}) => {
   const src = `https://www.google.com/maps?q=${lat},${lng}&z=${zoom ?? 15}&output=embed`
 
   return (
-    <div className="max-w-275 mx-auto px-6">
+    <div className={cn(getWidthClassName(layoutSettings?.width, 'max-w-275 mx-auto'), 'px-6')}>
       <div className="w-full aspect-video rounded overflow-hidden">
         <iframe
           src={src}

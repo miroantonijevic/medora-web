@@ -167,16 +167,102 @@
   border-color: #0088c3 !important;
 }
 
-/* ─── Array row cards ─────────────────────────────────────────────────────── */
-.array-field__row {
+/* ─── Array / Blocks row cards (layout builder + repeater rows) ──────────── */
+/* .collapsible is the shared row wrapper Payload uses for both array and
+   blocks fields — style it once so every array/blocks field site-wide picks
+   this up automatically. */
+.collapsible.array-field__row,
+.collapsible.blocks-field__row {
   border-radius: var(--style-radius-m) !important;
   border: 1px solid var(--theme-border-color) !important;
-  margin-bottom: 8px !important;
+  margin-bottom: 10px !important;
   box-shadow: 0 1px 3px rgba(1, 43, 89, 0.06) !important;
+  overflow: hidden;
+  transition: box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.collapsible.array-field__row:hover,
+.collapsible.blocks-field__row:hover {
+  border-color: var(--input-accent) !important;
+  box-shadow: 0 2px 8px rgba(1, 43, 89, 0.1) !important;
 }
 
 .collapsible__content {
   border-radius: 0 0 var(--style-radius-m) var(--style-radius-m) !important;
+  border-top: 1px solid var(--theme-border-color) !important;
+}
+
+/* Row header bar — the strip containing drag handle, number, badge, label */
+.collapsible__header-wrap {
+  background-color: var(--theme-elevation-50) !important;
+  min-height: 44px !important;
+}
+
+/* Drag handle — round hover affordance so it reads as an interactive control */
+.collapsible__drag {
+  border-radius: var(--style-radius-s) !important;
+  transition: background-color 0.15s ease;
+}
+
+.collapsible__drag:hover {
+  background-color: var(--input-accent-soft) !important;
+}
+
+.collapsible__drag svg {
+  fill: var(--theme-elevation-400) !important;
+}
+
+/* Row label text (array fields) */
+.array-field__row-header {
+  font-weight: 500 !important;
+  color: var(--theme-elevation-800) !important;
+}
+
+/* Block index number ("01", "02"...) — small muted chip */
+.blocks-field__block-number {
+  color: var(--theme-elevation-400) !important;
+  font-weight: 600 !important;
+  font-size: 12px !important;
+}
+
+/* Block type badge — accent-tinted instead of Payload's default white pill */
+.blocks-field__block-header .pill {
+  background-color: var(--input-accent-soft) !important;
+  border-color: transparent !important;
+}
+
+.blocks-field__block-header .pill .pill__label {
+  color: var(--input-accent) !important;
+  font-weight: 600 !important;
+}
+
+/* Block name input (the "Untitled" label / RowLabel host) */
+.section-title__input {
+  font-weight: 500 !important;
+}
+
+/* Live content preview shown after the type pill, when a block defines a custom Label */
+.blocks-field__block-preview {
+  color: var(--theme-elevation-500) !important;
+  font-size: 13px !important;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* "..." row actions button — subtle hover instead of a hard square */
+.collapsible__actions-wrap .popup-button {
+  border-radius: var(--style-radius-s) !important;
+}
+
+.collapsible__actions-wrap .popup-button:hover {
+  background-color: var(--theme-elevation-100) !important;
+}
+
+/* Array/blocks field toolbar (Collapse All / Show All / clipboard) */
+.array-field__header-action,
+.blocks-field__header-action {
+  border-radius: var(--style-radius-s) !important;
 }
 
 /* ─── Global font size bump ───────────────────────────────────────────────── */

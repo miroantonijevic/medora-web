@@ -10,11 +10,11 @@ import { Pages } from './collections/Pages'
 import { Posts } from './collections/Posts'
 import { FaqCategories } from './collections/FaqCategories'
 import { Inquiries } from './collections/Inquiries'
-import { LandingPages } from './collections/LandingPages'
 import { Offers } from './collections/Offers'
 import { Properties } from './collections/Properties'
 import { RoomGroups } from './collections/RoomGroups'
 import { Rooms } from './collections/Rooms'
+import { SearchIndex } from './collections/SearchIndex'
 import { Users } from './collections/Users'
 import {
   AuriHomepage,
@@ -67,7 +67,7 @@ export default buildConfig({
         Logo: '@/components/AdminLogo#AdminLogo',
         Icon: '@/components/AdminLogo#AdminIcon',
       },
-      beforeNavLinks: ['@/components/MediaLibrary/NavLink'],
+      beforeNavLinks: ['@/components/GlobalSearch/NavLink', '@/components/MediaLibrary/NavLink'],
       views: {
         mediaLibrary: {
           Component: '@/components/MediaLibrary#MediaLibraryView',
@@ -122,8 +122,8 @@ export default buildConfig({
     Rooms,
     Offers,
     FaqCategories,
-    LandingPages,
     Inquiries,
+    SearchIndex,
   ],
   cors: [getServerSideURL()].filter(Boolean),
   folders: {

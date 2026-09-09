@@ -2,6 +2,8 @@ import React from 'react'
 
 import { Link } from '@/i18n/navigation'
 import { Media } from '@/components/Media'
+import { cn } from '@/utilities/ui'
+import { getWidthClassName, type LayoutSettings } from '@/utilities/getBlockLayoutClasses'
 
 type Card = {
   image?: Record<string, unknown> | null
@@ -13,13 +15,16 @@ type Card = {
 type Props = {
   intro?: string | null
   cards?: Card[] | null
+  layoutSettings?: LayoutSettings
 }
 
-export const CardGridBlock: React.FC<Props> = ({ intro, cards }) => {
+export const CardGridBlock: React.FC<Props> = ({ intro, cards, layoutSettings }) => {
   if (!cards?.length) return null
 
   return (
-    <section className="max-w-[1100px] mx-auto px-6 py-10">
+    <section
+      className={cn(getWidthClassName(layoutSettings?.width, 'max-w-275 mx-auto'), 'px-6 py-10')}
+    >
       {intro && <p className="text-gray-600 mb-8 text-base leading-relaxed max-w-2xl">{intro}</p>}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
         {cards.map((card, i) => {

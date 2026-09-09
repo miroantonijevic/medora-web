@@ -79,10 +79,9 @@ export interface Config {
     rooms: Room;
     offers: Offer;
     'faq-categories': FaqCategory;
-    'landing-pages': LandingPage;
     inquiries: Inquiry;
+    'search-index': SearchIndex;
     redirects: Redirect;
-    search: Search;
     'payload-kv': PayloadKv;
     'payload-jobs': PayloadJob;
     'payload-folders': FolderInterface;
@@ -106,10 +105,9 @@ export interface Config {
     rooms: RoomsSelect<false> | RoomsSelect<true>;
     offers: OffersSelect<false> | OffersSelect<true>;
     'faq-categories': FaqCategoriesSelect<false> | FaqCategoriesSelect<true>;
-    'landing-pages': LandingPagesSelect<false> | LandingPagesSelect<true>;
     inquiries: InquiriesSelect<false> | InquiriesSelect<true>;
+    'search-index': SearchIndexSelect<false> | SearchIndexSelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
-    search: SearchSelect<false> | SearchSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-jobs': PayloadJobsSelect<false> | PayloadJobsSelect<true>;
     'payload-folders': PayloadFoldersSelect<false> | PayloadFoldersSelect<true>;
@@ -487,6 +485,10 @@ export interface Category {
 export interface User {
   id: number;
   name?: string | null;
+  /**
+   * Admins have full access, including Users and site-wide settings.
+   */
+  role: 'admin' | 'editor';
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -550,6 +552,15 @@ export interface CallToActionBlock {
         id?: string | null;
       }[]
     | null;
+  /**
+   * Optional visual presentation controls for this block. Leave as default for the standard look.
+   */
+  layoutSettings?: {
+    width?: ('standard' | 'narrow' | 'full') | null;
+    spacing?: ('none' | 'small' | 'standard' | 'large') | null;
+    alignment?: ('left' | 'center') | null;
+    background?: ('none' | 'light' | 'dark') | null;
+  };
   id?: string | null;
   blockName?: string | null;
   blockType: 'cta';
@@ -600,6 +611,15 @@ export interface ContentBlock {
         id?: string | null;
       }[]
     | null;
+  /**
+   * Optional visual presentation controls for this block. Leave as default for the standard look.
+   */
+  layoutSettings?: {
+    width?: ('standard' | 'narrow' | 'full') | null;
+    spacing?: ('none' | 'small' | 'standard' | 'large') | null;
+    alignment?: ('left' | 'center') | null;
+    background?: ('none' | 'light' | 'dark') | null;
+  };
   id?: string | null;
   blockName?: string | null;
   blockType: 'content';
@@ -637,6 +657,15 @@ export interface ContentSectionBlock {
    * Optional 'Read more' button URL.
    */
   ctaLink?: string | null;
+  /**
+   * Optional visual presentation controls for this block. Leave as default for the standard look.
+   */
+  layoutSettings?: {
+    width?: ('standard' | 'narrow' | 'full') | null;
+    spacing?: ('none' | 'small' | 'standard' | 'large') | null;
+    alignment?: ('left' | 'center') | null;
+    background?: ('none' | 'light' | 'dark') | null;
+  };
   id?: string | null;
   blockName?: string | null;
   blockType: 'contentSection';
@@ -662,6 +691,15 @@ export interface CardGridBlock {
         id?: string | null;
       }[]
     | null;
+  /**
+   * Optional visual presentation controls for this block. Leave as default for the standard look.
+   */
+  layoutSettings?: {
+    width?: ('standard' | 'narrow' | 'full') | null;
+    spacing?: ('none' | 'small' | 'standard' | 'large') | null;
+    alignment?: ('left' | 'center') | null;
+    background?: ('none' | 'light' | 'dark') | null;
+  };
   id?: string | null;
   blockName?: string | null;
   blockType: 'cardGrid';
@@ -672,6 +710,15 @@ export interface CardGridBlock {
  */
 export interface MediaBlock {
   media: number | Media;
+  /**
+   * Optional visual presentation controls for this block. Leave as default for the standard look.
+   */
+  layoutSettings?: {
+    width?: ('standard' | 'narrow' | 'full') | null;
+    spacing?: ('none' | 'small' | 'standard' | 'large') | null;
+    alignment?: ('left' | 'center') | null;
+    background?: ('none' | 'light' | 'dark') | null;
+  };
   id?: string | null;
   blockName?: string | null;
   blockType: 'mediaBlock';
@@ -691,6 +738,15 @@ export interface PhotoGalleryBlock {
         id?: string | null;
       }[]
     | null;
+  /**
+   * Optional visual presentation controls for this block. Leave as default for the standard look.
+   */
+  layoutSettings?: {
+    width?: ('standard' | 'narrow' | 'full') | null;
+    spacing?: ('none' | 'small' | 'standard' | 'large') | null;
+    alignment?: ('left' | 'center') | null;
+    background?: ('none' | 'light' | 'dark') | null;
+  };
   id?: string | null;
   blockName?: string | null;
   blockType: 'photo-gallery';
@@ -707,6 +763,15 @@ export interface MapEmbedBlock {
    * External "Driving directions" link, e.g. a Google Maps directions URL.
    */
   directionsUrl: string;
+  /**
+   * Optional visual presentation controls for this block. Leave as default for the standard look.
+   */
+  layoutSettings?: {
+    width?: ('standard' | 'narrow' | 'full') | null;
+    spacing?: ('none' | 'small' | 'standard' | 'large') | null;
+    alignment?: ('left' | 'center') | null;
+    background?: ('none' | 'light' | 'dark') | null;
+  };
   id?: string | null;
   blockName?: string | null;
   blockType: 'mapEmbed';
@@ -810,6 +875,20 @@ export interface Room {
         id?: string | null;
       }[]
     | null;
+  /**
+   * Phobs PMS UnitId for this room — used by the booking calendar to check availability (must belong to the parent property's Phobs PropertyId).
+   */
+  phobsUnitId?: string | null;
+  /**
+   * Date ranges highlighted on the booking calendar as promo/lower-price dates (shown in gold to guests). Has no effect on real Phobs availability or pricing — display only.
+   */
+  promoDates?:
+    | {
+        dateFrom: string;
+        dateTo: string;
+        id?: string | null;
+      }[]
+    | null;
   updatedAt: string;
   meta?: {
     title?: string | null;
@@ -907,22 +986,6 @@ export interface FaqCategory {
   createdAt: string;
 }
 /**
- * Custom landing pages with a block-based layout builder.
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "landing-pages".
- */
-export interface LandingPage {
-  id: number;
-  title: string;
-  slug: string;
-  summary?: string | null;
-  layout?: unknown[] | null;
-  updatedAt: string;
-  createdAt: string;
-  _status?: ('draft' | 'published') | null;
-}
-/**
  * Quick Inquiry form submissions from the website.
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -943,6 +1006,21 @@ export interface Inquiry {
   website?: string | null;
   createdAt: string;
   updatedAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "search-index".
+ */
+export interface SearchIndex {
+  id: number;
+  title: string;
+  slug?: string | null;
+  searchText?: string | null;
+  docCollection: string;
+  docId: string;
+  priority?: number | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * URL redirects (301/302). Managed automatically when slugs change.
@@ -977,37 +1055,6 @@ export interface Redirect {
         } | null);
     url?: string | null;
   };
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This is a collection of automatically created search results. These results are used by the global site search and will be updated automatically as documents in the CMS are created or updated.
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "search".
- */
-export interface Search {
-  id: number;
-  title?: string | null;
-  priority?: number | null;
-  doc: {
-    relationTo: 'posts';
-    value: number | Post;
-  };
-  slug?: string | null;
-  meta?: {
-    title?: string | null;
-    description?: string | null;
-    image?: (number | null) | Media;
-  };
-  categories?:
-    | {
-        relationTo?: string | null;
-        categoryID?: string | null;
-        title?: string | null;
-        id?: string | null;
-      }[]
-    | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -1168,20 +1215,16 @@ export interface PayloadLockedDocument {
         value: number | FaqCategory;
       } | null)
     | ({
-        relationTo: 'landing-pages';
-        value: number | LandingPage;
-      } | null)
-    | ({
         relationTo: 'inquiries';
         value: number | Inquiry;
       } | null)
     | ({
-        relationTo: 'redirects';
-        value: number | Redirect;
+        relationTo: 'search-index';
+        value: number | SearchIndex;
       } | null)
     | ({
-        relationTo: 'search';
-        value: number | Search;
+        relationTo: 'redirects';
+        value: number | Redirect;
       } | null)
     | ({
         relationTo: 'payload-folders';
@@ -1310,6 +1353,14 @@ export interface CallToActionBlockSelect<T extends boolean = true> {
             };
         id?: T;
       };
+  layoutSettings?:
+    | T
+    | {
+        width?: T;
+        spacing?: T;
+        alignment?: T;
+        background?: T;
+      };
   id?: T;
   blockName?: T;
 }
@@ -1336,6 +1387,14 @@ export interface ContentBlockSelect<T extends boolean = true> {
             };
         id?: T;
       };
+  layoutSettings?:
+    | T
+    | {
+        width?: T;
+        spacing?: T;
+        alignment?: T;
+        background?: T;
+      };
   id?: T;
   blockName?: T;
 }
@@ -1349,6 +1408,14 @@ export interface ContentSectionBlockSelect<T extends boolean = true> {
   image?: T;
   imagePosition?: T;
   ctaLink?: T;
+  layoutSettings?:
+    | T
+    | {
+        width?: T;
+        spacing?: T;
+        alignment?: T;
+        background?: T;
+      };
   id?: T;
   blockName?: T;
 }
@@ -1367,6 +1434,14 @@ export interface CardGridBlockSelect<T extends boolean = true> {
         link?: T;
         id?: T;
       };
+  layoutSettings?:
+    | T
+    | {
+        width?: T;
+        spacing?: T;
+        alignment?: T;
+        background?: T;
+      };
   id?: T;
   blockName?: T;
 }
@@ -1376,6 +1451,14 @@ export interface CardGridBlockSelect<T extends boolean = true> {
  */
 export interface MediaBlockSelect<T extends boolean = true> {
   media?: T;
+  layoutSettings?:
+    | T
+    | {
+        width?: T;
+        spacing?: T;
+        alignment?: T;
+        background?: T;
+      };
   id?: T;
   blockName?: T;
 }
@@ -1391,6 +1474,14 @@ export interface PhotoGalleryBlockSelect<T extends boolean = true> {
         image?: T;
         id?: T;
       };
+  layoutSettings?:
+    | T
+    | {
+        width?: T;
+        spacing?: T;
+        alignment?: T;
+        background?: T;
+      };
   id?: T;
   blockName?: T;
 }
@@ -1403,6 +1494,14 @@ export interface MapEmbedBlockSelect<T extends boolean = true> {
   lng?: T;
   zoom?: T;
   directionsUrl?: T;
+  layoutSettings?:
+    | T
+    | {
+        width?: T;
+        spacing?: T;
+        alignment?: T;
+        background?: T;
+      };
   id?: T;
   blockName?: T;
 }
@@ -1557,6 +1656,7 @@ export interface CategoriesSelect<T extends boolean = true> {
  */
 export interface UsersSelect<T extends boolean = true> {
   name?: T;
+  role?: T;
   updatedAt?: T;
   createdAt?: T;
   email?: T;
@@ -1637,6 +1737,14 @@ export interface RoomsSelect<T extends boolean = true> {
         label?: T;
         id?: T;
       };
+  phobsUnitId?: T;
+  promoDates?:
+    | T
+    | {
+        dateFrom?: T;
+        dateTo?: T;
+        id?: T;
+      };
   updatedAt?: T;
   meta?:
     | T
@@ -1696,19 +1804,6 @@ export interface FaqCategoriesSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "landing-pages_select".
- */
-export interface LandingPagesSelect<T extends boolean = true> {
-  title?: T;
-  slug?: T;
-  summary?: T;
-  layout?: T | {};
-  updatedAt?: T;
-  createdAt?: T;
-  _status?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "inquiries_select".
  */
 export interface InquiriesSelect<T extends boolean = true> {
@@ -1728,6 +1823,20 @@ export interface InquiriesSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "search-index_select".
+ */
+export interface SearchIndexSelect<T extends boolean = true> {
+  title?: T;
+  slug?: T;
+  searchText?: T;
+  docCollection?: T;
+  docId?: T;
+  priority?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "redirects_select".
  */
 export interface RedirectsSelect<T extends boolean = true> {
@@ -1738,33 +1847,6 @@ export interface RedirectsSelect<T extends boolean = true> {
         type?: T;
         reference?: T;
         url?: T;
-      };
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "search_select".
- */
-export interface SearchSelect<T extends boolean = true> {
-  title?: T;
-  priority?: T;
-  doc?: T;
-  slug?: T;
-  meta?:
-    | T
-    | {
-        title?: T;
-        description?: T;
-        image?: T;
-      };
-  categories?:
-    | T
-    | {
-        relationTo?: T;
-        categoryID?: T;
-        title?: T;
-        id?: T;
       };
   updatedAt?: T;
   createdAt?: T;

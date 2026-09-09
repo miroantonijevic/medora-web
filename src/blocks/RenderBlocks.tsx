@@ -2,6 +2,7 @@ import React, { Fragment } from 'react'
 
 import type { Page } from '@/payload-types'
 
+import { getWrapperClassName } from '@/utilities/getBlockLayoutClasses'
 import { CallToActionBlock } from '@/blocks/CallToAction/Component'
 import { CardGridBlock } from '@/blocks/CardGrid/Component'
 import { ContentBlock } from '@/blocks/Content/Component'
@@ -41,8 +42,11 @@ export const RenderBlocks: React.FC<{
             if (Block) {
               // destination-hero must be flush to the viewport edge — skip the default margin wrapper
               const isFullWidth = blockType === 'destination-hero'
+              const wrapperClassName = isFullWidth
+                ? ''
+                : getWrapperClassName('layoutSettings' in block ? block.layoutSettings : undefined)
               return (
-                <div className={isFullWidth ? '' : 'my-16'} key={index}>
+                <div className={wrapperClassName} key={index}>
                   {/* @ts-expect-error there may be some mismatch between the expected types here */}
                   <Block {...block} disableInnerContainer />
                 </div>

@@ -7,6 +7,7 @@ import {
 } from '@payloadcms/richtext-lexical'
 
 import { revalidateCollectionHook } from '@/hooks/revalidateCollection'
+import { authenticated } from '@/access/authenticated'
 import { getServerSideURL } from '@/utilities/getURL'
 
 export const Offers: CollectionConfig = {
@@ -38,7 +39,10 @@ export const Offers: CollectionConfig = {
     },
   },
   access: {
+    create: authenticated,
+    delete: authenticated,
     read: () => true,
+    update: authenticated,
   },
   hooks: {
     afterChange: [revalidateCollectionHook('offers')],

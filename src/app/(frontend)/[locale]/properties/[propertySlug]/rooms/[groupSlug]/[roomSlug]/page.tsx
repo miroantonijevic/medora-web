@@ -11,9 +11,9 @@ import {
   getRoomBySlug,
   getRoomsByProperty,
 } from '@/lib/queries'
-import { bookingService } from '@/lib/booking'
 import { RichText } from '@/components/RichText'
 import { RoomGallery } from '@/components/sections/RoomGallery'
+import { BookingCalendar } from '@/components/BookingCalendar/BookingCalendar'
 
 type Args = {
   params: Promise<{ propertySlug: string; groupSlug: string; roomSlug: string; locale: string }>
@@ -76,7 +76,6 @@ export default async function RoomDetailPage({ params: paramsPromise }: Args) {
     Boolean(img.url),
   )
   const heroImage = images[0]
-  const bookingLink = bookingService.getBookingLink({ propertySlug, roomSlug, locale })
   type Inclusion = { label?: unknown }
   const inclusions = (room.inclusions ?? []) as Inclusion[]
 
@@ -164,9 +163,13 @@ export default async function RoomDetailPage({ params: paramsPromise }: Args) {
             >
               {tRooms('viewGallery')}
             </a>
-            <a
-              href={bookingLink.href}
-              style={{
+            <BookingCalendar
+              roomSlug={roomSlug}
+              propertySlug={propertySlug}
+              locale={locale}
+              triggerLabel={tCommon('bookNow')}
+              unitPhobsId={room.phobsUnitId}
+              triggerStyle={{
                 padding: '11px 22px',
                 background: '#009bdb',
                 border: '2px solid #009bdb',
@@ -177,10 +180,9 @@ export default async function RoomDetailPage({ params: paramsPromise }: Args) {
                 letterSpacing: '0.06em',
                 textTransform: 'uppercase',
                 whiteSpace: 'nowrap',
+                cursor: 'pointer',
               }}
-            >
-              {tCommon('bookNow')}
-            </a>
+            />
           </div>
         </div>
       </div>

@@ -41,6 +41,18 @@
     "select": "Odaberi",
     "noRooms": "Nema dostupnih soba za ovaj objekt."
   },
+  "bookingCalendar": {
+    "selectDates": "Odaberite datum dolaska i odlaska",
+    "checkIn": "Dolazak",
+    "checkOut": "Odlazak",
+    "loading": "U\u010ditavanje dostupnosti\u2026",
+    "error": "Dostupnost trenutno nije moguće provjeriti. Poku\u0161ajte ponovno kasnije.",
+    "available": "Dostupno",
+    "unavailable": "Nedostupno",
+    "lowerPrice": "Ni\u017ea cijena",
+    "close": "Zatvori",
+    "continueToBook": "Nastavi na rezervaciju"
+  },
   "offers": {
     "title": "Posebne ponude",
     "subtitle": "Rezervirajte izravno i dobijte zajamčeno najnižu cijenu.",

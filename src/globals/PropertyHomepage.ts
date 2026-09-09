@@ -1,5 +1,6 @@
 import type { GlobalConfig } from 'payload'
 import { revalidatePath } from 'next/cache'
+import { authenticated } from '@/access/authenticated'
 import { getServerSideURL } from '@/utilities/getURL'
 
 const makePropertyHomepage = (
@@ -22,7 +23,7 @@ const makePropertyHomepage = (
       },
     },
   },
-  access: { read: () => true },
+  access: { read: () => true, update: authenticated },
   versions: {
     drafts: true,
   },

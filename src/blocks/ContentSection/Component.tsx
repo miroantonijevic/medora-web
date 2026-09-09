@@ -3,6 +3,8 @@ import React from 'react'
 import { Link } from '@/i18n/navigation'
 import { Media } from '@/components/Media'
 import RichText from '@/components/RichText'
+import { cn } from '@/utilities/ui'
+import { getWidthClassName, type LayoutSettings } from '@/utilities/getBlockLayoutClasses'
 
 type Props = {
   heading?: string | null
@@ -10,6 +12,7 @@ type Props = {
   image?: Record<string, unknown> | null
   imagePosition?: 'right' | 'below' | null
   ctaLink?: string | null
+  layoutSettings?: LayoutSettings
 }
 
 export const ContentSectionBlock: React.FC<Props> = ({
@@ -18,12 +21,18 @@ export const ContentSectionBlock: React.FC<Props> = ({
   image,
   imagePosition = 'right',
   ctaLink,
+  layoutSettings,
 }) => {
   const hasImage = image && typeof image === 'object'
   const isRight = hasImage && imagePosition !== 'below'
 
   return (
-    <section className="max-w-[1100px] mx-auto px-6 py-10 border-t border-gray-100 first:border-t-0">
+    <section
+      className={cn(
+        getWidthClassName(layoutSettings?.width, 'max-w-275 mx-auto'),
+        'px-6 py-10 border-t border-gray-100 first:border-t-0',
+      )}
+    >
       <div className={`flex gap-12 items-start ${isRight ? 'flex-row' : 'flex-col'}`}>
         <div className="flex-1 min-w-0">
           {heading && <h2 className="text-[22px] font-bold text-[#012B59] mb-4">{heading}</h2>}

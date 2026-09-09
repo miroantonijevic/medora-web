@@ -47,13 +47,13 @@ type Args = {
 
 export default async function Page({ params: paramsPromise }: Args) {
   const { isEnabled: draft } = await draftMode()
-  const { slug: slugArray = ['home'] } = await paramsPromise
+  const { slug: slugArray = ['home'], locale } = await paramsPromise
   const path = slugArray.join('/')
   const url = '/' + path
 
   let page: RequiredDataFromCollectionSlug<'pages'> | null
 
-  page = await queryPageByPath({ path })
+  page = await queryPageByPath({ path, locale })
 
   // Remove this code once your website is seeded
   if (!page && path === 'home') {
@@ -81,16 +81,16 @@ export default async function Page({ params: paramsPromise }: Args) {
 }
 
 export async function generateMetadata({ params: paramsPromise }: Args): Promise<Metadata> {
-  const { slug: slugArray = ['home'] } = await paramsPromise
+  const { slug: slugArray = ['home'], locale } = await paramsPromise
   const path = slugArray.join('/')
-  const page = await queryPageByPath({ path })
+  const page = await queryPageByPath({ path, locale })
 
   return generateMeta({ doc: page })
 }
 
 // Queries by `path` field first, then falls back to `slug` — supports both
 // nested paths (destination/beaches) and legacy flat slugs (home, about)
-const queryPageByPath = cache(async ({ path }: { path: string }) => {
+const queryPageByPath = cache(async ({ path, locale }: { path: string; locale?: string }) => {
   const { isEnabled: draft } = await draftMode()
 
   const payload = await getPayload({ config: configPromise })
@@ -99,6 +99,7 @@ const queryPageByPath = cache(async ({ path }: { path: string }) => {
     collection: 'pages',
     draft,
     limit: 1,
+    locale: (locale as 'en' | 'hr' | 'de' | undefined) ?? 'en',
     pagination: false,
     overrideAccess: draft,
     where: {

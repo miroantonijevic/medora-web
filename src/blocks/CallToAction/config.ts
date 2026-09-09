@@ -8,6 +8,7 @@ import {
 } from '@payloadcms/richtext-lexical'
 
 import { linkGroup } from '../../fields/linkGroup'
+import { layoutSettings } from '../../fields/layoutSettings'
 
 export const CallToAction: Block = {
   slug: 'cta',
@@ -35,6 +36,7 @@ export const CallToAction: Block = {
         maxRows: 2,
       },
     }),
+    layoutSettings(),
   ],
   labels: {
     plural: 'Calls to Action',

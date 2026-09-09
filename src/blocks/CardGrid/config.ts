@@ -1,5 +1,7 @@
 import type { Block } from 'payload'
 
+import { layoutSettings } from '@/fields/layoutSettings'
+
 export const CardGrid: Block = {
   slug: 'cardGrid',
   interfaceName: 'CardGridBlock',
@@ -46,5 +48,6 @@ export const CardGrid: Block = {
         },
       ],
     },
+    layoutSettings(),
   ],
 }

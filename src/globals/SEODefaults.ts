@@ -1,5 +1,7 @@
 import type { GlobalConfig } from 'payload'
 
+import { isAdmin } from '@/access/isAdmin'
+
 export const SEODefaults: GlobalConfig = {
   slug: 'seo-defaults',
   label: 'SEO Defaults',
@@ -9,6 +11,7 @@ export const SEODefaults: GlobalConfig = {
   },
   access: {
     read: () => true,
+    update: isAdmin,
   },
   fields: [
     {

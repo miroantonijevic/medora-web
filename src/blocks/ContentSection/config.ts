@@ -6,6 +6,7 @@ import {
   UnorderedListFeature,
   lexicalEditor,
 } from '@payloadcms/richtext-lexical'
+import { layoutSettings } from '@/fields/layoutSettings'
 
 export const ContentSection: Block = {
   slug: 'contentSection',
@@ -56,5 +57,6 @@ export const ContentSection: Block = {
       type: 'text',
       admin: { description: "Optional 'Read more' button URL." },
     },
+    layoutSettings(),
   ],
 }

@@ -1,5 +1,7 @@
 import type { GlobalConfig } from 'payload'
 
+import { isAdmin } from '@/access/isAdmin'
+
 export const SiteSettings: GlobalConfig = {
   slug: 'site-settings',
   label: 'Site Settings',
@@ -9,6 +11,7 @@ export const SiteSettings: GlobalConfig = {
   },
   access: {
     read: () => true,
+    update: isAdmin,
   },
   fields: [
     {

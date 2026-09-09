@@ -38,8 +38,20 @@
     "bookThisRoom": "Zimmer buchen",
     "checkAvailability": "Verfügbarkeit prüfen",
     "noPaymentNote": "Keine Zahlung für Anfrage erforderlich",
-    "select": "Auswählen",
-    "noRooms": "Keine Zimmer für diese Anlage verfügbar."
+    "select": "Ausw\u00e4hlen",
+    "noRooms": "Keine Zimmer f\u00fcr diese Unterkunft verf\u00fcgbar."
+  },
+  "bookingCalendar": {
+    "selectDates": "W\u00e4hlen Sie An- und Abreisedatum",
+    "checkIn": "Anreise",
+    "checkOut": "Abreise",
+    "loading": "Verf\u00fcgbarkeit wird geladen\u2026",
+    "error": "Verf\u00fcgbarkeit ist derzeit nicht verf\u00fcgbar. Bitte versuchen Sie es sp\u00e4ter erneut.",
+    "available": "Verf\u00fcgbar",
+    "unavailable": "Nicht verf\u00fcgbar",
+    "lowerPrice": "G\u00fcnstigerer Preis",
+    "close": "Schlie\u00dfen",
+    "continueToBook": "Weiter zur Buchung"
   },
   "offers": {
     "title": "Sonderangebote",

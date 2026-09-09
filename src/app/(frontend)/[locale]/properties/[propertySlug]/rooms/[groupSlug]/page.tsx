@@ -11,7 +11,7 @@ import {
   getRoomGroupChildren,
   getRoomsByGroup,
 } from '@/lib/queries'
-import { bookingService } from '@/lib/booking'
+import { BookingCalendar } from '@/components/BookingCalendar/BookingCalendar'
 
 type Args = {
   params: Promise<{ propertySlug: string; groupSlug: string; locale: string }>
@@ -261,11 +261,6 @@ export default async function RoomGroupPage({ params: paramsPromise }: Args) {
             type MediaDoc = { url?: string; alt?: string }
             const images = (room.images ?? []) as MediaDoc[]
             const heroImg = images[0]
-            const bookingLink = bookingService.getBookingLink({
-              propertySlug,
-              roomSlug: room.slug,
-              locale,
-            })
 
             return (
               <article key={room.id}>
@@ -308,9 +303,13 @@ export default async function RoomGroupPage({ params: paramsPromise }: Args) {
                     .join(' | ')}
                 </p>
                 <div style={{ display: 'flex', gap: 12 }}>
-                  <a
-                    href={bookingLink.href}
-                    style={{
+                  <BookingCalendar
+                    roomSlug={room.slug}
+                    propertySlug={propertySlug}
+                    locale={locale}
+                    triggerLabel={tCommon('bookNow')}
+                    unitPhobsId={room.phobsUnitId}
+                    triggerStyle={{
                       display: 'inline-block',
                       background: '#012B59',
                       color: '#fff',
@@ -318,10 +317,10 @@ export default async function RoomGroupPage({ params: paramsPromise }: Args) {
                       fontWeight: 700,
                       fontSize: 13,
                       textDecoration: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
                     }}
-                  >
-                    {tCommon('bookNow')}
-                  </a>
+                  />
                   <Link
                     href={`/properties/${propertySlug}/rooms/${groupSlug}/${room.slug}`}
                     style={{

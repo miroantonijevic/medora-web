@@ -18,6 +18,9 @@ public/sitemap*.xml
 tsconfig.tsbuildinfo
 migrate-output.txt
 
+# Local scratch notes
+todo.txt
+
 # Playwright
 node_modules/
 /test-results/

@@ -1,6 +1,6 @@
 import type { GlobalConfig } from 'payload'
 
-import { authenticated } from '../access/authenticated'
+import { isAdmin } from '../access/isAdmin'
 import { encrypt } from '../utilities/encryption'
 
 export const EmailSettings: GlobalConfig = {
@@ -11,8 +11,8 @@ export const EmailSettings: GlobalConfig = {
     description: 'SMTP credentials and recipients used to send inquiry notification emails.',
   },
   access: {
-    read: authenticated,
-    update: authenticated,
+    read: isAdmin,
+    update: isAdmin,
   },
   fields: [
     {

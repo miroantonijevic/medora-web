@@ -1,5 +1,6 @@
 import type { CollectionConfig } from 'payload'
 
+import { authenticated } from '@/access/authenticated'
 import { revalidateCollectionHook } from '@/hooks/revalidateCollection'
 
 export const Properties: CollectionConfig = {
@@ -12,7 +13,10 @@ export const Properties: CollectionConfig = {
     defaultColumns: ['name', 'type', 'starRating', 'updatedAt'],
   },
   access: {
+    create: authenticated,
+    delete: authenticated,
     read: () => true,
+    update: authenticated,
   },
   hooks: {
     afterChange: [revalidateCollectionHook('properties')],

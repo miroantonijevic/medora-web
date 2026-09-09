@@ -89,6 +89,7 @@ function lexicalRich(_title: string, body: string) {
 const AURI_ROOMS = [
   {
     slug: 'double-room',
+    phobsUnitId: '10054',
     capacity: 3,
     imageFiles: [
       {
@@ -174,6 +175,7 @@ const AURI_ROOMS = [
   },
   {
     slug: 'family-room',
+    phobsUnitId: '10073',
     capacity: 4,
     imageFiles: [
       {
@@ -257,6 +259,7 @@ const AURI_ROOMS = [
   },
   {
     slug: 'deluxe-suite',
+    phobsUnitId: '10229',
     capacity: 6,
     imageFiles: [
       {
@@ -343,90 +346,10 @@ const AURI_ROOMS = [
       ],
     },
   },
-  {
-    slug: 'double-room-creative',
-    capacity: 3,
-    imageFiles: [
-      {
-        name: 'auri-comfort-double-park.jpg',
-        rel: 'rooms/auri-comfort-double-park.jpg',
-        mime: 'image/jpeg',
-      },
-      { name: 'auri-double-balcony.jpg', rel: 'rooms/auri-double-balcony.jpg', mime: 'image/jpeg' },
-    ],
-    en: {
-      name: 'Superior Double Room - creative design (children stay FREE)',
-      size: '26 m²',
-      bedType: 'Double bed or twin beds',
-      title: 'A room for the free spirit',
-      description:
-        'This uniquely decorated double room blends comfort with creative flair. Enjoy the balcony views over Podgora and the Adriatic. Ideal for couples and young travellers seeking something different.',
-      inclusions: [
-        'Free Wi-Fi',
-        'Balcony with outdoor furniture',
-        'Air conditioning / heating',
-        'Bathroom with shower, hairdryer, complimentary toiletries & towels',
-        'Wardrobe',
-        'Safe with inner socket for laptop/phone charging',
-        'Flat-screen TV with satellite channels',
-        'Minibar',
-        'Kettle with complimentary coffee & tea sachets',
-        'Work desk',
-        'Telephone',
-        'Radio',
-        'Wake-up service',
-      ],
-    },
-    hr: {
-      name: 'Superior dvokrevetna soba - kreativni dizajn (djeca borave BESPLATNO)',
-      size: '26 m²',
-      bedType: 'Bračni krevet ili odvojena ležaja',
-      title: 'Soba za slobodne duhove',
-      description:
-        'Ova jedinstveno uređena dvokrevetna soba spaja udobnost s kreativnim duhom. Uživajte u pogledu s balkona na Podgoru i Jadran. Idealna za parove i mlade putnike koji žele nešto drugačije.',
-      inclusions: [
-        'Besplatni Wi-Fi',
-        'Balkon s vanjskim namještajem',
-        'Klima uređaj/grijanje',
-        'Kupaonica s tušem, sušilom za kosu, besplatnim toaletnim priborom i ručnicima',
-        'Garderoba/ormar',
-        'Sef sa unutrašnjom utičnicom za sigurno punjenje prijenosnog računala ili mobitela',
-        'TV ravnog ekrana sa satelitskim kanalima',
-        'Minibar',
-        'Kuhalo za vodu s besplatnim vrećicama instant kave i čaja',
-        'Radni stol',
-        'Telefon',
-        'Radio',
-        'Usluga buđenja',
-      ],
-    },
-    de: {
-      name: 'Superior Doppelzimmer - kreatives Design (Kinder GRATIS)',
-      size: '26 m²',
-      bedType: 'Doppelbett oder Einzelbetten',
-      title: 'Ein Zimmer für freie Geister',
-      description:
-        'Dieses einzigartig dekorierte Doppelzimmer verbindet Komfort mit kreativem Flair. Genießen Sie den Balkon mit Blick auf Podgora und die Adria. Ideal für Paare und Reisende, die etwas anderes suchen.',
-      inclusions: [
-        'Kostenloses WLAN',
-        'Balkon mit Außenmöbeln',
-        'Klimaanlage / Heizung',
-        'Badezimmer mit Dusche, Haartrockner, Toilettenartikeln & Handtüchern',
-        'Kleiderschrank',
-        'Safe mit Innensteckdose für Laptop/Handy',
-        'Flachbild-TV mit Satellitenkanälen',
-        'Minibar',
-        'Wasserkocher mit Kaffee- & Teebeuteln',
-        'Schreibtisch',
-        'Telefon',
-        'Radio',
-        'Weckservice',
-      ],
-    },
-  },
   // ─── Additional double rooms (sea-view sub-group) ──────────────────────────
   {
     slug: 'auri-comfort-double-sea',
+    phobsUnitId: '10031',
     capacity: 3,
     imageFiles: [
       {
@@ -508,6 +431,7 @@ const AURI_ROOMS = [
   // ─── Additional double rooms (creative sub-group) ──────────────────────────
   {
     slug: 'auri-comfort-double-park-sea',
+    phobsUnitId: '32958',
     capacity: 3,
     imageFiles: [
       {
@@ -588,6 +512,7 @@ const AURI_ROOMS = [
   },
   {
     slug: 'auri-comfort-double-park',
+    phobsUnitId: '31095',
     capacity: 3,
     imageFiles: [
       {
@@ -668,6 +593,7 @@ const AURI_ROOMS = [
   },
   {
     slug: 'auri-comfort-double-pines',
+    phobsUnitId: '7135',
     capacity: 2,
     imageFiles: [
       {
@@ -748,6 +674,7 @@ const AURI_ROOMS = [
   },
   {
     slug: 'auri-double-garden-res',
+    phobsUnitId: '7134',
     capacity: 3,
     imageFiles: [
       {
@@ -829,6 +756,7 @@ const AURI_ROOMS = [
   // ─── Additional family rooms ────────────────────────────────────────────────
   {
     slug: 'auri-family-garden-res',
+    phobsUnitId: '7137',
     capacity: 4,
     imageFiles: [
       {
@@ -909,6 +837,7 @@ const AURI_ROOMS = [
   },
   {
     slug: 'auri-family-young',
+    phobsUnitId: '32240',
     capacity: 4,
     imageFiles: [
       { name: 'auri-family-young.jpg', rel: 'rooms/auri-family-young.jpg', mime: 'image/jpeg' },
@@ -988,6 +917,7 @@ const AURI_ROOMS = [
 const ORBIS_ROOMS = [
   {
     slug: 'orbis-deluxe-2bed-pool',
+    phobsUnitId: '20064',
     capacity: 5,
     imageFiles: [
       {
@@ -1080,6 +1010,7 @@ const ORBIS_ROOMS = [
   },
   {
     slug: 'orbis-premium-2bed-pool',
+    phobsUnitId: '32131',
     capacity: 5,
     imageFiles: [
       {
@@ -1176,6 +1107,7 @@ const ORBIS_ROOMS = [
   },
   {
     slug: 'orbis-superior-2bed',
+    phobsUnitId: '20062',
     capacity: 5,
     imageFiles: [
       {
@@ -1270,6 +1202,7 @@ const ORBIS_ROOMS = [
   // ─── Superior disabled (small group) ──────────────────────────────────────
   {
     slug: 'orbis-superior-disabled',
+    phobsUnitId: '27302',
     capacity: 6,
     imageFiles: [
       {
@@ -1354,6 +1287,7 @@ const ORBIS_ROOMS = [
   // ─── Premium 1-bedroom (small group) ──────────────────────────────────────
   {
     slug: 'orbis-premium-1bed-pool',
+    phobsUnitId: '31639',
     capacity: 3,
     imageFiles: [
       {
@@ -1438,6 +1372,7 @@ const ORBIS_ROOMS = [
   // ─── Large cabins (6-7 persons) ────────────────────────────────────────────
   {
     slug: 'orbis-deluxe-3bed-pool',
+    phobsUnitId: '20065',
     capacity: 8,
     imageFiles: [
       {
@@ -1524,6 +1459,7 @@ const ORBIS_ROOMS = [
   },
   {
     slug: 'orbis-premium-3bed-pool',
+    phobsUnitId: '32132',
     capacity: 8,
     imageFiles: [
       {
@@ -1610,6 +1546,7 @@ const ORBIS_ROOMS = [
   },
   {
     slug: 'orbis-superior-3bed',
+    phobsUnitId: '20063',
     capacity: 8,
     imageFiles: [
       {
@@ -1694,6 +1631,7 @@ const ORBIS_ROOMS = [
   // ─── Pitch (pitches group) ─────────────────────────────────────────────────
   {
     slug: 'orbis-superior-pitch',
+    phobsUnitId: '19963',
     capacity: 6,
     imageFiles: [
       { name: 'orbis-pitch-actual.jpg', rel: 'rooms/orbis-pitch-actual.jpg', mime: 'image/jpeg' },
@@ -1815,6 +1753,7 @@ async function getOrCreateRoom(
         images: mediaIds,
         description: lexicalRich(room.en.title, room.en.description),
         inclusions: room.en.inclusions.map((label) => ({ label })),
+        ...(room.phobsUnitId ? { phobsUnitId: room.phobsUnitId } : {}),
         _status: 'published',
       },
     })
@@ -1870,6 +1809,7 @@ async function getOrCreateRoom(
       images: mediaIds,
       description: lexicalRich(room.en.title, room.en.description),
       inclusions: room.en.inclusions.map((label) => ({ label })),
+      ...(room.phobsUnitId ? { phobsUnitId: room.phobsUnitId } : {}),
       _status: 'published',
     },
   })
@@ -2046,8 +1986,19 @@ export async function seedRooms({ payload }: { payload: Payload }) {
       hr: 'Dvokrevetne za ljude s više mašte',
       de: 'Doppelzimmer für Kreative',
     },
-    { heroImage: auriFirstMediaIds[3]!, parent: auriDoubleGroupId, order: 2 },
+    { heroImage: auriFirstMediaIds[4]!, parent: auriDoubleGroupId, order: 2 },
   )
+  // Remove legacy room with no real Phobs unit (was a duplicate of auri-comfort-double-park)
+  const legacyCreativeRoom = await payload.find({
+    collection: 'rooms',
+    where: { slug: { equals: 'double-room-creative' } },
+    limit: 1,
+    depth: 0,
+  })
+  if (legacyCreativeRoom.docs.length > 0) {
+    await payload.delete({ collection: 'rooms', id: legacyCreativeRoom.docs[0].id as number })
+    payload.logger.info('  Deleted legacy room: double-room-creative')
+  }
   const auriFamilyGroupId = await upsertGroup(
     'auri-family-rooms',
     auriId,
@@ -2061,9 +2012,9 @@ export async function seedRooms({ payload }: { payload: Payload }) {
     { heroImage: auriFirstMediaIds[2]!, parent: auriParentId, order: 3 },
   )
 
-  // AURI_ROOMS: [0]=double-room, [1]=family-room, [2]=deluxe-suite, [3]=double-room-creative,
-  //             [4]=comfort-double-sea, [5]=comfort-double-park-sea, [6]=comfort-double-park,
-  //             [7]=comfort-double-pines, [8]=double-garden-res, [9]=family-garden-res, [10]=family-young
+  // AURI_ROOMS: [0]=double-room, [1]=family-room, [2]=deluxe-suite,
+  //             [3]=comfort-double-sea, [4]=comfort-double-park-sea, [5]=comfort-double-park,
+  //             [6]=comfort-double-pines, [7]=double-garden-res, [8]=family-garden-res, [9]=family-young
   // Sea-view sub-group
   await payload.update({
     collection: 'rooms',
@@ -2072,13 +2023,13 @@ export async function seedRooms({ payload }: { payload: Payload }) {
   })
   await payload.update({
     collection: 'rooms',
-    id: auriRoomIds[4]!,
+    id: auriRoomIds[3]!,
     data: { group: auriDoubleSeaViewId },
   })
   // Creative sub-group
   await payload.update({
     collection: 'rooms',
-    id: auriRoomIds[3]!,
+    id: auriRoomIds[4]!,
     data: { group: auriDoubleCreativeId },
   })
   await payload.update({
@@ -2096,11 +2047,6 @@ export async function seedRooms({ payload }: { payload: Payload }) {
     id: auriRoomIds[7]!,
     data: { group: auriDoubleCreativeId },
   })
-  await payload.update({
-    collection: 'rooms',
-    id: auriRoomIds[8]!,
-    data: { group: auriDoubleCreativeId },
-  })
   // Family group
   await payload.update({
     collection: 'rooms',
@@ -2109,12 +2055,12 @@ export async function seedRooms({ payload }: { payload: Payload }) {
   })
   await payload.update({
     collection: 'rooms',
-    id: auriRoomIds[9]!,
+    id: auriRoomIds[8]!,
     data: { group: auriFamilyGroupId },
   })
   await payload.update({
     collection: 'rooms',
-    id: auriRoomIds[10]!,
+    id: auriRoomIds[9]!,
     data: { group: auriFamilyGroupId },
   })
   // Suites

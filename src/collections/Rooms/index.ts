@@ -146,6 +146,36 @@ export const Rooms: CollectionConfig = {
       ],
     },
     {
+      name: 'phobsUnitId',
+      type: 'text',
+      admin: {
+        description:
+          "Phobs PMS UnitId for this room — used by the booking calendar to check availability (must belong to the parent property's Phobs PropertyId).",
+      },
+    },
+    {
+      name: 'promoDates',
+      type: 'array',
+      admin: {
+        description:
+          'Date ranges highlighted on the booking calendar as promo/lower-price dates (shown in gold to guests). Has no effect on real Phobs availability or pricing — display only.',
+      },
+      fields: [
+        {
+          name: 'dateFrom',
+          type: 'date',
+          required: true,
+          admin: { date: { pickerAppearance: 'dayOnly' } },
+        },
+        {
+          name: 'dateTo',
+          type: 'date',
+          required: true,
+          admin: { date: { pickerAppearance: 'dayOnly' } },
+        },
+      ],
+    },
+    {
       // Re-declared to override the auto-generated timestamp field's list Cell.
       name: 'updatedAt',
       type: 'date',

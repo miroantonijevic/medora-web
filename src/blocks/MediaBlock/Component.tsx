@@ -27,7 +27,10 @@ export const MediaBlock: React.FC<Props> = (props) => {
     media,
     staticImage,
     disableInnerContainer,
+    layoutSettings,
   } = props
+
+  const width = layoutSettings?.width ?? 'standard'
 
   let caption
   if (media && typeof media === 'object') caption = media.caption
@@ -37,7 +40,8 @@ export const MediaBlock: React.FC<Props> = (props) => {
       className={cn(
         '',
         {
-          container: enableGutter,
+          container: enableGutter && width === 'standard',
+          'max-w-180 mx-auto': width === 'narrow',
         },
         className,
       )}

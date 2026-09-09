@@ -1,5 +1,6 @@
 import type { CollectionConfig } from 'payload'
 
+import { authenticated } from '@/access/authenticated'
 import { revalidateCollectionHook } from '@/hooks/revalidateCollection'
 
 export const RoomGroups: CollectionConfig = {
@@ -12,7 +13,10 @@ export const RoomGroups: CollectionConfig = {
     defaultColumns: ['name', 'property', 'order', 'updatedAt'],
   },
   access: {
+    create: authenticated,
+    delete: authenticated,
     read: () => true,
+    update: authenticated,
   },
   hooks: {
     afterChange: [revalidateCollectionHook('room-groups')],

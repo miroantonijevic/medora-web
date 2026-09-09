@@ -1,5 +1,7 @@
 import type { Block } from 'payload'
 
+import { layoutSettings } from '@/fields/layoutSettings'
+
 export const PhotoGallery: Block = {
   slug: 'photo-gallery',
   interfaceName: 'PhotoGalleryBlock',
@@ -30,5 +32,6 @@ export const PhotoGallery: Block = {
         },
       ],
     },
+    layoutSettings(),
   ],
 }

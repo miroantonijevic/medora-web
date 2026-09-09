@@ -1,5 +1,7 @@
 import type { GlobalConfig } from 'payload'
 
+import { isAdmin } from '@/access/isAdmin'
+
 export const MainNav: GlobalConfig = {
   slug: 'main-nav',
   label: 'Navigation Menu',
@@ -9,6 +11,7 @@ export const MainNav: GlobalConfig = {
   },
   access: {
     read: () => true,
+    update: isAdmin,
   },
   fields: [
     {

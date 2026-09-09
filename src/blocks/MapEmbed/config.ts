@@ -1,5 +1,7 @@
 import type { Block } from 'payload'
 
+import { layoutSettings } from '@/fields/layoutSettings'
+
 export const MapEmbed: Block = {
   slug: 'mapEmbed',
   interfaceName: 'MapEmbedBlock',
@@ -29,5 +31,6 @@ export const MapEmbed: Block = {
         description: 'External "Driving directions" link, e.g. a Google Maps directions URL.',
       },
     },
+    layoutSettings(),
   ],
 }

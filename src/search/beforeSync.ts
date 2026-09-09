@@ -5,15 +5,21 @@ export const beforeSyncWithSearch: BeforeSync = async ({ req, originalDoc, searc
     doc: { relationTo: collection },
   } = searchDoc
 
-  const { slug, id, categories, title, meta } = originalDoc
+  const { id, categories, title, name, slug, path, alt, filename, meta } = originalDoc
+
+  // Field names differ per collection: Rooms/Properties use `name`, Pages uses `path`
+  // instead of `slug`, and Media has neither a title nor a slug field at all.
+  const resolvedTitle = title || name || alt || filename || ''
+  const resolvedSlug = slug || path || ''
 
   const modifiedDoc: DocToSync = {
     ...searchDoc,
-    slug,
+    title: resolvedTitle,
+    slug: resolvedSlug,
     meta: {
       ...meta,
-      title: meta?.title || title,
-      image: meta?.image?.id || meta?.image,
+      title: meta?.title || resolvedTitle,
+      image: meta?.image?.id || meta?.image || (collection === 'media' ? id : undefined),
       description: meta?.description,
     },
     categories: [],

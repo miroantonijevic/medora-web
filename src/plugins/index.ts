@@ -1,12 +1,11 @@
 import { nestedDocsPlugin } from '@payloadcms/plugin-nested-docs'
 import { redirectsPlugin } from '@payloadcms/plugin-redirects'
 import { seoPlugin } from '@payloadcms/plugin-seo'
-import { searchPlugin } from '@payloadcms/plugin-search'
 import { Plugin } from 'payload'
 import { revalidateRedirects } from '@/hooks/revalidateRedirects'
 import { GenerateTitle, GenerateURL } from '@payloadcms/plugin-seo/types'
-import { searchFields } from '@/search/fieldOverrides'
-import { beforeSyncWithSearch } from '@/search/beforeSync'
+import { globalSearchIndexPlugin } from '@/plugins/globalSearchIndex'
+import { isAdmin } from '@/access/isAdmin'
 
 import { Page, Post, Property, Room, Offer } from '@/payload-types'
 import { getServerSideURL } from '@/utilities/getURL'
@@ -44,6 +43,12 @@ export const plugins: Plugin[] = [
   redirectsPlugin({
     collections: ['pages', 'posts', 'properties', 'offers'],
     overrides: {
+      access: {
+        create: isAdmin,
+        delete: isAdmin,
+        read: () => true,
+        update: isAdmin,
+      },
       admin: {
         group: 'System',
         description: 'URL redirects (301/302). Managed automatically when slugs change.',
@@ -79,17 +84,5 @@ export const plugins: Plugin[] = [
     generateTitle,
     generateURL,
   }),
-  searchPlugin({
-    collections: ['posts'],
-    beforeSync: beforeSyncWithSearch,
-    searchOverrides: {
-      admin: {
-        group: 'Blog',
-        hidden: true,
-      },
-      fields: ({ defaultFields }) => {
-        return [...defaultFields, ...searchFields]
-      },
-    },
-  }),
+  globalSearchIndexPlugin(),
 ]
