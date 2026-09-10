@@ -3,7 +3,7 @@ import type { DefaultServerCellComponentProps } from 'payload'
 import type { Media, Offer } from '@/payload-types'
 
 import { getCellLinkHref } from '@/components/admin-list/getCellLinkHref'
-import { StatusBadge } from '@/components/admin-list/StatusBadge'
+import { PublishBadges } from '@/components/admin-list/PublishDot'
 import '@/components/admin-list/adminList.scss'
 
 function resolveThumbUrl(media: Media | number | null | undefined): string | null {
@@ -30,7 +30,23 @@ export default async function TitleThumbnailCell({
     thumbUrl = media?.sizes?.thumbnail?.url ?? media?.url ?? null
   }
 
-  const isPublished = row._status === 'published'
+  // rowData._status reflects the *latest version* (list view queries with draft=true), which
+  // autosave can flip to 'draft' without ever touching the main row — fetch the true status separately.
+  let isPublished = false
+  try {
+    const published = await payload.findByID({
+      collection: 'offers',
+      id: row.id,
+      depth: 0,
+      draft: false,
+      overrideAccess: true,
+    })
+    isPublished = published?._status === 'published'
+  } catch {
+    isPublished = false
+  }
+
+  const hasPendingDraft = row._status === 'draft'
 
   const content = (
     <>
@@ -43,11 +59,7 @@ export default async function TitleThumbnailCell({
         </span>
       )}
       <span className="admin-list-thumb-cell__title">{row.title}</span>
-      <StatusBadge
-        label={isPublished ? 'Published' : 'Draft'}
-        color={isPublished ? '#15803d' : '#b45309'}
-        background={isPublished ? '#dcfce7' : '#fef3c7'}
-      />
+      <PublishBadges isPublished={isPublished} hasPendingDraft={hasPendingDraft} />
     </>
   )
 

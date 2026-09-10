@@ -105,6 +105,17 @@
 }
 
 // -----------------------------------------------------------------------------
+// Publish state pills (two independent badges — a doc can be both
+// "Published" and have "Unpublished changes" pending at the same time)
+// -----------------------------------------------------------------------------
+
+.admin-list-badge-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+// -----------------------------------------------------------------------------
 // Meta / secondary text cell (e.g. relative time)
 // -----------------------------------------------------------------------------
 
