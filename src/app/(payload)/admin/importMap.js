@@ -13,6 +13,7 @@ import { LinkFeatureClient as LinkFeatureClient_e70f5e05f09f93e00b997edb1ef0c864
 import { OrderedListFeatureClient as OrderedListFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
 import { UnorderedListFeatureClient as UnorderedListFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
 import { default as default_acad805a4ace437c5b181de92529f506 } from '@/fields/components/MediaGalleryField/AddFolderButtonArray'
+import { LiveBlockFocusBridge as LiveBlockFocusBridge_283562150e6c74a9142ce4f3900fa4a5 } from '@/collections/Pages/components/LiveBlockFocusBridge'
 import { default as default_fc0ca4aa9aa7371a690cb97219b27c08 } from '@/collections/Pages/components/UpdatedCell'
 import { SlugField as SlugField_2b8867833a34864a02ddf429b0728a40 } from '@payloadcms/next/client'
 import { OverviewComponent as OverviewComponent_a8a977ebc872c5d5ea7ee689724c0860 } from '@payloadcms/plugin-seo/client'
@@ -76,6 +77,7 @@ export const importMap = {
   "@payloadcms/richtext-lexical/client#OrderedListFeatureClient": OrderedListFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
   "@payloadcms/richtext-lexical/client#UnorderedListFeatureClient": UnorderedListFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
   "@/fields/components/MediaGalleryField/AddFolderButtonArray#default": default_acad805a4ace437c5b181de92529f506,
+  "@/collections/Pages/components/LiveBlockFocusBridge#LiveBlockFocusBridge": LiveBlockFocusBridge_283562150e6c74a9142ce4f3900fa4a5,
   "@/collections/Pages/components/UpdatedCell#default": default_fc0ca4aa9aa7371a690cb97219b27c08,
   "@payloadcms/next/client#SlugField": SlugField_2b8867833a34864a02ddf429b0728a40,
   "@payloadcms/plugin-seo/client#OverviewComponent": OverviewComponent_a8a977ebc872c5d5ea7ee689724c0860,

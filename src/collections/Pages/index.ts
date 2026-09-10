@@ -112,6 +112,10 @@ export const Pages: CollectionConfig<'pages'> = {
               required: true,
               admin: {
                 initCollapsed: true,
+                components: {
+                  Description:
+                    '@/collections/Pages/components/LiveBlockFocusBridge#LiveBlockFocusBridge',
+                },
               },
             },
           ],

@@ -46,7 +46,7 @@ export const RenderBlocks: React.FC<{
                 ? ''
                 : getWrapperClassName('layoutSettings' in block ? block.layoutSettings : undefined)
               return (
-                <div className={wrapperClassName} key={index}>
+                <div className={wrapperClassName} data-block-index={index} key={index}>
                   {/* @ts-expect-error there may be some mismatch between the expected types here */}
                   <Block {...block} disableInnerContainer />
                 </div>
