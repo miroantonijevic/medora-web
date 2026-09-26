@@ -1,11 +1,11 @@
 import type { Metadata } from 'next'
-import Image from 'next/image'
 import { Link } from '@/i18n/navigation'
 import { notFound } from 'next/navigation'
 import { setRequestLocale, getTranslations } from 'next-intl/server'
 
 import { getAmenityBySlug, getAmenityGroupBySlug, getAmenitiesByGroup } from '@/lib/queries'
 import { RoomGallery } from '@/components/sections/RoomGallery'
+import { MediaCover } from '@/components/sections/MediaCover'
 import { RichText } from '@/components/RichText'
 import { LivePreviewListener } from '@/components/LivePreviewListener'
 import { draftMode } from 'next/headers'
@@ -51,7 +51,7 @@ export default async function AmenityDetailPage({ params: paramsPromise }: Args)
   if (!amenity || !group) return notFound()
   const { isEnabled: draft } = await draftMode()
 
-  type MediaDoc = { url?: string; alt?: string }
+  type MediaDoc = { url?: string; alt?: string; mimeType?: string }
   const heroImage = amenity.heroImage as MediaDoc | null
   const images = ((amenity.images ?? []) as MediaDoc[]).filter((i): i is Required<MediaDoc> =>
     Boolean(i.url),
@@ -73,14 +73,7 @@ export default async function AmenityDetailPage({ params: paramsPromise }: Args)
         }}
       >
         {heroImage?.url && (
-          <Image
-            src={heroImage.url}
-            alt={heroImage.alt ?? String(amenity.name)}
-            fill
-            style={{ objectFit: 'cover' }}
-            priority
-            sizes="100vw"
-          />
+          <MediaCover resource={heroImage} alt={String(amenity.name)} priority sizes="100vw" />
         )}
         <div
           style={{

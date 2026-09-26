@@ -45,7 +45,8 @@ export const sendInquiryEmails: CollectionAfterChangeHook<Inquiry> = async ({
       doc.arrival && `Arrival: ${doc.arrival}`,
       doc.departure && `Departure: ${doc.departure}`,
       `Adults: ${doc.adults ?? ''}`,
-      `Children: ${doc.children ?? ''}`,
+      `Children (age 0-3): ${doc.childrenYoung ?? 0}`,
+      `Children (age 4-15): ${doc.childrenOld ?? 0}`,
       doc.roomPreference && `Room/Unit: ${doc.roomPreference}`,
       doc.message && `Message: ${doc.message}`,
     ]

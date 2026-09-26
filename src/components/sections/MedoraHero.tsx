@@ -2,7 +2,7 @@
 
 import Image from 'next/image'
 import { useRouter } from '@/i18n/navigation'
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 
 export type HeroSlide = {
   image: string
@@ -10,6 +10,7 @@ export type HeroSlide = {
   headline: string
   benefits: string[]
   ctaHref: string
+  isVideo?: boolean
 }
 
 type Props = {
@@ -22,6 +23,7 @@ export function MedoraHero({ slides }: Props) {
   if (!slides || slides.length === 0) return null
   const [current, setCurrent] = useState(0)
   const [paused, setPaused] = useState(false)
+  const videoRefs = useRef<Array<HTMLVideoElement | null>>([])
 
   const router = useRouter()
 
@@ -29,11 +31,27 @@ export function MedoraHero({ slides }: Props) {
     setCurrent((c) => (c + 1) % slides.length)
   }, [slides.length])
 
+  const currentIsVideo = Boolean(slides[current]?.isVideo)
+
+  // Image slides auto-advance on a timer; video slides advance once playback ends.
   useEffect(() => {
-    if (paused) return
+    if (paused || currentIsVideo) return
     const id = setInterval(next, AUTOPLAY_MS)
     return () => clearInterval(id)
-  }, [next, paused])
+  }, [next, paused, currentIsVideo])
+
+  // Only the active slide's video should play — restart it whenever it becomes current.
+  useEffect(() => {
+    videoRefs.current.forEach((video, i) => {
+      if (!video) return
+      if (i === current && !paused) {
+        video.currentTime = 0
+        video.play().catch(() => {})
+      } else {
+        video.pause()
+      }
+    })
+  }, [current, paused])
 
   return (
     <section
@@ -59,14 +77,34 @@ export function MedoraHero({ slides }: Props) {
             transition: 'opacity 1s ease',
           }}
         >
-          <Image
-            src={s.image}
-            alt={s.alt}
-            fill
-            priority={i === 0}
-            sizes="100vw"
-            style={{ objectFit: 'cover' }}
-          />
+          {s.isVideo ? (
+            <video
+              ref={(el) => {
+                videoRefs.current[i] = el
+              }}
+              muted
+              playsInline
+              onEnded={next}
+              style={{
+                position: 'absolute',
+                inset: 0,
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+              }}
+            >
+              <source src={s.image} />
+            </video>
+          ) : (
+            <Image
+              src={s.image}
+              alt={s.alt}
+              fill
+              priority={i === 0}
+              sizes="100vw"
+              style={{ objectFit: 'cover' }}
+            />
+          )}
         </div>
       ))}
 

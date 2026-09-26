@@ -30,82 +30,75 @@
     text-transform: uppercase;
     letter-spacing: 0.09em;
     color: var(--theme-elevation-500);
-    margin: base(1.25) 0 base(0.5);
+    margin: base(1.5) 0 base(0.5);
+
+    &:first-of-type {
+      margin-top: base(0.75);
+    }
   }
 
   &__row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: base(0.5);
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: base(0.75);
   }
 
-  /* Property cards — larger, more prominent */
-  &__prop {
+  /* Unified big tile buttons used for every section */
+  &__tile {
+    position: relative;
     display: flex;
     align-items: center;
     gap: base(0.75);
-    padding: base(0.75) base(1);
+    padding: base(0.85) base(1);
     border: 2px solid var(--theme-elevation-200);
-    border-radius: 8px;
+    border-radius: 10px;
     text-decoration: none;
     color: inherit;
     background: var(--theme-bg);
-    min-width: 220px;
-    transition: border-color 0.15s, box-shadow 0.15s;
+    transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
 
     &:hover {
       border-color: #009bdb;
-      box-shadow: 0 2px 8px rgba(0, 155, 219, 0.15);
-    }
-
-    span {
-      font-size: 2.2rem;
-      flex-shrink: 0;
-      line-height: 1;
-    }
-
-    div {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
+      box-shadow: 0 4px 14px rgba(0, 155, 219, 0.18);
+      transform: translateY(-1px);
     }
 
     strong {
       display: block;
-      font-size: 1.15rem;
-    }
-
-    small {
-      display: block;
-      font-size: 0.88rem;
-      color: var(--theme-elevation-500);
-    }
-  }
-
-  /* Regular link cards */
-  &__card {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    padding: base(0.75) base(1);
-    border: 1px solid var(--theme-elevation-150);
-    border-radius: 6px;
-    text-decoration: none;
-    color: inherit;
-    background: var(--theme-elevation-50);
-    font-size: 1rem;
-    transition: border-color 0.15s, background 0.15s;
-
-    &:hover {
-      border-color: var(--theme-elevation-400);
-      background: var(--theme-elevation-100);
+      font-size: 1.05rem;
+      line-height: 1.25;
     }
 
     small {
       display: block;
       font-size: 0.82rem;
       color: var(--theme-elevation-500);
+      margin-top: 2px;
     }
+  }
+
+  &__tile-icon {
+    font-size: 1.9rem;
+    flex-shrink: 0;
+    line-height: 1;
+  }
+
+  &__badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    background: #d9534f;
+    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 700;
+    line-height: 1;
   }
 
   &__footer {
@@ -121,3 +114,4 @@
     }
   }
 }
+

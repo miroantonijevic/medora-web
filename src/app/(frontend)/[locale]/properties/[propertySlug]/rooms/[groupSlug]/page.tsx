@@ -1,5 +1,4 @@
 import type { Metadata } from 'next'
-import Image from 'next/image'
 import { Link } from '@/i18n/navigation'
 import { notFound } from 'next/navigation'
 import { setRequestLocale, getTranslations } from 'next-intl/server'
@@ -12,6 +11,7 @@ import {
   getRoomsByGroup,
 } from '@/lib/queries'
 import { BookingCalendar } from '@/components/BookingCalendar/BookingCalendar'
+import { MediaCover } from '@/components/sections/MediaCover'
 
 type Args = {
   params: Promise<{ propertySlug: string; groupSlug: string; locale: string }>
@@ -109,7 +109,11 @@ export default async function RoomGroupPage({ params: paramsPromise }: Args) {
         >
           <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
             {children.map((child) => {
-              const heroImage = child.heroImage as { url?: string; alt?: string } | null
+              const heroImage = child.heroImage as {
+                url?: string
+                alt?: string
+                mimeType?: string
+              } | null
               const childName = String(child.name)
               return (
                 <Link
@@ -127,13 +131,7 @@ export default async function RoomGroupPage({ params: paramsPromise }: Args) {
                   >
                     <div style={{ position: 'relative', minHeight: 300, overflow: 'hidden' }}>
                       {heroImage?.url ? (
-                        <Image
-                          src={heroImage.url}
-                          alt={heroImage.alt ?? childName}
-                          fill
-                          style={{ objectFit: 'cover' }}
-                          sizes="480px"
-                        />
+                        <MediaCover resource={heroImage} alt={childName} sizes="480px" />
                       ) : (
                         <div style={{ background: '#e5e0d8', height: '100%' }} />
                       )}
@@ -258,7 +256,7 @@ export default async function RoomGroupPage({ params: paramsPromise }: Args) {
           }}
         >
           {rooms.map((room) => {
-            type MediaDoc = { url?: string; alt?: string }
+            type MediaDoc = { url?: string; alt?: string; mimeType?: string }
             const images = (room.images ?? []) as MediaDoc[]
             const heroImg = images[0]
 
@@ -269,15 +267,12 @@ export default async function RoomGroupPage({ params: paramsPromise }: Args) {
                   style={{ textDecoration: 'none', display: 'block' }}
                 >
                   <div style={{ position: 'relative', aspectRatio: '4/3', overflow: 'hidden' }}>
-                    {heroImg?.url ? (
-                      <Image
-                        src={heroImg.url}
-                        alt={heroImg.alt ?? String(room.name)}
-                        fill
-                        style={{ objectFit: 'cover' }}
-                        sizes="(max-width: 768px) 100vw, 50vw"
-                      />
-                    ) : (
+                    <MediaCover
+                      resource={heroImg}
+                      alt={String(room.name)}
+                      sizes="(max-width: 768px) 100vw, 50vw"
+                    />
+                    {!heroImg?.url && (
                       <div style={{ background: '#e5e0d8', width: '100%', height: '100%' }} />
                     )}
                   </div>
@@ -309,6 +304,15 @@ export default async function RoomGroupPage({ params: paramsPromise }: Args) {
                     locale={locale}
                     triggerLabel={tCommon('bookNow')}
                     unitPhobsId={room.phobsUnitId}
+                    roomName={String(room.name)}
+                    roomImageUrl={heroImg?.url}
+                    roomMeta={[
+                      room.size && String(room.size),
+                      room.bedType && String(room.bedType),
+                      room.capacity && `${room.capacity} ${tRooms('guests').toLowerCase()}`,
+                    ]
+                      .filter(Boolean)
+                      .join(' | ')}
                     triggerStyle={{
                       display: 'inline-block',
                       background: '#012B59',

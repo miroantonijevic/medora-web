@@ -17,6 +17,7 @@ const INPUT: React.CSSProperties = {
   outline: 'none',
   borderRadius: 0,
 }
+const SELECT: React.CSSProperties = { ...INPUT, cursor: 'pointer' }
 const LABEL: React.CSSProperties = { display: 'flex', flexDirection: 'column', gap: 7 }
 const LABEL_TEXT: React.CSSProperties = {
   fontSize: 11,
@@ -33,25 +34,25 @@ export function InquiryForm() {
   const propertySlug = searchParams.get('property') ?? ''
   const roomSlug = searchParams.get('room') ?? ''
   const offerTitle = searchParams.get('offer') ?? ''
-  const defaultRoom = [propertySlug, roomSlug].filter(Boolean).join(' / ')
+  // Not shown as an editable field (matching medorahotels.com's quick-inquiry form) — kept as
+  // silent context so the team's follow-up offer references the right room/offer.
+  const roomPreference = [propertySlug, roomSlug].filter(Boolean).join(' / ')
 
   const [form, setForm] = useState({
     name: '',
     email: '',
-    phone: '',
     arrival: '',
     departure: '',
     adults: '2',
-    children: '0',
-    roomPreference: defaultRoom,
-    message: offerTitle ? `Regarding offer: ${offerTitle}` : '',
+    childrenYoung: '0',
+    childrenOld: '0',
     website: '', // honeypot — left empty by real visitors
   })
   const [sent, setSent] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState(false)
 
-  function set(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
+  function set(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }))
   }
 
@@ -63,7 +64,11 @@ export function InquiryForm() {
       const res = await fetch('/api/inquiries', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify({
+          ...form,
+          roomPreference,
+          message: offerTitle ? `Regarding offer: ${offerTitle}` : '',
+        }),
       })
       if (!res.ok) throw new Error('Request failed')
       setSent(true)
@@ -129,9 +134,31 @@ export function InquiryForm() {
             style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 20 }}
           >
             <label style={LABEL}>
-              <span style={LABEL_TEXT}>{t('name')} *</span>
-              <input name="name" required value={form.name} onChange={set} style={INPUT} />
+              <span style={LABEL_TEXT}>{t('arrival')} *</span>
+              <input
+                name="arrival"
+                type="date"
+                required
+                value={form.arrival}
+                onChange={set}
+                style={INPUT}
+              />
             </label>
+            <label style={LABEL}>
+              <span style={LABEL_TEXT}>{t('departure')} *</span>
+              <input
+                name="departure"
+                type="date"
+                required
+                value={form.departure}
+                onChange={set}
+                style={INPUT}
+              />
+            </label>
+          </div>
+          <div
+            style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 20 }}
+          >
             <label style={LABEL}>
               <span style={LABEL_TEXT}>{t('email')} *</span>
               <input
@@ -143,79 +170,44 @@ export function InquiryForm() {
                 style={INPUT}
               />
             </label>
-          </div>
-          <div
-            style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 20 }}
-          >
             <label style={LABEL}>
-              <span style={LABEL_TEXT}>{t('phone')}</span>
-              <input name="phone" type="tel" value={form.phone} onChange={set} style={INPUT} />
-            </label>
-            <label style={LABEL}>
-              <span style={LABEL_TEXT}>{t('roomPreference')}</span>
-              <input
-                name="roomPreference"
-                value={form.roomPreference}
-                onChange={set}
-                style={INPUT}
-              />
+              <span style={LABEL_TEXT}>{t('name')} *</span>
+              <input name="name" required value={form.name} onChange={set} style={INPUT} />
             </label>
           </div>
           <div
             style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 20 }}
           >
             <label style={LABEL}>
-              <span style={LABEL_TEXT}>{t('arrival')}</span>
-              <input name="arrival" type="date" value={form.arrival} onChange={set} style={INPUT} />
+              <span style={LABEL_TEXT}>{t('childrenYoung')}</span>
+              <select name="childrenYoung" value={form.childrenYoung} onChange={set} style={SELECT}>
+                {[0, 1, 2, 3].map((n) => (
+                  <option key={n} value={n}>
+                    {n}
+                  </option>
+                ))}
+              </select>
             </label>
             <label style={LABEL}>
-              <span style={LABEL_TEXT}>{t('departure')}</span>
-              <input
-                name="departure"
-                type="date"
-                value={form.departure}
-                onChange={set}
-                style={INPUT}
-              />
-            </label>
-          </div>
-          <div
-            style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 20 }}
-          >
-            <label style={LABEL}>
-              <span style={LABEL_TEXT}>{t('adults')}</span>
-              <input
-                name="adults"
-                type="number"
-                min="1"
-                max="20"
-                value={form.adults}
-                onChange={set}
-                style={INPUT}
-              />
-            </label>
-            <label style={LABEL}>
-              <span style={LABEL_TEXT}>{t('children')}</span>
-              <input
-                name="children"
-                type="number"
-                min="0"
-                max="10"
-                value={form.children}
-                onChange={set}
-                style={INPUT}
-              />
+              <span style={LABEL_TEXT}>{t('childrenOld')}</span>
+              <select name="childrenOld" value={form.childrenOld} onChange={set} style={SELECT}>
+                {[0, 1, 2, 3].map((n) => (
+                  <option key={n} value={n}>
+                    {n}
+                  </option>
+                ))}
+              </select>
             </label>
           </div>
           <label style={{ ...LABEL, marginBottom: 32 }}>
-            <span style={LABEL_TEXT}>{t('message')}</span>
-            <textarea
-              name="message"
-              rows={5}
-              value={form.message}
-              onChange={set}
-              style={{ ...INPUT, resize: 'vertical' }}
-            />
+            <span style={LABEL_TEXT}>{t('adults')} *</span>
+            <select name="adults" value={form.adults} onChange={set} style={SELECT}>
+              {[1, 2, 3, 4, 5].map((n) => (
+                <option key={n} value={n}>
+                  {n}
+                </option>
+              ))}
+            </select>
           </label>
 
           <p style={{ fontSize: 13, color: '#888', marginBottom: 24, maxWidth: 560 }}>

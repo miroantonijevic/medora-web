@@ -183,13 +183,14 @@ export interface MedoraHero {
   blockType: 'medora-hero';
 }
 /**
- * All uploaded images and files. Referenced by properties, rooms, offers and the homepage.
- *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "media".
  */
 export interface Media {
   id: number;
+  /**
+   * Alternative text describing the image, read aloud by screen readers and used for SEO. E.g. "Hotel room with sea view balcony".
+   */
   alt?: string | null;
   caption?: {
     root: {
@@ -999,7 +1000,8 @@ export interface Inquiry {
   arrival?: string | null;
   departure?: string | null;
   adults?: number | null;
-  children?: number | null;
+  childrenYoung?: number | null;
+  childrenOld?: number | null;
   roomPreference?: string | null;
   message?: string | null;
   status?: ('new' | 'contacted' | 'closed' | 'spam') | null;
@@ -1813,7 +1815,8 @@ export interface InquiriesSelect<T extends boolean = true> {
   arrival?: T;
   departure?: T;
   adults?: T;
-  children?: T;
+  childrenYoung?: T;
+  childrenOld?: T;
   roomPreference?: T;
   message?: T;
   status?: T;

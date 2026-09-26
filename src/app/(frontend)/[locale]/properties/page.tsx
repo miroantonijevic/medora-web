@@ -1,8 +1,8 @@
 ﻿import type { Metadata } from 'next'
-import Image from 'next/image'
 import { Link } from '@/i18n/navigation'
 
 import { getPublishedProperties } from '@/lib/queries'
+import { MediaCover } from '@/components/sections/MediaCover'
 
 export const metadata: Metadata = {
   title: 'Properties | Medora Hotels',
@@ -42,7 +42,7 @@ export default async function PropertiesPage() {
         {properties.map((property) => {
           const heroImage =
             property.heroImages && property.heroImages.length > 0
-              ? (property.heroImages[0] as { url?: string; alt?: string })
+              ? (property.heroImages[0] as { url?: string; alt?: string; mimeType?: string })
               : null
 
           return (
@@ -63,11 +63,9 @@ export default async function PropertiesPage() {
                 {/* Hero image */}
                 <div style={{ position: 'relative', height: 240 }}>
                   {heroImage?.url ? (
-                    <Image
-                      src={heroImage.url}
-                      alt={heroImage.alt ?? String(property.name)}
-                      fill
-                      style={{ objectFit: 'cover' }}
+                    <MediaCover
+                      resource={heroImage}
+                      alt={String(property.name)}
                       sizes="(max-width: 768px) 100vw, 50vw"
                     />
                   ) : (
@@ -96,7 +94,9 @@ export default async function PropertiesPage() {
 
                 {/* Content */}
                 <div style={{ padding: '20px 24px 24px' }}>
-                  <h2 style={{ fontSize: 22, fontWeight: 700, color: '#012B59', margin: '0 0 8px' }}>
+                  <h2
+                    style={{ fontSize: 22, fontWeight: 700, color: '#012B59', margin: '0 0 8px' }}
+                  >
                     {String(property.name)}
                   </h2>
                   {property.shortDescription && (

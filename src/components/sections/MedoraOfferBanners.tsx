@@ -1,14 +1,21 @@
 'use client'
 
-import Image from 'next/image'
 import { Link } from '@/i18n/navigation'
+import { MediaCover } from './MediaCover'
 
 export type OfferBanner = {
   image: string
   alt: string
+  mimeType?: string
   headline: string
   ctaLabel: string
   ctaHref: string
+}
+
+type Props = {
+  offer?: OfferBanner
+  ctaLabel?: string
+  specialOffersLabel?: string
 }
 
 export function MedoraOfferBanners({
@@ -34,13 +41,14 @@ export function MedoraOfferBanners({
           minHeight: '320px',
         }}
       >
-        {/* Background image */}
-        <Image
-          src={resolvedOffer.image}
-          alt={resolvedOffer.alt}
-          fill
+        {/* Background image or video */}
+        <MediaCover
+          resource={{
+            url: resolvedOffer.image,
+            alt: resolvedOffer.alt,
+            mimeType: resolvedOffer.mimeType,
+          }}
           sizes="1800px"
-          style={{ objectFit: 'cover' }}
           priority
         />
 

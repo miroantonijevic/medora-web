@@ -33,6 +33,16 @@ const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 
 export default buildConfig({
+  i18n: {
+    translations: {
+      en: {
+        // Default label reads oddly on the Media edit view; clarify it's an action.
+        folder: {
+          noFolder: 'Add to folder',
+        },
+      },
+    },
+  },
   localization: {
     locales: [
       {
@@ -67,7 +77,11 @@ export default buildConfig({
         Logo: '@/components/AdminLogo#AdminLogo',
         Icon: '@/components/AdminLogo#AdminIcon',
       },
-      beforeNavLinks: ['@/components/GlobalSearch/NavLink', '@/components/MediaLibrary/NavLink'],
+      beforeNavLinks: [
+        '@/components/Dashboard/NavLink',
+        '@/components/GlobalSearch/NavLink',
+        '@/components/MediaLibrary/NavLink',
+      ],
       views: {
         mediaLibrary: {
           Component: '@/components/MediaLibrary#MediaLibraryView',

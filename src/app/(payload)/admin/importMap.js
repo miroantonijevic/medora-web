@@ -26,6 +26,8 @@ import { BlocksFeatureClient as BlocksFeatureClient_e70f5e05f09f93e00b997edb1ef0
 import { MetaImageComponent as MetaImageComponent_a8a977ebc872c5d5ea7ee689724c0860 } from '@payloadcms/plugin-seo/client'
 import { FolderTableCell as FolderTableCell_f9c02e79a4aed9a3924487c0cd4cafb1 } from '@payloadcms/next/rsc'
 import { FolderField as FolderField_f9c02e79a4aed9a3924487c0cd4cafb1 } from '@payloadcms/next/rsc'
+import { MediaDescription as MediaDescription_b51edf4e685de41d25ad189d591d0aa2 } from '@/components/MediaLibrary/MediaDescription'
+import { MediaEditExtras as MediaEditExtras_8f5f23c83d7072c1cdc6c340ce29fb2e } from '@/components/MediaLibrary/MediaEditExtras'
 import { MediaListRedirectView as MediaListRedirectView_039061ca216648a44fa51c65a4b45ebc } from '@/components/MediaLibrary/ListRedirect'
 import { default as default_990ded570bc1fb9fdd85d7f3ac644b02 } from '@/collections/Users/components/RoleCell'
 import { default as default_75bf81c5d7cc2de0a87bd2d452a6e2e7 } from '@/components/admin-list/UpdatedCell'
@@ -55,6 +57,7 @@ import { AdminIcon as AdminIcon_aa0a2d19d38a4839dbd373417e210b89 } from '@/compo
 import { AdminLogo as AdminLogo_aa0a2d19d38a4839dbd373417e210b89 } from '@/components/AdminLogo'
 import { default as default_1a7510af427896d367a49dbf838d2de6 } from '@/components/BeforeDashboard'
 import { default as default_8a7ab0eb7ab5c511aba12e68480bfe5e } from '@/components/BeforeLogin'
+import { default as default_1f49e170cef032e411593d2be4c39545 } from '@/components/Dashboard/NavLink'
 import { default as default_c7d54d272c2796839546dd722e47ad4f } from '@/components/GlobalSearch/NavLink'
 import { default as default_2423eb82d5dd6fa9f567eb1cb315f844 } from '@/components/MediaLibrary/NavLink'
 import { MediaLibraryView as MediaLibraryView_f485a4329fd47032c6b99a7674d3d10c } from '@/components/MediaLibrary'
@@ -90,6 +93,8 @@ export const importMap = {
   "@payloadcms/plugin-seo/client#MetaImageComponent": MetaImageComponent_a8a977ebc872c5d5ea7ee689724c0860,
   "@payloadcms/next/rsc#FolderTableCell": FolderTableCell_f9c02e79a4aed9a3924487c0cd4cafb1,
   "@payloadcms/next/rsc#FolderField": FolderField_f9c02e79a4aed9a3924487c0cd4cafb1,
+  "@/components/MediaLibrary/MediaDescription#MediaDescription": MediaDescription_b51edf4e685de41d25ad189d591d0aa2,
+  "@/components/MediaLibrary/MediaEditExtras#MediaEditExtras": MediaEditExtras_8f5f23c83d7072c1cdc6c340ce29fb2e,
   "@/components/MediaLibrary/ListRedirect#MediaListRedirectView": MediaListRedirectView_039061ca216648a44fa51c65a4b45ebc,
   "@/collections/Users/components/RoleCell#default": default_990ded570bc1fb9fdd85d7f3ac644b02,
   "@/components/admin-list/UpdatedCell#default": default_75bf81c5d7cc2de0a87bd2d452a6e2e7,
@@ -119,6 +124,7 @@ export const importMap = {
   "@/components/AdminLogo#AdminLogo": AdminLogo_aa0a2d19d38a4839dbd373417e210b89,
   "@/components/BeforeDashboard#default": default_1a7510af427896d367a49dbf838d2de6,
   "@/components/BeforeLogin#default": default_8a7ab0eb7ab5c511aba12e68480bfe5e,
+  "@/components/Dashboard/NavLink#default": default_1f49e170cef032e411593d2be4c39545,
   "@/components/GlobalSearch/NavLink#default": default_c7d54d272c2796839546dd722e47ad4f,
   "@/components/MediaLibrary/NavLink#default": default_2423eb82d5dd6fa9f567eb1cb315f844,
   "@/components/MediaLibrary#MediaLibraryView": MediaLibraryView_f485a4329fd47032c6b99a7674d3d10c,

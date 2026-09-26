@@ -9,6 +9,9 @@ export function buildPhobsBookingLink(params: {
   dateFrom: string
   nights: number
   lang: string
+  rateId?: string
+  adults?: number
+  childrenCount?: number
 }): string {
   const baseUrl = process.env.NEXT_PUBLIC_PHOBS_BOOKING_BASE_URL
   const companyId = process.env.NEXT_PUBLIC_PHOBS_COMPANY_ID
@@ -17,7 +20,8 @@ export function buildPhobsBookingLink(params: {
       'Phobs booking link is not configured — missing NEXT_PUBLIC_PHOBS_BOOKING_BASE_URL or NEXT_PUBLIC_PHOBS_COMPANY_ID',
     )
   }
-  const { propertyPhobsId, unitPhobsId, dateFrom, nights, lang } = params
+  const { propertyPhobsId, unitPhobsId, dateFrom, nights, lang, rateId, adults, childrenCount } =
+    params
   const search = new URLSearchParams({
     company_id: companyId,
     hotel: propertyPhobsId,
@@ -26,5 +30,8 @@ export function buildPhobsBookingLink(params: {
     unit_id: unitPhobsId,
     lang,
   })
+  if (rateId) search.set('rate', rateId)
+  if (adults != null) search.set('adult[1]', String(adults))
+  if (childrenCount != null) search.set('chd[1]', String(childrenCount))
   return `${baseUrl}?${search.toString()}`
 }

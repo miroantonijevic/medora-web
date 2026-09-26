@@ -1,8 +1,8 @@
 import type { Metadata } from 'next'
-import Image from 'next/image'
 import { Link } from '@/i18n/navigation'
 import { setRequestLocale, getTranslations } from 'next-intl/server'
 import { getAmenityGroups } from '@/lib/queries'
+import { MediaCover } from '@/components/sections/MediaCover'
 
 type Args = { params: Promise<{ locale: string }> }
 
@@ -20,7 +20,7 @@ export default async function AmenitiesIndexPage({ params: paramsPromise }: Args
     getAmenityGroups(locale),
   ])
 
-  type MediaDoc = { url?: string; alt?: string }
+  type MediaDoc = { url?: string; alt?: string; mimeType?: string }
 
   return (
     <main>
@@ -116,11 +116,9 @@ export default async function AmenitiesIndexPage({ params: paramsPromise }: Args
                   {/* Image */}
                   <div style={{ position: 'relative', height: 260, flexShrink: 0 }}>
                     {img?.url ? (
-                      <Image
-                        src={img.url}
-                        alt={img.alt ?? String(group.name)}
-                        fill
-                        style={{ objectFit: 'cover' }}
+                      <MediaCover
+                        resource={img}
+                        alt={String(group.name)}
                         sizes="(max-width:768px) 100vw, 400px"
                       />
                     ) : (

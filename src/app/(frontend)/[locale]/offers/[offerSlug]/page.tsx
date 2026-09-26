@@ -1,5 +1,4 @@
 import type { Metadata } from 'next'
-import Image from 'next/image'
 import { Link } from '@/i18n/navigation'
 import { notFound } from 'next/navigation'
 import { draftMode } from 'next/headers'
@@ -9,6 +8,7 @@ import { getOfferBySlug, getPublishedOffers } from '@/lib/queries'
 import { bookingService } from '@/lib/booking'
 import { RichText } from '@/components/RichText'
 import { ExternalImageGallery } from '@/components/sections/ExternalImageGallery'
+import { MediaCover } from '@/components/sections/MediaCover'
 import { LivePreviewListener } from '@/components/LivePreviewListener'
 
 type Args = {
@@ -46,7 +46,10 @@ export default async function OfferDetailPage({ params: paramsPromise }: Args) {
 
   if (!offer) return notFound()
 
-  const heroImg = offer.heroImage as { url?: string; alt?: string } | null | undefined
+  const heroImg = offer.heroImage as
+    | { url?: string; alt?: string; mimeType?: string }
+    | null
+    | undefined
   const property = offer.property as { slug?: string; name?: string } | null | undefined
   const bookingLink = bookingService.getBookingLink({
     propertySlug: property?.slug,
@@ -60,14 +63,7 @@ export default async function OfferDetailPage({ params: paramsPromise }: Args) {
       {/* Hero */}
       <section style={{ position: 'relative', height: 400 }}>
         {heroImg?.url ? (
-          <Image
-            src={heroImg.url}
-            alt={heroImg.alt ?? String(offer.title)}
-            fill
-            style={{ objectFit: 'cover' }}
-            priority
-            sizes="100vw"
-          />
+          <MediaCover resource={heroImg} alt={String(offer.title)} priority sizes="100vw" />
         ) : (
           <div style={{ position: 'absolute', inset: 0, background: '#012B59' }} />
         )}
@@ -175,9 +171,17 @@ export default async function OfferDetailPage({ params: paramsPromise }: Args) {
       {Array.isArray(offer.gallery) && offer.gallery.length > 0 && (
         <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px 56px' }}>
           <ExternalImageGallery
-            images={(offer.gallery as { image?: { url?: string; alt?: string } | null }[])
+            images={(
+              offer.gallery as {
+                image?: { url?: string; alt?: string; mimeType?: string } | null
+              }[]
+            )
               .filter((g) => g.image?.url)
-              .map((g) => ({ src: g.image!.url!, alt: g.image?.alt ?? String(offer.title) }))}
+              .map((g) => ({
+                src: g.image!.url!,
+                alt: g.image?.alt ?? String(offer.title),
+                mimeType: g.image?.mimeType ?? undefined,
+              }))}
           />
         </div>
       )}

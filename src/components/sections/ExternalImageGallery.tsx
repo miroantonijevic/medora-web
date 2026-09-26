@@ -2,7 +2,32 @@
 
 import { useState, useEffect, useCallback } from 'react'
 
-type Props = { images: { src: string; alt: string }[] }
+type GalleryItem = { src: string; alt: string; mimeType?: string }
+type Props = { images: GalleryItem[] }
+
+function GalleryMedia({ item, mode }: { item: GalleryItem; mode: 'tile' | 'full' }) {
+  const style: React.CSSProperties =
+    mode === 'full'
+      ? { maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }
+      : { width: '100%', height: '100%', objectFit: 'cover', display: 'block' }
+
+  if (item.mimeType?.startsWith('video/')) {
+    return (
+      <video
+        autoPlay
+        muted
+        loop={mode === 'tile'}
+        controls={mode === 'full'}
+        playsInline
+        style={style}
+      >
+        <source src={item.src} />
+      </video>
+    )
+  }
+
+  return <img src={item.src} alt={item.alt} style={style} />
+}
 
 export function ExternalImageGallery({ images }: Props) {
   const [lightbox, setLightbox] = useState<number | null>(null)
@@ -34,19 +59,7 @@ export function ExternalImageGallery({ images }: Props) {
             onClick={() => setLightbox(i)}
             style={{ aspectRatio: '4/3', overflow: 'hidden', cursor: 'zoom-in' }}
           >
-            <img
-              src={img.src}
-              alt={img.alt}
-              style={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover',
-                display: 'block',
-                transition: 'opacity 0.2s',
-              }}
-              onMouseEnter={(e) => ((e.currentTarget as HTMLImageElement).style.opacity = '0.75')}
-              onMouseLeave={(e) => ((e.currentTarget as HTMLImageElement).style.opacity = '1')}
-            />
+            <GalleryMedia item={img} mode="tile" />
           </div>
         ))}
       </div>
@@ -133,11 +146,7 @@ export function ExternalImageGallery({ images }: Props) {
               justifyContent: 'center',
             }}
           >
-            <img
-              src={images[lightbox]!.src}
-              alt={images[lightbox]!.alt}
-              style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
-            />
+            <GalleryMedia item={images[lightbox]!} mode="full" />
           </div>
 
           <button
@@ -194,11 +203,7 @@ export function ExternalImageGallery({ images }: Props) {
                   transition: 'opacity 0.15s',
                 }}
               >
-                <img
-                  src={img.src}
-                  alt={img.alt}
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                />
+                <GalleryMedia item={img} mode="tile" />
               </div>
             ))}
           </div>

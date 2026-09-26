@@ -31,6 +31,10 @@ export const Media: CollectionConfig = {
     {
       name: 'alt',
       type: 'text',
+      admin: {
+        description:
+          'Alternative text describing the image, read aloud by screen readers and used for SEO. E.g. "Hotel room with sea view balcony".',
+      },
       //required: true,
     },
     {
@@ -45,20 +49,27 @@ export const Media: CollectionConfig = {
   ],
   admin: {
     group: false,
-    description:
-      'All uploaded images and files. Referenced by properties, rooms, offers and the homepage.',
+    // The API tab just links to the raw JSON endpoint; not useful for editors.
+    hideAPIURL: true,
     components: {
+      Description: '@/components/MediaLibrary/MediaDescription#MediaDescription',
       views: {
         list: {
           Component: '@/components/MediaLibrary/ListRedirect#MediaListRedirectView',
         },
+      },
+      edit: {
+        beforeDocumentControls: ['@/components/MediaLibrary/MediaEditExtras#MediaEditExtras'],
       },
     },
   },
   upload: {
     // Upload to the public/media directory in Next.js making them publicly accessible even outside of Payload
     staticDir: path.resolve(dirname, '../../public/media'),
-    adminThumbnail: 'thumbnail',
+    // Only images and videos are supported by the frontend's media renderers.
+    mimeTypes: ['image/*', 'video/*'],
+    // Use a large derivative (not the 300px 'thumbnail') so the big edit-view preview isn't blurry.
+    adminThumbnail: 'xlarge',
     focalPoint: true,
     imageSizes: [
       {

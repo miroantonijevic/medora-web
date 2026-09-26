@@ -49,10 +49,11 @@ export default async function AuriHomePage({
   let heroSlides: HeroSlide[] | undefined
   if (homepageGlobal?.slides && homepageGlobal.slides.length > 0) {
     heroSlides = homepageGlobal.slides.map((s) => {
-      const img = s.image as { url?: string; alt?: string } | null
+      const img = s.image as { url?: string; alt?: string; mimeType?: string } | null
       return {
         image: img?.url ?? '/gallery/mainpage_skywalk.png',
         alt: img?.alt ?? 'Medora Auri',
+        isVideo: Boolean(img?.mimeType?.startsWith('video/')),
         headline: String(s.headline ?? 'Book here & get FREE:'),
         benefits: Array.isArray(s.benefits)
           ? s.benefits.map((b) => String((b as { text?: string }).text ?? ''))
@@ -87,10 +88,11 @@ export default async function AuriHomePage({
   type GroupDoc = { id: number; name: unknown; slug: string; heroImage?: unknown }
   const featuredGroupDocs = homepageGlobal?.featuredGroups as GroupDoc[] | null | undefined
   const payloadRooms: RoomCard[] = (featuredGroupDocs ?? []).map((group) => {
-    const heroImage = group.heroImage as { url?: string; alt?: string } | null
+    const heroImage = group.heroImage as { url?: string; alt?: string; mimeType?: string } | null
     return {
       image: heroImage?.url ?? '/rooms/double-room.jpg',
       alt: heroImage?.alt ?? String(group.name),
+      mimeType: heroImage?.mimeType,
       name: String(group.name),
       href: `/properties/${PROPERTY_SLUG}/rooms/${group.slug}`,
     }
@@ -101,10 +103,14 @@ export default async function AuriHomePage({
   const offerDoc = homepageGlobal?.featuredOffer as OfferDoc | null | undefined
   let offerBanner: OfferBanner | undefined
   if (offerDoc) {
-    const img = offerDoc.heroImage as { url?: string; alt?: string } | null | undefined
+    const img = offerDoc.heroImage as
+      | { url?: string; alt?: string; mimeType?: string }
+      | null
+      | undefined
     offerBanner = {
       image: img?.url ?? '/brand/special-offers.jpg',
       alt: img?.alt ?? String(offerDoc.title),
+      mimeType: img?.mimeType,
       headline: String(offerDoc.title),
       ctaLabel: tCommon('learnMore'),
       ctaHref: `/offers/${offerDoc.slug}`,

@@ -1,5 +1,4 @@
 import type { Metadata } from 'next'
-import Image from 'next/image'
 import { Link } from '@/i18n/navigation'
 import { notFound } from 'next/navigation'
 import { setRequestLocale, getTranslations } from 'next-intl/server'
@@ -13,6 +12,7 @@ import {
 } from '@/lib/queries'
 import { RichText } from '@/components/RichText'
 import { RoomGallery } from '@/components/sections/RoomGallery'
+import { MediaCover } from '@/components/sections/MediaCover'
 import { BookingCalendar } from '@/components/BookingCalendar/BookingCalendar'
 
 type Args = {
@@ -71,7 +71,7 @@ export default async function RoomDetailPage({ params: paramsPromise }: Args) {
       ? String(groupDoc.name)
       : tNav('rooms')
 
-  type MediaDoc = { url?: string; alt?: string }
+  type MediaDoc = { url?: string; alt?: string; mimeType?: string }
   const images = ((room.images ?? []) as MediaDoc[]).filter((img): img is Required<MediaDoc> =>
     Boolean(img.url),
   )
@@ -93,14 +93,7 @@ export default async function RoomDetailPage({ params: paramsPromise }: Args) {
         }}
       >
         {heroImage && (
-          <Image
-            src={heroImage.url}
-            alt={heroImage.alt ?? String(room.name)}
-            fill
-            style={{ objectFit: 'cover' }}
-            priority
-            sizes="100vw"
-          />
+          <MediaCover resource={heroImage} alt={String(room.name)} priority sizes="100vw" />
         )}
         <div
           style={{
@@ -169,6 +162,15 @@ export default async function RoomDetailPage({ params: paramsPromise }: Args) {
               locale={locale}
               triggerLabel={tCommon('bookNow')}
               unitPhobsId={room.phobsUnitId}
+              roomName={String(room.name)}
+              roomImageUrl={heroImage?.url}
+              roomMeta={[
+                room.size && String(room.size),
+                room.bedType && String(room.bedType),
+                room.capacity && `${room.capacity} ${tRooms('guests').toLowerCase()}`,
+              ]
+                .filter(Boolean)
+                .join(' | ')}
               triggerStyle={{
                 padding: '11px 22px',
                 background: '#009bdb',

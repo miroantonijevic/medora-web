@@ -115,8 +115,19 @@ export const Inquiries: CollectionConfig<'inquiries'> = {
       },
     },
     {
-      name: 'children',
+      name: 'childrenYoung',
       type: 'number',
+      label: 'Children (age 0-3)',
+      defaultValue: 0,
+      admin: {
+        position: 'sidebar',
+        className: 'inquiry-field',
+      },
+    },
+    {
+      name: 'childrenOld',
+      type: 'number',
+      label: 'Children (age 4-15)',
       defaultValue: 0,
       admin: {
         position: 'sidebar',

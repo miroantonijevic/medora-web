@@ -5,7 +5,7 @@ import { ExternalImageGallery } from '@/components/sections/ExternalImageGallery
 import { cn } from '@/utilities/ui'
 import { getWidthClassName, type LayoutSettings } from '@/utilities/getBlockLayoutClasses'
 
-type MediaItem = { url?: string | null; alt?: string | null }
+type MediaItem = { url?: string | null; alt?: string | null; mimeType?: string | null }
 
 type Props = {
   label?: string | null
@@ -18,7 +18,11 @@ export const PhotoGalleryComponent: React.FC<Props> = ({ label, images, layoutSe
 
   const galleryImages = images
     .filter((item) => item.image?.url)
-    .map((item) => ({ src: item.image!.url!, alt: item.image?.alt ?? '' }))
+    .map((item) => ({
+      src: item.image!.url!,
+      alt: item.image?.alt ?? '',
+      mimeType: item.image?.mimeType ?? undefined,
+    }))
 
   return (
     <div className={cn(getWidthClassName(layoutSettings?.width, 'max-w-275 mx-auto'), 'px-6 pb-6')}>

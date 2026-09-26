@@ -1,5 +1,4 @@
 import type { Metadata } from 'next'
-import Image from 'next/image'
 import { Link } from '@/i18n/navigation'
 import { notFound } from 'next/navigation'
 
@@ -14,6 +13,7 @@ import {
 import { MedoraHero, type HeroSlide } from '@/components/sections/MedoraHero'
 import { MedoraInclusions, type Inclusion } from '@/components/sections/MedoraInclusions'
 import { MedoraOfferBanners, type OfferBanner } from '@/components/sections/MedoraOfferBanners'
+import { MediaCover } from '@/components/sections/MediaCover'
 import { bookingService } from '@/lib/booking'
 
 type Args = {
@@ -59,10 +59,11 @@ export default async function PropertyHomePage({ params: paramsPromise }: Args) 
   let heroSlides: HeroSlide[] | undefined
   if (homepageGlobal?.slides && homepageGlobal.slides.length > 0) {
     heroSlides = homepageGlobal.slides.map((s) => {
-      const img = s.image as { url?: string; alt?: string } | null
+      const img = s.image as { url?: string; alt?: string; mimeType?: string } | null
       return {
         image: img?.url ?? '/gallery/mainpage_skywalk.png',
         alt: img?.alt ?? String(property.name),
+        isVideo: Boolean(img?.mimeType?.startsWith('video/')),
         headline: String(s.headline ?? 'Book here & get FREE:'),
         benefits: Array.isArray(s.benefits)
           ? s.benefits.map((b) => String((b as { text?: string }).text ?? ''))
@@ -91,10 +92,14 @@ export default async function PropertyHomePage({ params: paramsPromise }: Args) 
   let offerBanner: OfferBanner | undefined
   if (offersResult.docs.length > 0) {
     const offer = offersResult.docs[0]!
-    const img = offer.heroImage as { url?: string; alt?: string } | null | undefined
+    const img = offer.heroImage as
+      | { url?: string; alt?: string; mimeType?: string }
+      | null
+      | undefined
     offerBanner = {
       image: img?.url ?? '/brand/special-offers.jpg',
       alt: img?.alt ?? String(offer.title),
+      mimeType: img?.mimeType,
       headline: String(offer.title),
       ctaLabel: 'Find out more',
       ctaHref: `/offers/${offer.slug}`,
@@ -134,7 +139,11 @@ export default async function PropertyHomePage({ params: paramsPromise }: Args) 
               }}
             >
               {roomSubGroupsData.map((group) => {
-                const heroImage = group.heroImage as { url?: string; alt?: string } | null
+                const heroImage = group.heroImage as {
+                  url?: string
+                  alt?: string
+                  mimeType?: string
+                } | null
                 const groupName = String(group.name)
                 return (
                   <Link
@@ -150,15 +159,12 @@ export default async function PropertyHomePage({ params: paramsPromise }: Args) 
                         cursor: 'pointer',
                       }}
                     >
-                      {heroImage?.url ? (
-                        <Image
-                          src={heroImage.url}
-                          alt={heroImage.alt ?? groupName}
-                          fill
-                          style={{ objectFit: 'cover' }}
-                          sizes="(max-width: 768px) 100vw, 33vw"
-                        />
-                      ) : (
+                      <MediaCover
+                        resource={heroImage}
+                        alt={groupName}
+                        sizes="(max-width: 768px) 100vw, 33vw"
+                      />
+                      {!heroImage?.url && (
                         <div style={{ background: '#c8bfb0', width: '100%', height: '100%' }} />
                       )}
                       <div

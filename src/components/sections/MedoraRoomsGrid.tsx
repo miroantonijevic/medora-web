@@ -1,14 +1,22 @@
 'use client'
 
-import Image from 'next/image'
 import { Link } from '@/i18n/navigation'
 import { useRef } from 'react'
+import { MediaCover } from './MediaCover'
 
 export type RoomCard = {
   image: string
   alt: string
+  mimeType?: string
   name: string
   href: string
+}
+
+type Props = {
+  rooms?: RoomCard[]
+  title?: string
+  viewAllLabel?: string
+  viewAllHref?: string
 }
 
 export function MedoraRoomsGrid({
@@ -92,12 +100,9 @@ export function MedoraRoomsGrid({
               textDecoration: 'none',
             }}
           >
-            <Image
-              src={room.image}
-              alt={room.alt}
-              fill
+            <MediaCover
+              resource={{ url: room.image, alt: room.alt, mimeType: room.mimeType }}
               sizes="400px"
-              style={{ objectFit: 'cover' }}
             />
             {/* Gradient overlay on bottom */}
             <div

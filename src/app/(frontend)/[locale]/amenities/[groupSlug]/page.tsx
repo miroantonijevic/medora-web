@@ -1,10 +1,10 @@
 import type { Metadata } from 'next'
-import Image from 'next/image'
 import { Link } from '@/i18n/navigation'
 import { notFound } from 'next/navigation'
 import { setRequestLocale, getTranslations } from 'next-intl/server'
 
 import { getAmenityGroupBySlug, getAmenityGroups, getAmenitiesByGroup } from '@/lib/queries'
+import { MediaCover } from '@/components/sections/MediaCover'
 
 type Args = {
   params: Promise<{ groupSlug: string; locale: string }>
@@ -34,7 +34,7 @@ export default async function AmenityGroupPage({ params: paramsPromise }: Args) 
 
   if (!group) return notFound()
 
-  type MediaDoc = { url?: string; alt?: string }
+  type MediaDoc = { url?: string; alt?: string; mimeType?: string }
 
   return (
     <main>
@@ -49,11 +49,9 @@ export default async function AmenityGroupPage({ params: paramsPromise }: Args) 
             background: '#1a2a3a',
           }}
         >
-          <Image
-            src={(group.heroImage as MediaDoc).url!}
-            alt={(group.heroImage as MediaDoc).alt ?? String(group.name)}
-            fill
-            style={{ objectFit: 'cover' }}
+          <MediaCover
+            resource={group.heroImage as MediaDoc}
+            alt={String(group.name)}
             priority
             sizes="100vw"
           />
@@ -156,13 +154,7 @@ export default async function AmenityGroupPage({ params: paramsPromise }: Args) 
               >
                 {img?.url && (
                   <div style={{ position: 'relative', height: 220, overflow: 'hidden' }}>
-                    <Image
-                      src={img.url}
-                      alt={img.alt ?? String(item.name)}
-                      fill
-                      style={{ objectFit: 'cover' }}
-                      sizes="400px"
-                    />
+                    <MediaCover resource={img} alt={String(item.name)} sizes="400px" />
                   </div>
                 )}
                 <div style={{ padding: '20px 24px', flex: 1 }}>

@@ -114,6 +114,7 @@ export const MediaGrid: React.FC<Props> = ({
                 {uploading ? 'Uploading…' : 'Upload'}
               </button>
               <input
+                accept="image/*,video/*"
                 hidden
                 multiple
                 onChange={(e) => {
@@ -136,10 +137,10 @@ export const MediaGrid: React.FC<Props> = ({
         subfolders.length === 0 ? (
           <p className={`${baseClass}__empty`}>
             {canUpload
-              ? `No images here yet. Drag & drop files, or use ${
+              ? `Nothing here yet. Drag & drop images or videos, or use ${
                   canAdd ? 'Upload / Add existing media' : 'Upload'
                 } above.`
-              : 'No images here yet.'}
+              : 'Nothing here yet.'}
           </p>
         ) : null
       ) : (
@@ -156,6 +157,8 @@ export const MediaGrid: React.FC<Props> = ({
                     alt={item.alt ?? item.filename ?? ''}
                     src={item.thumbnailURL ?? item.url ?? ''}
                   />
+                ) : item.mimeType?.startsWith('video/') ? (
+                  <div className={`${baseClass}__file-icon`}>🎬</div>
                 ) : (
                   <div className={`${baseClass}__file-icon`}>📄</div>
                 )}
