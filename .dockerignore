@@ -1,0 +1,19 @@
+# Keep secrets, local state and bulky dev artefacts out of the build context and the image layers.
+.git
+.claude
+.vscode
+node_modules
+.next
+.env
+.env.*
+!.env.example
+test.env
+public/media
+public/robots.txt
+public/sitemap*.xml
+tests
+test-results
+playwright-report
+*.tsbuildinfo
+migrate-output.txt
+todo.txt

@@ -69,6 +69,10 @@ rebuilds the admin search index.
 docker compose --profile fullstack up -d --build
 ```
 
+The image build currently needs a reachable database and `PAYLOAD_SECRET` at build time (see "Known debt" in
+[REPO_CONTEXT.md](REPO_CONTEXT.md)). On start the container applies migrations, and `/api/health` reports
+ready once the database answers; nginx waits for it.
+
 nginx terminates TLS, caches static assets and rate-limits the preview, revalidation, Phobs and inquiry
 endpoints. If a CDN or load balancer is placed in front of it, configure `real_ip` in
 [nginx.conf](nginx.conf) first, otherwise all visitors share one rate limit.

@@ -55,12 +55,9 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 
-# Drizzle migration files (committed, applied at container startup)
-COPY --from=builder --chown=nextjs:nodejs /app/migrations ./migrations
-
-# Source + config required by `payload migrate` CLI (needs TS resolution via tsx)
+# Source required by the `payload migrate` CLI (payload.config.ts and the migrations live in src/;
+# TypeScript is resolved through tsx)
 COPY --from=builder --chown=nextjs:nodejs /app/src ./src
-COPY --from=builder --chown=nextjs:nodejs /app/payload.config.ts ./
 COPY --from=builder --chown=nextjs:nodejs /app/tsconfig.json ./
 COPY --from=builder --chown=nextjs:nodejs /app/package.json ./
 

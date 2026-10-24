@@ -1,0 +1,3 @@
+# The container runs this script with /bin/sh; CRLF line endings (Windows autocrlf) would break it.
+*.sh text eol=lf
+Dockerfile text eol=lf
