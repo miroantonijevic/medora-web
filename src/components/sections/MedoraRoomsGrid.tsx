@@ -25,8 +25,9 @@ export function MedoraRoomsGrid({
   viewAllLabel = 'view all',
   viewAllHref = '/accommodation',
 }: Props) {
-  if (!rooms || rooms.length === 0) return null
   const rowRef = useRef<HTMLDivElement>(null)
+
+  if (!rooms || rooms.length === 0) return null
 
   return (
     <section style={{ padding: '60px 0', background: '#fffaf5' }}>

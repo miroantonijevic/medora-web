@@ -20,19 +20,21 @@ export const AddMediaModal: React.FC<Props> = ({
   onConfirm,
 }) => {
   const [query, setQuery] = useState('')
-  const [results, setResults] = useState<MediaItem[]>([])
-  const [loading, setLoading] = useState(false)
+  const [fetched, setFetched] = useState<{ query: string; docs: MediaItem[] } | null>(null)
   const [selected, setSelected] = useState<Set<number>>(new Set())
+  // Derived from the last settled query, so the effect never sets state synchronously.
+  const results = fetched?.docs ?? []
+  const loading = fetched?.query !== query
 
   useEffect(() => {
     let cancelled = false
-    setLoading(true)
     searchMedia(apiRoute, query)
       .then((docs) => {
-        if (!cancelled) setResults(docs)
+        if (!cancelled) setFetched({ query, docs })
       })
-      .finally(() => {
-        if (!cancelled) setLoading(false)
+      .catch(() => {
+        // Keep showing the previous results; the empty list is the honest state on a first-load failure.
+        if (!cancelled) setFetched((prev) => ({ query, docs: prev?.docs ?? [] }))
       })
     return () => {
       cancelled = true

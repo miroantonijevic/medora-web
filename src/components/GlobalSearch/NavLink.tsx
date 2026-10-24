@@ -29,21 +29,18 @@ const GlobalSearchNav: React.FC = () => {
   const { config } = useConfig()
   const router = useRouter()
   const [value, setValue] = useState('')
-  const [results, setResults] = useState<SearchResult[]>([])
+  const [fetched, setFetched] = useState<{ query: string; docs: SearchResult[] } | null>(null)
   const [open, setOpen] = useState(false)
-  const [loading, setLoading] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
   const debouncedValue = useDebounce(value, 250)
+  // Results and the loading flag are derived from the settled query, so nothing is set synchronously in the effect.
+  const results = debouncedValue ? (fetched?.docs ?? []) : []
+  const loading = Boolean(debouncedValue) && fetched?.query !== debouncedValue
 
   useEffect(() => {
-    if (!debouncedValue) {
-      setResults([])
-      setOpen(false)
-      return
-    }
+    if (!debouncedValue) return
 
     let cancelled = false
-    setLoading(true)
 
     const params = new URLSearchParams()
     params.set('where[or][0][title][like]', debouncedValue)
@@ -57,14 +54,11 @@ const GlobalSearchNav: React.FC = () => {
       .then((res) => res.json())
       .then((data) => {
         if (cancelled) return
-        setResults(data?.docs ?? [])
+        setFetched({ query: debouncedValue, docs: data?.docs ?? [] })
         setOpen(true)
       })
       .catch(() => {
-        if (!cancelled) setResults([])
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false)
+        if (!cancelled) setFetched({ query: debouncedValue, docs: [] })
       })
 
     return () => {
@@ -106,7 +100,10 @@ const GlobalSearchNav: React.FC = () => {
         <input
           type="text"
           value={value}
-          onChange={(e) => setValue(e.target.value)}
+          onChange={(e) => {
+            setValue(e.target.value)
+            if (!e.target.value) setOpen(false)
+          }}
           onFocus={() => results.length > 0 && setOpen(true)}
           placeholder="Search everything…"
           style={{
@@ -122,6 +119,7 @@ const GlobalSearchNav: React.FC = () => {
       </div>
       {open && (
         <div
+          className="global-search-results"
           style={{
             position: 'absolute',
             top: '100%',

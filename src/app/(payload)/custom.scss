@@ -54,6 +54,14 @@
   color: rgba(255, 255, 255, 0.85) !important;
 }
 
+/* The search popup is a light surface inside the dark nav, so it needs dark text; the more
+   specific selector beats the !important nav colours above. */
+.nav .global-search-results,
+.nav .global-search-results button,
+.nav .global-search-results span {
+  color: var(--theme-text) !important;
+}
+
 .nav .nav__link--active,
 .nav a:hover {
   background-color: rgba(0, 155, 219, 0.18) !important;

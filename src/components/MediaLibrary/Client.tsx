@@ -39,7 +39,7 @@ export const MediaLibraryClient: React.FC = () => {
   const [page, setPage] = useState(1)
   const [hasNextPage, setHasNextPage] = useState(false)
   const [totalDocs, setTotalDocs] = useState(0)
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState(false)
   const [addModalOpen, setAddModalOpen] = useState(false)
   const [sidebarWidth, setSidebarWidth] = useState(DEFAULT_SIDEBAR_WIDTH)
@@ -69,13 +69,41 @@ export const MediaLibraryClient: React.FC = () => {
   )
 
   useEffect(() => {
-    loadFolders()
-  }, [loadFolders])
+    let cancelled = false
+    fetchAllFolders(apiRoute).then((docs) => {
+      if (!cancelled) setFolders(docs)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [apiRoute])
 
+  // Loads page 1 whenever the selection changes. `selectTarget` resets page/loading in the event handler,
+  // so this effect only sets state once the response arrives.
   useEffect(() => {
+    let cancelled = false
+    const request =
+      selected === 'all'
+        ? fetchAllMedia(apiRoute, 1)
+        : fetchMediaInFolder(apiRoute, selected === 'unfiled' ? null : selected, 1)
+    request.then((result) => {
+      if (cancelled) return
+      setMedia(result.docs)
+      setHasNextPage(result.hasNextPage)
+      setTotalDocs(result.totalDocs)
+      setLoading(false)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [selected, apiRoute])
+
+  const selectTarget = (target: Selection) => {
+    if (target === selected) return
     setPage(1)
-    loadMedia(selected, 1, false)
-  }, [selected, loadMedia])
+    setLoading(true)
+    setSelected(target)
+  }
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -151,7 +179,7 @@ export const MediaLibraryClient: React.FC = () => {
     if (!window.confirm(`Delete the empty folder "${node?.name ?? ''}"?`)) return
     const ok = await deleteFolder(apiRoute, id)
     if (ok) {
-      if (selected === id) setSelected('all')
+      if (selected === id) selectTarget('all')
       await loadFolders()
     }
   }
@@ -191,7 +219,7 @@ export const MediaLibraryClient: React.FC = () => {
           onDeleteFolder={handleDeleteFolder}
           onMoveFolder={handleMoveFolder}
           onRenameFolder={handleRenameFolder}
-          onSelect={setSelected}
+          onSelect={selectTarget}
           selectedId={selected}
           tree={tree}
         />
@@ -215,7 +243,7 @@ export const MediaLibraryClient: React.FC = () => {
           hasNextPage={hasNextPage}
           loading={loading}
           media={media}
-          onBreadcrumbClick={setSelected}
+          onBreadcrumbClick={selectTarget}
           onLoadMore={() => {
             const next = page + 1
             setPage(next)
@@ -223,7 +251,7 @@ export const MediaLibraryClient: React.FC = () => {
           }}
           onOpenAddModal={() => setAddModalOpen(true)}
           onRemove={handleRemoveMedia}
-          onSelectSubfolder={setSelected}
+          onSelectSubfolder={selectTarget}
           onUpload={handleUpload}
           subfolders={subfolders}
           totalDocs={totalDocs}

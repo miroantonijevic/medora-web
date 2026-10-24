@@ -20,7 +20,7 @@ type Props = {
 const AUTOPLAY_MS = 5500
 
 export function MedoraHero({ slides }: Props) {
-  if (!slides || slides.length === 0) return null
+  const slideCount = slides?.length ?? 0
   const [current, setCurrent] = useState(0)
   const [paused, setPaused] = useState(false)
   const videoRefs = useRef<Array<HTMLVideoElement | null>>([])
@@ -28,17 +28,17 @@ export function MedoraHero({ slides }: Props) {
   const router = useRouter()
 
   const next = useCallback(() => {
-    setCurrent((c) => (c + 1) % slides.length)
-  }, [slides.length])
+    setCurrent((c) => (c + 1) % slideCount)
+  }, [slideCount])
 
-  const currentIsVideo = Boolean(slides[current]?.isVideo)
+  const currentIsVideo = Boolean(slides?.[current]?.isVideo)
 
   // Image slides auto-advance on a timer; video slides advance once playback ends.
   useEffect(() => {
-    if (paused || currentIsVideo) return
+    if (paused || currentIsVideo || slideCount < 2) return
     const id = setInterval(next, AUTOPLAY_MS)
     return () => clearInterval(id)
-  }, [next, paused, currentIsVideo])
+  }, [next, paused, currentIsVideo, slideCount])
 
   // Only the active slide's video should play — restart it whenever it becomes current.
   useEffect(() => {
@@ -52,6 +52,8 @@ export function MedoraHero({ slides }: Props) {
       }
     })
   }, [current, paused])
+
+  if (!slides || slides.length === 0) return null
 
   return (
     <section

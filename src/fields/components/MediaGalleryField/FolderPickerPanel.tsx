@@ -18,44 +18,46 @@ export const FolderPickerPanel: React.FC<Props> = ({ disabled, onConfirm }) => {
   const apiRoute = config.routes.api
 
   const [isOpen, setIsOpen] = useState(false)
-  const [folderOptions, setFolderOptions] = useState<FolderOption[]>([])
-  const [loadingFolders, setLoadingFolders] = useState(false)
+  // null = not loaded yet
+  const [folderOptions, setFolderOptions] = useState<FolderOption[] | null>(null)
   const [selected, setSelected] = useState<FolderOption | null>(null)
-  const [folderMedia, setFolderMedia] = useState<MediaDoc[] | null>(null)
-  const [loadingMedia, setLoadingMedia] = useState(false)
+  const [fetchedMedia, setFetchedMedia] = useState<{ folder: string; docs: MediaDoc[] } | null>(
+    null,
+  )
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    if (!isOpen || folderOptions.length > 0) return
-
-    setLoadingFolders(true)
-    setError(null)
-
-    fetchFolderOptions(apiRoute)
-      .then(setFolderOptions)
-      .catch(() => setError('Could not load folders.'))
-      .finally(() => setLoadingFolders(false))
-  }, [isOpen, apiRoute, folderOptions.length])
+  // Loading flags are derived, so the effects below only set state when a response arrives.
+  const loadingFolders = isOpen && folderOptions === null && !error
+  const folderMedia = selected && fetchedMedia?.folder === selected.value ? fetchedMedia.docs : null
+  const loadingMedia = Boolean(selected) && folderMedia === null && !error
 
   useEffect(() => {
-    if (!selected) {
-      setFolderMedia(null)
-      return
-    }
+    if (!isOpen || folderOptions !== null) return
 
     let cancelled = false
-    setLoadingMedia(true)
-    setError(null)
+    fetchFolderOptions(apiRoute)
+      .then((options) => {
+        if (!cancelled) setFolderOptions(options)
+      })
+      .catch(() => {
+        if (!cancelled) setError('Could not load folders.')
+      })
 
+    return () => {
+      cancelled = true
+    }
+  }, [isOpen, folderOptions, apiRoute])
+
+  useEffect(() => {
+    if (!selected) return
+
+    let cancelled = false
     fetchFolderMedia(apiRoute, selected.value)
       .then((docs) => {
-        if (!cancelled) setFolderMedia(docs)
+        if (!cancelled) setFetchedMedia({ folder: selected.value, docs })
       })
       .catch(() => {
         if (!cancelled) setError('Could not load images in that folder.')
-      })
-      .finally(() => {
-        if (!cancelled) setLoadingMedia(false)
       })
 
     return () => {
@@ -63,22 +65,30 @@ export const FolderPickerPanel: React.FC<Props> = ({ disabled, onConfirm }) => {
     }
   }, [selected, apiRoute])
 
+  const open = () => {
+    setError(null)
+    setIsOpen(true)
+  }
+
+  const close = () => {
+    setIsOpen(false)
+    setSelected(null)
+  }
+
+  const handleSelect = (option: FolderOption | null) => {
+    setError(null)
+    setSelected(option)
+  }
+
   const handleConfirm = () => {
     if (!folderMedia || folderMedia.length === 0) return
     onConfirm(folderMedia)
-    setIsOpen(false)
-    setSelected(null)
-    setFolderMedia(null)
+    close()
   }
 
   if (!isOpen) {
     return (
-      <button
-        className={`${baseClass}__trigger`}
-        disabled={disabled}
-        onClick={() => setIsOpen(true)}
-        type="button"
-      >
+      <button className={`${baseClass}__trigger`} disabled={disabled} onClick={open} type="button">
         <span className={`${baseClass}__trigger-icon`}>📁</span>
         Add images from folder
       </button>
@@ -92,10 +102,10 @@ export const FolderPickerPanel: React.FC<Props> = ({ disabled, onConfirm }) => {
           <ReactSelect
             isClearable
             isLoading={loadingFolders}
-            onChange={(option) => setSelected((option as FolderOption) ?? null)}
-            options={folderOptions}
+            onChange={(option) => handleSelect((option as FolderOption) ?? null)}
+            options={folderOptions ?? []}
             placeholder="Choose a folder…"
-            value={selected}
+            value={selected ?? undefined}
           />
         </div>
         <button
@@ -110,15 +120,7 @@ export const FolderPickerPanel: React.FC<Props> = ({ disabled, onConfirm }) => {
               ? `Add ${folderMedia.length} image${folderMedia.length === 1 ? '' : 's'}`
               : 'Add images'}
         </button>
-        <button
-          className={`${baseClass}__cancel`}
-          onClick={() => {
-            setIsOpen(false)
-            setSelected(null)
-            setFolderMedia(null)
-          }}
-          type="button"
-        >
+        <button className={`${baseClass}__cancel`} onClick={close} type="button">
           Cancel
         </button>
       </div>
