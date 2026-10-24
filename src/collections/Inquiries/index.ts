@@ -5,6 +5,7 @@ import { sendInquiryEmails } from './hooks/sendInquiryEmails'
 
 export const Inquiries: CollectionConfig<'inquiries'> = {
   slug: 'inquiries',
+  defaultSort: '-createdAt',
   labels: {
     singular: 'Inquiry',
     plural: 'Inquiries',
@@ -14,7 +15,6 @@ export const Inquiries: CollectionConfig<'inquiries'> = {
     group: 'Guest Inquiries',
     defaultColumns: ['name', 'status', 'arrival', 'roomPreference', 'createdAt'],
     description: 'Quick Inquiry form submissions from the website.',
-    defaultSort: '-createdAt',
     // No field here is localized and this isn't a REST-consumer-facing collection.
     hideAPIURL: true,
     disableCopyToLocale: true,

@@ -68,7 +68,7 @@ export const findMediaUsages = async (payload: Payload, mediaId: string | number
 
         for (const doc of docs) {
           if (containsMediaId(doc, targetId)) {
-            const title = (doc as Record<string, unknown>)[titleField]
+            const title = (doc as unknown as Record<string, unknown>)[titleField]
             usages.push({
               label: `${label}: ${typeof title === 'string' ? title : doc.id}`,
               href: `/admin/collections/${slug}/${doc.id}`,

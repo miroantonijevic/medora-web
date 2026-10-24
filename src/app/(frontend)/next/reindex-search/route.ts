@@ -41,7 +41,8 @@ export async function POST(req: Request): Promise<Response> {
         limit: 0,
         pagination: false,
         draft: true,
-        select: { id: true },
+        // `id` is always returned; one cheap field keeps the payload small.
+        select: { createdAt: true },
       })
 
       for (const doc of docs) {

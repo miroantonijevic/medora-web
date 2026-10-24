@@ -5,7 +5,6 @@ export const layoutSettings = (): Field => ({
   type: 'group',
   label: 'Layout & Spacing',
   admin: {
-    initCollapsed: true,
     description:
       'Optional visual presentation controls for this block. Leave as default for the standard look.',
   },

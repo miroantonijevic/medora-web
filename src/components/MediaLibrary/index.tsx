@@ -20,7 +20,7 @@ export const MediaLibraryView: React.FC<AdminViewServerProps> = ({
       permissions={permissions}
       req={req}
       searchParams={searchParams}
-      user={req.user}
+      user={req.user ?? undefined}
       viewType="media-library"
       visibleEntities={{
         collections: visibleEntities?.collections,

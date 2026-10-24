@@ -40,11 +40,9 @@ export const RenderBlocks: React.FC<{
             const Block = blockComponents[blockType]
 
             if (Block) {
-              // destination-hero must be flush to the viewport edge — skip the default margin wrapper
-              const isFullWidth = blockType === 'destination-hero'
-              const wrapperClassName = isFullWidth
-                ? ''
-                : getWrapperClassName('layoutSettings' in block ? block.layoutSettings : undefined)
+              const wrapperClassName = getWrapperClassName(
+                'layoutSettings' in block ? block.layoutSettings : undefined,
+              )
               return (
                 <div className={wrapperClassName} data-block-index={index} key={index}>
                   {/* @ts-expect-error there may be some mismatch between the expected types here */}

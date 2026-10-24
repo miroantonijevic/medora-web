@@ -1,4 +1,9 @@
-import type { CollectionAfterChangeHook, CollectionAfterDeleteHook, Config } from 'payload'
+import type {
+  CollectionAfterChangeHook,
+  CollectionAfterDeleteHook,
+  CollectionSlug,
+  Config,
+} from 'payload'
 
 import { removeSearchIndexForDoc, syncSearchIndexForDoc } from '@/search/syncSearchIndex'
 
@@ -31,7 +36,7 @@ export const globalSearchIndexPlugin =
         return collection
       }
 
-      const collectionSlug = collection.slug
+      const collectionSlug = collection.slug as CollectionSlug
 
       const afterChange: CollectionAfterChangeHook = async ({ doc, req }) => {
         await syncSearchIndexForDoc({

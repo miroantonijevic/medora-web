@@ -2,6 +2,7 @@ import React from 'react'
 
 import { Link } from '@/i18n/navigation'
 import { Media } from '@/components/Media'
+import type { Media as MediaDoc } from '@/payload-types'
 import RichText from '@/components/RichText'
 import { cn } from '@/utilities/ui'
 import { getWidthClassName, type LayoutSettings } from '@/utilities/getBlockLayoutClasses'
@@ -9,7 +10,7 @@ import { getWidthClassName, type LayoutSettings } from '@/utilities/getBlockLayo
 type Props = {
   heading?: string | null
   body?: Parameters<typeof RichText>[0]['data']
-  image?: Record<string, unknown> | null
+  image?: MediaDoc | number | null
   imagePosition?: 'right' | 'below' | null
   ctaLink?: string | null
   layoutSettings?: LayoutSettings

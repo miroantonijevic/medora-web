@@ -7,6 +7,12 @@ export type Inclusion = {
   href: string
 }
 
+type Props = {
+  headline?: string
+  subtitle?: string
+  inclusions?: Inclusion[]
+}
+
 export function MedoraInclusions({ headline, subtitle, inclusions }: Props) {
   if (!inclusions || inclusions.length === 0) return null
   const items = inclusions

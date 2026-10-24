@@ -1,6 +1,6 @@
-import type { Payload, PayloadRequest } from 'payload'
+import type { CollectionSlug, Payload, PayloadRequest } from 'payload'
 
-type SyncableDoc = { id: string | number } & Record<string, unknown>
+type SyncableDoc = { id: string | number }
 
 function extractLocaleValues(field: unknown): string[] {
   if (!field) return []
@@ -25,17 +25,18 @@ async function resolveTitleAndSearchText({
 }: {
   payload: Payload
   req?: PayloadRequest
-  collection: string
+  collection: CollectionSlug
   id: string | number
 }) {
-  const fullDoc = await payload.findByID({
+  // Fields differ per collection and are read defensively below, so a loose record is the honest type here.
+  const fullDoc = (await payload.findByID({
     collection,
     id,
     depth: 0,
     locale: 'all',
     overrideAccess: true,
     req,
-  })
+  })) as unknown as Record<string, unknown>
 
   const titleValues = [
     ...extractLocaleValues(fullDoc.title),
@@ -64,7 +65,7 @@ export async function syncSearchIndexForDoc({
 }: {
   payload: Payload
   req?: PayloadRequest
-  collection: string
+  collection: CollectionSlug
   doc: SyncableDoc
 }) {
   const { resolvedTitle, resolvedSlug, searchText } = await resolveTitleAndSearchText({
@@ -125,7 +126,7 @@ export async function removeSearchIndexForDoc({
 }: {
   payload: Payload
   req?: PayloadRequest
-  collection: string
+  collection: CollectionSlug
   id: string | number
 }) {
   await payload.delete({

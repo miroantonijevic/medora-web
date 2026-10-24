@@ -2,11 +2,12 @@ import React from 'react'
 
 import { Link } from '@/i18n/navigation'
 import { Media } from '@/components/Media'
+import type { Media as MediaDoc } from '@/payload-types'
 import { cn } from '@/utilities/ui'
 import { getWidthClassName, type LayoutSettings } from '@/utilities/getBlockLayoutClasses'
 
 type Card = {
-  image?: Record<string, unknown> | null
+  image?: MediaDoc | number | null
   title: string
   excerpt?: string | null
   link?: string | null

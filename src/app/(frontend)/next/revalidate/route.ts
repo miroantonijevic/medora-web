@@ -60,8 +60,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   }
 
   for (const tag of tags) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ;(revalidateTag as (tag: string) => void)(tag)
+    // expire: 0 keeps the previous immediate-invalidation behaviour of the single-argument form
+    revalidateTag(tag, { expire: 0 })
   }
 
   return NextResponse.json({ revalidated: true, tags })

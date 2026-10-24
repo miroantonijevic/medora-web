@@ -26,7 +26,7 @@ export function FaqAccordion({ items }: { items: Item[] }) {
               {open === i ? '−' : '+'}
             </span>
           </button>
-          {open === i && item.answer && (
+          {open === i && Boolean(item.answer) && (
             <div className="px-6 py-5 bg-gray-50 border-t border-gray-100">
               <RichText
                 data={item.answer as Parameters<typeof RichText>[0]['data']}

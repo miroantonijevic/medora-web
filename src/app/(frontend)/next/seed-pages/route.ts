@@ -15,7 +15,7 @@ export async function POST(req: Request): Promise<Response> {
     const payload = await getPayload({ config })
     await seedPages({ payload })
     // Bust the nav cache so the next page load gets fresh data
-    revalidateTag('global_main-nav')
+    revalidateTag('global_main-nav', { expire: 0 })
     return Response.json({ success: true })
   } catch (e: unknown) {
     const message = e instanceof Error ? e.message : String(e)
