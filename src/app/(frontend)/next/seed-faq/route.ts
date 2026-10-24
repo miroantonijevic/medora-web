@@ -1,6 +1,8 @@
 import { getPayload } from 'payload'
 import config from '@payload-config'
 
+import { lexParas } from '@/endpoints/seed/lexical'
+
 const BASE = 'https://medorahotels.com/UserDocsImages'
 
 export const maxDuration = 60
@@ -50,28 +52,6 @@ async function uploadImg(
     return doc.id as number
   } catch {
     return null
-  }
-}
-
-function lexParas(...texts: string[]) {
-  return {
-    root: {
-      type: 'root',
-      children: texts.map((text) => ({
-        type: 'paragraph',
-        children: [
-          { type: 'text', text, version: 1, detail: 0, format: 0, mode: 'normal', style: '' },
-        ],
-        direction: 'ltr',
-        format: '',
-        indent: 0,
-        version: 1,
-      })),
-      direction: 'ltr',
-      format: '',
-      indent: 0,
-      version: 1,
-    },
   }
 }
 

@@ -1,5 +1,9 @@
 import type { Payload } from 'payload'
 
+import type { Page } from '@/payload-types'
+
+import { lexParas } from './lexical'
+
 const BASE = 'https://medorahotels.com/UserDocsImages'
 
 // Public URL for an uploaded Media doc's file, served from the public/media static dir
@@ -57,28 +61,6 @@ function lexH1(text: string) {
           version: 1,
         },
       ],
-      direction: 'ltr',
-      format: '',
-      indent: 0,
-      version: 1,
-    },
-  }
-}
-
-function lexParas(...texts: string[]) {
-  return {
-    root: {
-      type: 'root',
-      children: texts.map((text) => ({
-        type: 'paragraph',
-        children: [
-          { type: 'text', text, version: 1, detail: 0, format: 0, mode: 'normal', style: '' },
-        ],
-        direction: 'ltr',
-        format: '',
-        indent: 0,
-        version: 1,
-      })),
       direction: 'ltr',
       format: '',
       indent: 0,
@@ -324,7 +306,7 @@ function infoCardHero(params: {
   }
 }
 
-function photoGallery(label: string, imageIds: (number | null)[]) {
+function photoGallery(label: string | null, imageIds: (number | null)[]) {
   return {
     blockType: 'photo-gallery' as const,
     label,
@@ -360,7 +342,12 @@ async function upsertPage(payload: Payload, path: string, data: object) {
   } else {
     await payload.create({
       collection: 'pages',
-      data: { ...data, slug: derivedSlug, path, _status: 'published' },
+      draft: false,
+      // Seed content is validated by Payload at runtime; `data` is intentionally loose so the large literals below stay readable.
+      data: { ...data, slug: derivedSlug, path, _status: 'published' } as Omit<
+        Page,
+        'id' | 'createdAt' | 'updatedAt'
+      >,
     })
     payload.logger.info(`  Created page: ${path}`)
   }

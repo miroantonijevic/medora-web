@@ -50,8 +50,8 @@ function paragraph(...parts: ParaPart[]) {
     children: parts.map((part) =>
       part === 'BR' ? { type: 'linebreak', version: 1 } : textNode(part),
     ),
-    direction: 'ltr',
-    format: '',
+    direction: 'ltr' as const,
+    format: '' as const,
     indent: 0,
     type: 'paragraph',
     version: 1,
@@ -70,13 +70,13 @@ function bulletList(items: (Run | Run[])[]) {
       type: 'listitem',
       value: i + 1,
       children: (Array.isArray(item) ? item : [item]).map(textNode),
-      direction: 'ltr',
-      format: '',
+      direction: 'ltr' as const,
+      format: '' as const,
       indent: 0,
       version: 1,
     })),
-    direction: 'ltr',
-    format: '',
+    direction: 'ltr' as const,
+    format: '' as const,
     indent: 0,
     version: 1,
   }
@@ -98,8 +98,8 @@ function buildRichText(blocks: Block[]) {
   return {
     root: {
       children: blocks,
-      direction: 'ltr',
-      format: '',
+      direction: 'ltr' as const,
+      format: '' as const,
       indent: 0,
       type: 'root',
       version: 1,
@@ -767,7 +767,7 @@ export async function seedOffers({ payload }: { payload: Payload }) {
     const propertyId = offer.propertySlug === 'medora-auri' ? auriId : orbisId
 
     let galleryIds: number[] = []
-    if ('galleryFolder' in offer && 'galleryFiles' in offer) {
+    if (offer.galleryFolder && offer.galleryFiles) {
       galleryIds = await uploadGalleryImages(
         payload,
         offer.galleryFolder,

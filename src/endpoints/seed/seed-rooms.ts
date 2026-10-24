@@ -3,6 +3,8 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
+import { lexParas } from './lexical'
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const PUBLIC_DIR = path.resolve(__dirname, '..', '..', '..', 'public')
 
@@ -27,61 +29,6 @@ async function getOrUploadMedia(
   })
   payload.logger.info(`  Uploaded: ${filename} => id=${doc.id}`)
   return doc.id as number
-}
-
-function lexical(text: string) {
-  return {
-    root: {
-      children: [
-        {
-          children: [
-            { detail: 0, format: 0, mode: 'normal', style: '', text, type: 'text', version: 1 },
-          ],
-          direction: 'ltr',
-          format: '',
-          indent: 0,
-          type: 'paragraph',
-          version: 1,
-        },
-      ],
-      direction: 'ltr',
-      format: '',
-      indent: 0,
-      type: 'root',
-      version: 1,
-    },
-  }
-}
-
-function lexicalRich(_title: string, body: string) {
-  const textNode = (t: string) => ({
-    detail: 0,
-    format: 0,
-    mode: 'normal',
-    style: '',
-    text: t,
-    type: 'text',
-    version: 1,
-  })
-  return {
-    root: {
-      children: [
-        {
-          children: [textNode(body)],
-          direction: 'ltr',
-          format: '',
-          indent: 0,
-          type: 'paragraph',
-          version: 1,
-        },
-      ],
-      direction: 'ltr',
-      format: '',
-      indent: 0,
-      type: 'root',
-      version: 1,
-    },
-  }
 }
 
 // ─── Rooms data ───────────────────────────────────────────────────────────────
@@ -1700,7 +1647,13 @@ const ORBIS_ROOMS = [
 
 async function getOrCreateProperty(
   payload: Payload,
-  data: { name: string; slug: string; type: string; shortDescription: string; address: string },
+  data: {
+    name: string
+    slug: string
+    type: 'hotel' | 'camp'
+    shortDescription: string
+    address: string
+  },
 ): Promise<number> {
   const existing = await payload.find({
     collection: 'properties',
@@ -1751,7 +1704,7 @@ async function getOrCreateRoom(
         size: room.en.size,
         bedType: room.en.bedType,
         images: mediaIds,
-        description: lexicalRich(room.en.title, room.en.description),
+        description: lexParas(room.en.description),
         inclusions: room.en.inclusions.map((label) => ({ label })),
         ...(room.phobsUnitId ? { phobsUnitId: room.phobsUnitId } : {}),
         _status: 'published',
@@ -1766,7 +1719,7 @@ async function getOrCreateRoom(
         name: room.hr.name,
         size: room.hr.size,
         bedType: room.hr.bedType,
-        description: lexicalRich(room.hr.title, room.hr.description),
+        description: lexParas(room.hr.description),
         inclusions: (updated.inclusions as { id: string }[]).map((inc, i) => ({
           id: inc.id,
           label: room.hr.inclusions[i] ?? room.en.inclusions[i],
@@ -1783,7 +1736,7 @@ async function getOrCreateRoom(
         name: room.de.name,
         size: room.de.size,
         bedType: room.de.bedType,
-        description: lexicalRich(room.de.title, room.de.description),
+        description: lexParas(room.de.description),
         inclusions: (updated.inclusions as { id: string }[]).map((inc, i) => ({
           id: inc.id,
           label: room.de.inclusions[i] ?? room.en.inclusions[i],
@@ -1807,7 +1760,7 @@ async function getOrCreateRoom(
       size: room.en.size,
       bedType: room.en.bedType,
       images: mediaIds,
-      description: lexicalRich(room.en.title, room.en.description),
+      description: lexParas(room.en.description),
       inclusions: room.en.inclusions.map((label) => ({ label })),
       ...(room.phobsUnitId ? { phobsUnitId: room.phobsUnitId } : {}),
       _status: 'published',
@@ -1824,7 +1777,7 @@ async function getOrCreateRoom(
       name: room.hr.name,
       size: room.hr.size,
       bedType: room.hr.bedType,
-      description: lexicalRich(room.hr.title, room.hr.description),
+      description: lexParas(room.hr.description),
       inclusions: (doc.inclusions as { id: string }[]).map((inc, i) => ({
         id: inc.id,
         label: room.hr.inclusions[i] ?? room.en.inclusions[i],
@@ -1842,7 +1795,7 @@ async function getOrCreateRoom(
       name: room.de.name,
       size: room.de.size,
       bedType: room.de.bedType,
-      description: lexicalRich(room.de.title, room.de.description),
+      description: lexParas(room.de.description),
       inclusions: (doc.inclusions as { id: string }[]).map((inc, i) => ({
         id: inc.id,
         label: room.de.inclusions[i] ?? room.en.inclusions[i],
@@ -1902,19 +1855,6 @@ export async function seedRooms({ payload }: { payload: Payload }) {
     const roomId = await getOrCreateRoom(payload, room as (typeof AURI_ROOMS)[0], orbisId, mediaIds)
     orbisRoomIds.push(roomId)
   }
-
-  // Pin rooms to homepages via featuredRooms (max 6)
-  await payload.updateGlobal({
-    slug: 'auri-homepage',
-    data: { featuredRooms: auriRoomIds.slice(0, 6) },
-  })
-  await payload.updateGlobal({
-    slug: 'orbis-homepage',
-    data: { featuredRooms: orbisRoomIds.slice(0, 6) },
-  })
-
-  payload.logger.info(`  auri-homepage featuredRooms => [${auriRoomIds}]`)
-  payload.logger.info(`  orbis-homepage featuredRooms => [${orbisRoomIds}]`)
 
   // ── Room groups helper ─────────────────────────────────────────────────────
   async function upsertGroup(
