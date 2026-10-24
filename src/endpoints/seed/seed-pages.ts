@@ -6,9 +6,10 @@ import { lexParas } from './lexical'
 
 const BASE = 'https://medorahotels.com/UserDocsImages'
 
-// Public URL for an uploaded Media doc's file, served from the public/media static dir
+// Public URL for an uploaded Media doc's file. Payload serves it at this route for files uploaded
+// at any time; /media/<file> only works for files that existed when the server started.
 function mediaUrl(filename: string) {
-  return `/media/${filename}`
+  return `/api/media/file/${filename}`
 }
 
 // ── Media upload helper ───────────────────────────────────────────────────────

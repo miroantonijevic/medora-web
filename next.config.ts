@@ -52,6 +52,12 @@ const nextConfig: NextConfig = {
   },
   reactStrictMode: true,
   redirects,
+  // Next only serves files that were in public/ when the server started, so a file uploaded later
+  // (a PDF linked from a page as /media/<file>) would 404. This hands it to Payload's file route;
+  // files that exist in public/media are still served directly, ahead of rewrites.
+  async rewrites() {
+    return [{ source: '/media/:path*', destination: '/api/media/file/:path*' }]
+  },
   turbopack: {
     root: path.resolve(dirname),
   },

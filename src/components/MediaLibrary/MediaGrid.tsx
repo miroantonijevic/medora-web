@@ -114,7 +114,7 @@ export const MediaGrid: React.FC<Props> = ({
                 {uploading ? 'Uploading…' : 'Upload'}
               </button>
               <input
-                accept="image/*,video/*"
+                accept="image/*,video/*,application/pdf"
                 hidden
                 multiple
                 onChange={(e) => {

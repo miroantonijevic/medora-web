@@ -66,8 +66,9 @@ export const Media: CollectionConfig = {
   upload: {
     // Upload to the public/media directory in Next.js making them publicly accessible even outside of Payload
     staticDir: path.resolve(dirname, '../../public/media'),
-    // Only images and videos are supported by the frontend's media renderers.
-    mimeTypes: ['image/*', 'video/*'],
+    // Images and videos are what the frontend's media renderers support. PDFs are documents that pages
+    // link to by URL (sustainability reports etc.); they live in the "Documents" folder.
+    mimeTypes: ['image/*', 'video/*', 'application/pdf'],
     // Use a large derivative (not the 300px 'thumbnail') so the big edit-view preview isn't blurry.
     adminThumbnail: 'xlarge',
     focalPoint: true,
