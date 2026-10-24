@@ -659,7 +659,7 @@ export async function seedPages({ payload }: { payload: Payload }) {
     ),
     img(
       payload,
-      `${BASE}/galerije/Desktop%20novo/rules%20for%20entering%20croatia%20mobile.jpg`,
+      `${BASE}/galerije/Desktop%20novo/rules%20for%20entering%20croatia%20with%20pets%20mobile.jpg`,
       'pets-croatia.jpg',
       'Rules for entering Croatia with pets',
     ),
@@ -1696,81 +1696,45 @@ export async function seedPages({ payload }: { payload: Payload }) {
 
   // ── Upload footer-page images ─────────────────────────────────────────────
 
-  const [
-    wellnessHeroId,
-    spaImgId,
-    fitnessImgId,
-    poolsImgId,
-    diningHeroId,
-    indigoImgId,
-    activeHeroId,
-    riviereHeroId,
-    aboutHeroId,
-    awardsHeroId,
-    howToReachHeroId,
-  ] = await Promise.all([
-    img(
-      payload,
-      `${BASE}/kategorije/wellness-hero.jpg`,
-      'wellness-hero.jpg',
-      'Wellness at Medora Auri',
-    ),
-    img(
-      payload,
-      `${BASE}/galerije/spa/Medora%20Auri%20Spa%20cover%20photo%20mobile.jpg`,
-      'spa-img.jpg',
-      'Spa on 9th floor',
-    ),
-    img(
-      payload,
-      `${BASE}/galerije/Desktop%20novo/fitness%20mobile.jpg`,
-      'fitness-img.jpg',
-      'Fitness centre',
-    ),
-    img(
-      payload,
-      `${BASE}/galerije/Desktop%20novo/pools%20mobile.jpg`,
-      'pools-img.jpg',
-      'Heated pools and beach',
-    ),
-    img(payload, `${BASE}/kategorije/dining-hero.jpg`, 'dining-hero.jpg', 'Dining & Bars'),
-    img(
-      payload,
-      `${BASE}/galerije/Desktop%20novo/indigo%20mobile.jpg`,
-      'indigo-img.jpg',
-      'Taste the Indigo restaurant',
-    ),
-    img(
-      payload,
-      `${BASE}/kategorije/active-vacation-hero.jpg`,
-      'active-hero.jpg',
-      'Active vacation',
-    ),
-    img(
-      payload,
-      `${BASE}/galerije/Brela%20beach%20cover%20mobile%20.jpg`,
-      'riviera-hero.jpg',
-      'Makarska Riviera',
-    ),
-    img(
-      payload,
-      `${BASE}/galerije/Desktop%20novo/Medora%20Auri%20hotel%20cover%20mobile.jpg`,
-      'about-hero.jpg',
-      'About Medora Hotels & Resorts',
-    ),
-    img(
-      payload,
-      `${BASE}/galerije/Desktop%20novo/recenzije%20i%20nagrade%20desktop.jpg`,
-      'awards-hero.jpg',
-      'Reviews & Rewards',
-    ),
-    img(
-      payload,
-      `${BASE}/kategorije/how-to-reach-us-hero.jpg`,
-      'how-to-reach-hero.jpg',
-      'How to reach Podgora',
-    ),
-  ])
+  const [wellnessHeroId, poolsImgId, activeHeroId, riviereHeroId, aboutHeroId, awardsHeroId] =
+    await Promise.all([
+      img(
+        payload,
+        `${BASE}/kategorije/wellness-hero.jpg`,
+        'wellness-hero.jpg',
+        'Wellness at Medora Auri',
+      ),
+      img(
+        payload,
+        `${BASE}/kategorije/things-pools-beaches-hero.jpg`,
+        'pools-img.jpg',
+        'Heated pools and beach',
+      ),
+      img(
+        payload,
+        `${BASE}/kategorije/aktivan-odmor-hero.jpg`,
+        'active-hero.jpg',
+        'Active vacation',
+      ),
+      img(
+        payload,
+        `${BASE}/galerije/Brela%20beach%20cover%20mobile%20.jpg`,
+        'riviera-hero.jpg',
+        'Makarska Riviera',
+      ),
+      img(
+        payload,
+        `${BASE}/galerije/Eksterijer/Medora%20Auri%20cover.jpg`,
+        'about-hero.jpg',
+        'About Medora Hotels & Resorts',
+      ),
+      img(
+        payload,
+        `${BASE}/galerije/Desktop%20novo/recenzije%20i%20nagrade%20desktop.jpg`,
+        'awards-hero.jpg',
+        'Reviews & Rewards',
+      ),
+    ])
 
   // ── Packages & Special Offers ─────────────────────────────────────────────
 
@@ -1849,7 +1813,7 @@ export async function seedPages({ payload }: { payload: Payload }) {
           'Relax zone',
           'Working hours: 07:00–21:00 h',
         ]),
-        spaImgId,
+        null,
         'right',
       ),
       contentSection(
@@ -1877,7 +1841,7 @@ export async function seedPages({ payload }: { payload: Payload }) {
           'Our fully equipped fitness centre offers top quality gear overlooking the sea and the islands of the Makarska Riviera. A perfect way to maintain your routine during your holiday.',
           'Working hours: 07:00–21:00 h',
         ),
-        fitnessImgId,
+        null,
         'right',
       ),
     ],
@@ -1887,9 +1851,7 @@ export async function seedPages({ payload }: { payload: Payload }) {
 
   await upsertPage(payload, 'destination/dining-bars', {
     title: 'Dining & Bars',
-    hero: diningHeroId
-      ? { type: 'highImpact', media: diningHeroId, richText: lexH1('Dining & Bars') }
-      : { type: 'lowImpact', richText: lexH1('Dining & Bars') },
+    hero: { type: 'lowImpact', richText: lexH1('Dining & Bars') },
     layout: [
       contentSection(
         null,
@@ -1906,7 +1868,7 @@ export async function seedPages({ payload }: { payload: Payload }) {
           'New gastronomic magic with a view of the Adriatic Sea. Traditional Mediterranean and modern world cuisine — meat, fish or vegetarian options for every taste.',
           'Located on the promenade, Taste the Indigo is the perfect setting for an unforgettable dining experience.',
         ),
-        indigoImgId,
+        null,
         'right',
       ),
       contentSection(
@@ -2227,9 +2189,7 @@ export async function seedPages({ payload }: { payload: Payload }) {
 
   await upsertPage(payload, 'how-to-reach-us', {
     title: 'How to Reach Us',
-    hero: howToReachHeroId
-      ? { type: 'highImpact', media: howToReachHeroId, richText: lexH1('How to reach us') }
-      : { type: 'lowImpact', richText: lexH1('How to reach us') },
+    hero: { type: 'lowImpact', richText: lexH1('How to reach us') },
     layout: [
       contentSection(
         'By car',
@@ -2839,9 +2799,7 @@ export async function seedPages({ payload }: { payload: Payload }) {
 
   await upsertPage(payload, 'destination/dining-bars', {
     title: 'Dining & Bars',
-    hero: diningHeroId
-      ? { type: 'highImpact', media: diningHeroId, richText: lexH1('Dining & Bars') }
-      : { type: 'lowImpact', richText: lexH1('Dining & Bars') },
+    hero: { type: 'lowImpact', richText: lexH1('Dining & Bars') },
     layout: [
       contentSection(
         null,
