@@ -10,14 +10,17 @@ import { RichText } from '@/components/RichText'
 import { ExternalImageGallery } from '@/components/sections/ExternalImageGallery'
 import { MediaCover } from '@/components/sections/MediaCover'
 import { LivePreviewListener } from '@/components/LivePreviewListener'
+import { staticParamsOrEmpty } from '@/lib/staticParams'
 
 type Args = {
   params: Promise<{ offerSlug: string; locale: string }>
 }
 
 export async function generateStaticParams() {
-  const { docs } = await getPublishedOffers()
-  return docs.map((o) => ({ offerSlug: o.slug }))
+  return staticParamsOrEmpty(async () => {
+    const { docs } = await getPublishedOffers()
+    return docs.map((o) => ({ offerSlug: o.slug }))
+  })
 }
 
 export async function generateMetadata({ params: paramsPromise }: Args): Promise<Metadata> {

@@ -5,14 +5,17 @@ import { setRequestLocale, getTranslations } from 'next-intl/server'
 
 import { getPropertyBySlug, getPublishedProperties, getRoomSubGroups } from '@/lib/queries'
 import { MediaCover } from '@/components/sections/MediaCover'
+import { staticParamsOrEmpty } from '@/lib/staticParams'
 
 type Args = {
   params: Promise<{ propertySlug: string; locale: string }>
 }
 
 export async function generateStaticParams() {
-  const { docs } = await getPublishedProperties()
-  return docs.map((p) => ({ propertySlug: p.slug }))
+  return staticParamsOrEmpty(async () => {
+    const { docs } = await getPublishedProperties()
+    return docs.map((p) => ({ propertySlug: p.slug }))
+  })
 }
 
 export async function generateMetadata({ params: paramsPromise }: Args): Promise<Metadata> {

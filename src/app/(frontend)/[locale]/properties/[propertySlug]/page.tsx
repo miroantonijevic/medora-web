@@ -16,14 +16,17 @@ import { MedoraOfferBanners, type OfferBanner } from '@/components/sections/Medo
 import { MediaCover } from '@/components/sections/MediaCover'
 import { bookingService } from '@/lib/booking'
 import { AURI_SLUG } from '@/lib/properties'
+import { staticParamsOrEmpty } from '@/lib/staticParams'
 
 type Args = {
   params: Promise<{ propertySlug: string; locale: string }>
 }
 
 export async function generateStaticParams() {
-  const { docs } = await getPublishedProperties()
-  return docs.map((p) => ({ propertySlug: p.slug }))
+  return staticParamsOrEmpty(async () => {
+    const { docs } = await getPublishedProperties()
+    return docs.map((p) => ({ propertySlug: p.slug }))
+  })
 }
 
 export async function generateMetadata({ params: paramsPromise }: Args): Promise<Metadata> {

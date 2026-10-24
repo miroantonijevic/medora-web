@@ -14,24 +14,27 @@ import { RichText } from '@/components/RichText'
 import { RoomGallery } from '@/components/sections/RoomGallery'
 import { MediaCover } from '@/components/sections/MediaCover'
 import { BookingCalendar } from '@/components/BookingCalendar/BookingCalendar'
+import { staticParamsOrEmpty } from '@/lib/staticParams'
 
 type Args = {
   params: Promise<{ propertySlug: string; groupSlug: string; roomSlug: string; locale: string }>
 }
 
 export async function generateStaticParams() {
-  const { docs: properties } = await getPublishedProperties()
-  const params: { propertySlug: string; groupSlug: string; roomSlug: string }[] = []
-  for (const property of properties) {
-    const { docs: rooms } = await getRoomsByProperty(property.slug)
-    for (const room of rooms) {
-      const g = room.group as { slug?: string } | null | undefined
-      const groupSlug = typeof g === 'object' && g?.slug ? g.slug : null
-      if (!groupSlug) continue
-      params.push({ propertySlug: property.slug, groupSlug, roomSlug: room.slug })
+  return staticParamsOrEmpty(async () => {
+    const { docs: properties } = await getPublishedProperties()
+    const params: { propertySlug: string; groupSlug: string; roomSlug: string }[] = []
+    for (const property of properties) {
+      const { docs: rooms } = await getRoomsByProperty(property.slug)
+      for (const room of rooms) {
+        const g = room.group as { slug?: string } | null | undefined
+        const groupSlug = typeof g === 'object' && g?.slug ? g.slug : null
+        if (!groupSlug) continue
+        params.push({ propertySlug: property.slug, groupSlug, roomSlug: room.slug })
+      }
     }
-  }
-  return params
+    return params
+  })
 }
 
 export async function generateMetadata({ params: paramsPromise }: Args): Promise<Metadata> {

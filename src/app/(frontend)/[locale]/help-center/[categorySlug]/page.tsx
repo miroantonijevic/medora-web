@@ -5,12 +5,15 @@ import { Link } from '@/i18n/navigation'
 import { setRequestLocale, getTranslations } from 'next-intl/server'
 import { getFaqCategories, getFaqCategoryBySlug } from '@/lib/queries'
 import { FaqAccordion } from './FaqAccordion'
+import { staticParamsOrEmpty } from '@/lib/staticParams'
 
 type Args = { params: Promise<{ locale: string; categorySlug: string }> }
 
 export async function generateStaticParams() {
-  const cats = await getFaqCategories('en')
-  return cats.map((c) => ({ categorySlug: c.slug }))
+  return staticParamsOrEmpty(async () => {
+    const cats = await getFaqCategories('en')
+    return cats.map((c) => ({ categorySlug: c.slug }))
+  })
 }
 
 export async function generateMetadata({ params }: Args): Promise<Metadata> {

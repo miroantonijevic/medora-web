@@ -12,30 +12,33 @@ import { RenderHero } from '@/heros/RenderHero'
 import { generateMeta } from '@/utilities/generateMeta'
 import PageClient from './page.client'
 import { LivePreviewListener } from '@/components/LivePreviewListener'
+import { staticParamsOrEmpty } from '@/lib/staticParams'
 
 export async function generateStaticParams() {
-  const payload = await getPayload({ config: configPromise })
-  const pages = await payload.find({
-    collection: 'pages',
-    draft: false,
-    limit: 1000,
-    overrideAccess: false,
-    pagination: false,
-    select: {
-      slug: true,
-      path: true,
-    },
-  })
+  return staticParamsOrEmpty(async () => {
+    const payload = await getPayload({ config: configPromise })
+    const pages = await payload.find({
+      collection: 'pages',
+      draft: false,
+      limit: 1000,
+      overrideAccess: false,
+      pagination: false,
+      select: {
+        slug: true,
+        path: true,
+      },
+    })
 
-  return pages.docs
-    .filter((doc) => {
-      const identifier = (doc.path || doc.slug) as string
-      return identifier && identifier !== 'home'
-    })
-    .map((doc) => {
-      const fullPath = (doc.path || doc.slug) as string
-      return { slug: fullPath.split('/') }
-    })
+    return pages.docs
+      .filter((doc) => {
+        const identifier = (doc.path || doc.slug) as string
+        return identifier && identifier !== 'home'
+      })
+      .map((doc) => {
+        const fullPath = (doc.path || doc.slug) as string
+        return { slug: fullPath.split('/') }
+      })
+  })
 }
 
 type Args = {
