@@ -190,10 +190,16 @@ export const Inquiries: CollectionConfig<'inquiries'> = {
   hooks: {
     beforeValidate: [
       ({ data }) => {
-        if (data?.website) {
-          return { ...data, status: 'spam' }
+        if (!data) return data
+
+        const cleaned = { ...data }
+        // An untouched date input is submitted as '', which would reach the database as an invalid
+        // timestamp and answer the public form with a 500.
+        for (const field of ['arrival', 'departure'] as const) {
+          if (cleaned[field] === '') cleaned[field] = null
         }
-        return data
+        if (cleaned.website) cleaned.status = 'spam'
+        return cleaned
       },
     ],
     afterChange: [sendInquiryEmails],

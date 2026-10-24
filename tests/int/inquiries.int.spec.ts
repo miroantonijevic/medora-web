@@ -53,6 +53,14 @@ describe('inquiry access control', () => {
     expect(doc.childrenOld).toBe(0)
   })
 
+  it('accepts empty dates, which an untouched date input submits, instead of failing with a 500', async () => {
+    const doc = await submitAsVisitor(validInquiry({ arrival: '', departure: '' }))
+
+    expect(doc.arrival).toBeNull()
+    expect(doc.departure).toBeNull()
+    expect(doc.status).toBe('new')
+  })
+
   it('rejects a submission without name or email', async () => {
     await expect(
       payload.create({
