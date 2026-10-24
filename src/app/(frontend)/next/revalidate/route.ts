@@ -1,4 +1,4 @@
-import { revalidateTag } from 'next/cache'
+import { revalidatePath, revalidateTag } from 'next/cache'
 import { NextRequest, NextResponse } from 'next/server'
 
 /**
@@ -63,6 +63,11 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     // expire: 0 keeps the previous immediate-invalidation behaviour of the single-argument form
     revalidateTag(tag, { expire: 0 })
   }
+
+  // The pages read Payload directly (no cache tags), so the tags above do not reach them and a
+  // prerendered or cached page would otherwise stay stale for a year. The site is small, so drop
+  // every cached page; the next visit renders it again.
+  revalidatePath('/', 'layout')
 
   return NextResponse.json({ revalidated: true, tags })
 }

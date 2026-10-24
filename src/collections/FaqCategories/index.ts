@@ -1,9 +1,13 @@
 import type { CollectionConfig } from 'payload'
 
 import { authenticated } from '@/access/authenticated'
+import { revalidateCollectionHook } from '@/hooks/revalidateCollection'
 
 export const FaqCategories: CollectionConfig = {
   slug: 'faq-categories',
+  hooks: {
+    afterChange: [revalidateCollectionHook('faq-categories')],
+  },
   admin: {
     useAsTitle: 'title',
     group: 'Help Center',

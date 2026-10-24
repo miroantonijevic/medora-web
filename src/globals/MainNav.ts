@@ -1,6 +1,7 @@
 import type { GlobalConfig } from 'payload'
 
 import { isAdmin } from '@/access/isAdmin'
+import { revalidateGlobalHook } from '@/hooks/revalidateCollection'
 
 export const MainNav: GlobalConfig = {
   slug: 'main-nav',
@@ -12,6 +13,9 @@ export const MainNav: GlobalConfig = {
   access: {
     read: () => true,
     update: isAdmin,
+  },
+  hooks: {
+    afterChange: [revalidateGlobalHook('main-nav')],
   },
   fields: [
     {

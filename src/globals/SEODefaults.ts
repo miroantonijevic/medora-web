@@ -1,6 +1,7 @@
 import type { GlobalConfig } from 'payload'
 
 import { isAdmin } from '@/access/isAdmin'
+import { revalidateGlobalHook } from '@/hooks/revalidateCollection'
 
 export const SEODefaults: GlobalConfig = {
   slug: 'seo-defaults',
@@ -12,6 +13,9 @@ export const SEODefaults: GlobalConfig = {
   access: {
     read: () => true,
     update: isAdmin,
+  },
+  hooks: {
+    afterChange: [revalidateGlobalHook('seo-defaults')],
   },
   fields: [
     {
