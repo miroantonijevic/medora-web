@@ -23,14 +23,11 @@ test.describe('Frontend', () => {
     }
   })
 
-  // Known defect: the root layout renders <html> without a lang attribute, so no page declares its
-  // language. It needs the layout restructured (getLocale() in the root layout would make every page
-  // dynamic), so it is tracked here until that is decided.
-  test.fixme('every page declares its language on <html>', async ({ page }) => {
-    for (const locale of ['en', 'hr', 'de']) {
-      await page.goto(`/${locale}`)
+  test('every page declares its language on <html>', async ({ page }) => {
+    for (const path of ['/en', '/hr', '/de', '/hr/orbis', '/de/offers']) {
+      await page.goto(path)
 
-      await expect(page.locator('html')).toHaveAttribute('lang', locale)
+      await expect(page.locator('html'), path).toHaveAttribute('lang', path.split('/')[1]!)
     }
   })
 
