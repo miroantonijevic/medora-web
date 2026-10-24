@@ -47,7 +47,7 @@ All variables are documented in [.env.example](.env.example). The ones you need 
 | `pnpm lint` | ESLint |
 | `pnpm exec tsc --noEmit` | Type check |
 | `pnpm test:int` | Integration tests (Vitest, uses the local database) |
-| `pnpm test:e2e` | Browser tests (Playwright) |
+| `pnpm test:e2e` | Browser tests (Playwright). They start `pnpm dev` and need the seeded development database; they create and remove a throwaway admin user and an inquiry. If they fail with 500 after you edited code, restart the dev server. |
 | `pnpm generate:types` | Regenerate `src/payload-types.ts` after changing a collection, global or block |
 | `pnpm generate:importmap` | Regenerate the admin import map after adding or moving admin components |
 | `pnpm payload migrate:create` | Create a migration after a schema change |
