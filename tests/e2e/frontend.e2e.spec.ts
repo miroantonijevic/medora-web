@@ -80,6 +80,51 @@ test.describe('Frontend', () => {
       await dialog.getByRole('button', { name: 'Close' }).click()
       await expect(dialog).toBeHidden()
     })
+
+    test('fits the screen: room beside the steps on a desktop, full screen on a phone', async ({
+      page,
+    }) => {
+      const openPopup = async () => {
+        const response = await page.goto(TEST_ROOM_URL)
+        test.skip(response?.status() !== 200, 'the internal test room is not in this database')
+        await page.getByRole('button', { name: 'Book now' }).first().click()
+        const dialog = page.getByRole('dialog')
+        await expect(dialog.getByText('Select your check-in and check-out dates')).toBeVisible()
+        return dialog
+      }
+
+      await page.setViewportSize({ width: 1440, height: 900 })
+      let dialog = await openPopup()
+      let photo = await dialog.getByRole('button', { name: /photo/i }).first().boundingBox()
+      let heading = await dialog.getByText('Select your check-in and check-out dates').boundingBox()
+      let popup = await dialog.locator('> div').first().boundingBox()
+      expect(photo!.x + photo!.width, 'photo is left of the steps').toBeLessThanOrEqual(heading!.x)
+      expect(popup!.width, 'a bounded width on a big screen').toBeLessThanOrEqual(1040)
+      expect(popup!.height, 'never taller than the window').toBeLessThanOrEqual(900)
+
+      await page.setViewportSize({ width: 390, height: 844 })
+      dialog = await openPopup()
+      photo = await dialog.getByRole('button', { name: /photo/i }).first().boundingBox()
+      heading = await dialog.getByText('Select your check-in and check-out dates').boundingBox()
+      popup = await dialog.locator('> div').first().boundingBox()
+      expect(photo!.y, 'photo is above the steps').toBeLessThan(heading!.y)
+      expect(popup!.width).toBe(390)
+      expect(popup!.height).toBe(844)
+    })
+
+    test('a click on the room photo opens the gallery', async ({ page }) => {
+      const response = await page.goto(TEST_ROOM_URL)
+      test.skip(response?.status() !== 200, 'the internal test room is not in this database')
+      await page.getByRole('button', { name: 'Book now' }).first().click()
+
+      await page.getByRole('dialog').getByRole('button', { name: /photo/i }).first().click()
+
+      const lightbox = page.locator('.yarl__root')
+      await expect(lightbox).toBeVisible()
+      await page.keyboard.press('Escape')
+      await expect(lightbox).toBeHidden()
+      await expect(page.getByRole('dialog')).toBeVisible()
+    })
   })
 
   test.describe('inquiry form', () => {

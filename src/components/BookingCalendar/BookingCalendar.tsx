@@ -1,11 +1,17 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import Image from 'next/image'
 import { useTranslations } from 'next-intl'
+import Lightbox from 'yet-another-react-lightbox'
+import 'yet-another-react-lightbox/styles.css'
 
 import { bookingService } from '@/lib/booking'
 import { buildPhobsBookingLink } from '@/lib/phobsBookingLink'
+import { useMediaQuery } from '@/utilities/useMediaQuery'
+
+import type { RoomImage } from '@/lib/roomImages'
+
+import { RoomPanel } from './RoomPanel'
 
 type DayStatus = 'unknown' | 'available' | 'unavailable' | 'promo'
 
@@ -68,9 +74,10 @@ type BookingCalendarProps = {
   triggerStyle: React.CSSProperties
   /** Phobs unit id for this room; when missing, falls back to the plain contact link. */
   unitPhobsId?: string | null
-  /** Optional room summary shown at the top of the modal (image + title + size/bed/capacity line). */
+  /** Optional room summary shown beside the booking steps (photos + title + size/bed/capacity line). */
   roomName?: string
-  roomImageUrl?: string | null
+  /** All photos of the room; the first one is the main photo, a click opens the gallery. */
+  images?: RoomImage[]
   roomMeta?: string
 }
 
@@ -118,7 +125,7 @@ export function BookingCalendar({
   triggerStyle,
   unitPhobsId,
   roomName,
-  roomImageUrl,
+  images,
   roomMeta,
 }: BookingCalendarProps) {
   const t = useTranslations('bookingCalendar')
@@ -144,7 +151,7 @@ export function BookingCalendar({
       triggerStyle={triggerStyle}
       unitPhobsId={unitPhobsId}
       roomName={roomName}
-      roomImageUrl={roomImageUrl}
+      images={images}
       roomMeta={roomMeta}
       fallbackHref={fallbackLink.href}
       fallbackLabel={fallbackLink.label}
@@ -229,7 +236,7 @@ function BookingCalendarModal({
   triggerStyle,
   unitPhobsId,
   roomName,
-  roomImageUrl,
+  images,
   roomMeta,
   fallbackHref,
   fallbackLabel,
@@ -241,13 +248,15 @@ function BookingCalendarModal({
   triggerStyle: React.CSSProperties
   unitPhobsId: string
   roomName?: string
-  roomImageUrl?: string | null
+  images?: RoomImage[]
   roomMeta?: string
   fallbackHref: string
   fallbackLabel: string
   t: ReturnType<typeof useTranslations>
 }) {
   const [open, setOpen] = useState(false)
+  const isDesktop = useMediaQuery('(min-width: 900px)')
+  const [galleryIndex, setGalleryIndex] = useState<number | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
   const [notConfigured, setNotConfigured] = useState(false)
@@ -496,42 +505,34 @@ function BookingCalendarModal({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            padding: 16,
+            padding: isDesktop ? 24 : 0,
           }}
         >
           <div
             onClick={(e) => e.stopPropagation()}
             style={{
               background: '#fff',
-              borderRadius: 16,
+              borderRadius: isDesktop ? 16 : 0,
               boxShadow: '0 12px 40px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06)',
-              maxWidth: showRates ? 520 : 460,
               width: '100%',
-              maxHeight: 'calc(100vh - 32px)',
-              overflowY: 'auto',
+              maxWidth: isDesktop ? 1040 : 'none',
+              height: isDesktop ? 'auto' : '100dvh',
+              maxHeight: isDesktop ? 'min(780px, calc(100dvh - 48px))' : '100dvh',
+              display: 'flex',
+              flexDirection: isDesktop ? 'row' : 'column',
+              overflow: isDesktop ? 'hidden' : 'auto',
               fontFamily: "'Inter','Segoe UI',Arial,sans-serif",
               position: 'relative',
             }}
           >
-            {roomImageUrl && (
-              <div style={{ position: 'relative', width: '100%', height: 150, flexShrink: 0 }}>
-                <Image
-                  src={roomImageUrl}
-                  alt={roomName ?? ''}
-                  fill
-                  sizes="520px"
-                  style={{ objectFit: 'cover', borderRadius: '16px 16px 0 0' }}
-                />
-                <div
-                  style={{
-                    position: 'absolute',
-                    inset: 0,
-                    borderRadius: '16px 16px 0 0',
-                    background: 'linear-gradient(to top, rgba(0,0,0,0.45) 0%, transparent 60%)',
-                  }}
-                />
-              </div>
-            )}
+            <RoomPanel
+              images={images ?? []}
+              roomName={roomName}
+              roomMeta={roomMeta}
+              layout={isDesktop ? 'aside' : 'banner'}
+              photosLabel={t('photos', { count: images?.length ?? 0 })}
+              onOpenGallery={setGalleryIndex}
+            />
 
             <button
               type="button"
@@ -541,16 +542,18 @@ function BookingCalendarModal({
                 position: 'absolute',
                 top: 12,
                 right: 12,
+                zIndex: 2,
                 border: 'none',
-                background: roomImageUrl ? 'rgba(15,23,42,0.45)' : 'none',
-                color: roomImageUrl ? '#fff' : '#64748b',
+                background: 'rgba(255,255,255,0.92)',
+                color: '#334155',
+                boxShadow: '0 1px 4px rgba(15,23,42,0.25)',
                 borderRadius: '50%',
-                width: roomImageUrl ? 30 : 'auto',
-                height: roomImageUrl ? 30 : 'auto',
-                display: roomImageUrl ? 'flex' : 'block',
+                width: 32,
+                height: 32,
+                display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                fontSize: 18,
+                fontSize: 16,
                 lineHeight: 1,
                 cursor: 'pointer',
               }}
@@ -558,241 +561,244 @@ function BookingCalendarModal({
               ✕
             </button>
 
-            <div style={{ padding: '20px 20px 12px' }}>
-              {roomName && (
-                <div style={{ margin: '0 0 16px' }}>
-                  <p style={{ margin: 0, fontSize: 17, fontWeight: 700, color: '#0f172a' }}>
-                    {roomName}
-                  </p>
-                  {roomMeta && (
-                    <p style={{ margin: '3px 0 0', fontSize: 12.5, color: '#64748b' }}>
-                      {roomMeta}
-                    </p>
-                  )}
-                </div>
-              )}
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '0 0 16px' }}>
-                {showRates && (
-                  <button
-                    type="button"
-                    onClick={changeDates}
-                    aria-label={t('changeDates')}
-                    style={{
-                      border: 'none',
-                      background: '#f1f5f9',
-                      borderRadius: 8,
-                      width: 30,
-                      height: 30,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      cursor: 'pointer',
-                      color: '#334155',
-                      fontSize: 15,
-                      flexShrink: 0,
-                    }}
-                  >
-                    ←
-                  </button>
-                )}
-                <div>
-                  <p style={{ margin: 0, fontSize: 14.5, color: '#1e293b', fontWeight: 700 }}>
-                    {showRates ? (
-                      <>
-                        {range.start} <span style={{ color: '#94a3b8', fontWeight: 500 }}>→</span>{' '}
-                        {range.end}
-                      </>
-                    ) : (
-                      t('selectDates')
-                    )}
-                  </p>
+            <div style={{ flex: 1, minWidth: 0, overflowY: isDesktop ? 'auto' : 'visible' }}>
+              <div style={{ padding: isDesktop ? '24px 28px 24px' : '16px 16px 28px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '0 0 16px' }}>
                   {showRates && (
-                    <p
-                      style={{ margin: '2px 0 0', fontSize: 12, color: '#94a3b8', fontWeight: 500 }}
-                    >
-                      {daysBetween(range.start!, range.end!)} {t('nights')}
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              {notConfigured ? (
-                <div style={{ padding: '20px 0' }}>
-                  <a
-                    href={fallbackHref}
-                    style={{
-                      display: 'inline-block',
-                      background: '#4f8ef7',
-                      color: '#fff',
-                      padding: '10px 20px',
-                      borderRadius: 8,
-                      textDecoration: 'none',
-                      fontWeight: 600,
-                      fontSize: 13,
-                    }}
-                  >
-                    {fallbackLabel}
-                  </a>
-                </div>
-              ) : showRates ? (
-                <>
-                  {isTestMode && <TestModeBanner t={t} />}
-                  {bookingStage === 'rates' && (
-                    <>
-                      <GuestSelector
-                        adults={adults}
-                        childAges={childAges}
-                        onAdultsChange={setAdults}
-                        onChildAgesChange={setChildAges}
-                        maxAdults={occupancyLimits?.maxAdults ?? null}
-                        maxChildren={occupancyLimits?.maxChildren ?? null}
-                        maxChildAge={occupancyLimits?.maxChildAge ?? null}
-                        minOccupancy={occupancyLimits?.minOccupancy ?? null}
-                        maxTotal={occupancyLimits?.maxTotal ?? null}
-                        t={t}
-                      />
-                      <RatePlanList
-                        ratePlans={ratePlans}
-                        loading={ratesLoading}
-                        error={ratesError}
-                        isTestMode={isTestMode}
-                        onSelectTestRate={selectTestRate}
-                        buildHref={(rateId) =>
-                          propertyPhobsId
-                            ? buildPhobsBookingLink({
-                                propertyPhobsId,
-                                unitPhobsId,
-                                dateFrom: range.start!,
-                                nights: daysBetween(range.start!, range.end!),
-                                lang: locale,
-                                rateId,
-                                adults: debouncedAdults,
-                                childrenCount: debouncedChildAges.length,
-                              })
-                            : null
-                        }
-                        t={t}
-                      />
-                    </>
-                  )}
-                  {bookingStage === 'guest-details' && selectedRatePlan && (
-                    <GuestDetailsForm
-                      plan={selectedRatePlan}
-                      nights={daysBetween(range.start!, range.end!)}
-                      onBack={() => setBookingStage('rates')}
-                      onSubmit={submitTestBooking}
-                      t={t}
-                    />
-                  )}
-                  {bookingStage === 'submitting' && <BookingSubmitting t={t} />}
-                  {bookingStage === 'confirmed' && bookingResult && (
-                    <BookingConfirmation
-                      result={bookingResult}
-                      guestFirstName={submittedGuestName}
-                      onClose={close}
-                      onBookAnother={changeDates}
-                      t={t}
-                    />
-                  )}
-                  {bookingStage === 'failed' && (
-                    <BookingFailed
-                      errorCode={bookingErrorCode}
-                      onRetry={() => setBookingStage('guest-details')}
-                      onBackToRates={() => setBookingStage('rates')}
-                      t={t}
-                    />
-                  )}
-                </>
-              ) : error ? (
-                <p style={{ color: '#b91c1c', fontSize: 13 }}>{t('error')}</p>
-              ) : loading ? (
-                <CalendarSkeleton weekdayLabels={weekdayLabels} />
-              ) : (
-                <>
-                  <CalendarGrid
-                    monthLabel={monthLabel}
-                    weekdayLabels={weekdayLabels}
-                    grid={grid}
-                    viewMonth={viewMonth}
-                    getStatus={getStatus}
-                    range={range}
-                    hoverDate={hoverDate}
-                    onDayHover={setHoverDate}
-                    onDayClick={handleDayClick}
-                    onPrevMonth={() =>
-                      setViewMonth((m) => new Date(m.getFullYear(), m.getMonth() - 1, 1))
-                    }
-                    onNextMonth={() =>
-                      setViewMonth((m) => new Date(m.getFullYear(), m.getMonth() + 1, 1))
-                    }
-                    prevMonthDisabled={isAtInitialMonth}
-                  />
-
-                  <div
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'center',
-                      gap: 20,
-                      padding: '8px 0 2px',
-                      fontSize: '11.5px',
-                      fontWeight: 500,
-                      color: '#64748b',
-                      borderTop: '1px solid #f1f5f9',
-                      marginTop: 6,
-                    }}
-                  >
-                    <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <span
-                        style={{
-                          width: 13,
-                          height: 13,
-                          borderRadius: 3,
-                          display: 'inline-block',
-                          background: '#fcb6b6',
-                          border: '1px solid #e88',
-                        }}
-                      />
-                      {t('unavailable')}
-                    </span>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <span
-                        style={{
-                          width: 13,
-                          height: 13,
-                          borderRadius: 3,
-                          display: 'inline-block',
-                          background: '#F4B400',
-                          border: '1px solid #c8900a',
-                        }}
-                      />
-                      {t('lowerPrice')}
-                    </span>
-                  </div>
-
-                  {range.start && (
-                    <p
+                    <button
+                      type="button"
+                      onClick={changeDates}
+                      aria-label={t('changeDates')}
                       style={{
-                        fontSize: 13,
+                        border: 'none',
+                        background: '#f1f5f9',
+                        borderRadius: 8,
+                        width: 30,
+                        height: 30,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
                         color: '#334155',
-                        margin: '10px 0 0',
-                        textAlign: 'center',
+                        fontSize: 15,
+                        flexShrink: 0,
                       }}
                     >
-                      {t('checkIn')}: <strong>{range.start}</strong>
-                      {range.end && (
+                      ←
+                    </button>
+                  )}
+                  <div>
+                    <p style={{ margin: 0, fontSize: 14.5, color: '#1e293b', fontWeight: 700 }}>
+                      {showRates ? (
                         <>
-                          {' '}
-                          — {t('checkOut')}: <strong>{range.end}</strong>
+                          {range.start} <span style={{ color: '#94a3b8', fontWeight: 500 }}>→</span>{' '}
+                          {range.end}
                         </>
+                      ) : (
+                        t('selectDates')
                       )}
                     </p>
-                  )}
-                </>
-              )}
+                    {showRates && (
+                      <p
+                        style={{
+                          margin: '2px 0 0',
+                          fontSize: 12,
+                          color: '#94a3b8',
+                          fontWeight: 500,
+                        }}
+                      >
+                        {daysBetween(range.start!, range.end!)} {t('nights')}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {notConfigured ? (
+                  <div style={{ padding: '20px 0' }}>
+                    <a
+                      href={fallbackHref}
+                      style={{
+                        display: 'inline-block',
+                        background: '#4f8ef7',
+                        color: '#fff',
+                        padding: '10px 20px',
+                        borderRadius: 8,
+                        textDecoration: 'none',
+                        fontWeight: 600,
+                        fontSize: 13,
+                      }}
+                    >
+                      {fallbackLabel}
+                    </a>
+                  </div>
+                ) : showRates ? (
+                  <>
+                    {isTestMode && <TestModeBanner t={t} />}
+                    {bookingStage === 'rates' && (
+                      <>
+                        <GuestSelector
+                          adults={adults}
+                          childAges={childAges}
+                          onAdultsChange={setAdults}
+                          onChildAgesChange={setChildAges}
+                          maxAdults={occupancyLimits?.maxAdults ?? null}
+                          maxChildren={occupancyLimits?.maxChildren ?? null}
+                          maxChildAge={occupancyLimits?.maxChildAge ?? null}
+                          minOccupancy={occupancyLimits?.minOccupancy ?? null}
+                          maxTotal={occupancyLimits?.maxTotal ?? null}
+                          t={t}
+                        />
+                        <RatePlanList
+                          ratePlans={ratePlans}
+                          loading={ratesLoading}
+                          error={ratesError}
+                          isTestMode={isTestMode}
+                          onSelectTestRate={selectTestRate}
+                          buildHref={(rateId) =>
+                            propertyPhobsId
+                              ? buildPhobsBookingLink({
+                                  propertyPhobsId,
+                                  unitPhobsId,
+                                  dateFrom: range.start!,
+                                  nights: daysBetween(range.start!, range.end!),
+                                  lang: locale,
+                                  rateId,
+                                  adults: debouncedAdults,
+                                  childrenCount: debouncedChildAges.length,
+                                })
+                              : null
+                          }
+                          t={t}
+                        />
+                      </>
+                    )}
+                    {bookingStage === 'guest-details' && selectedRatePlan && (
+                      <GuestDetailsForm
+                        plan={selectedRatePlan}
+                        nights={daysBetween(range.start!, range.end!)}
+                        onBack={() => setBookingStage('rates')}
+                        onSubmit={submitTestBooking}
+                        t={t}
+                      />
+                    )}
+                    {bookingStage === 'submitting' && <BookingSubmitting t={t} />}
+                    {bookingStage === 'confirmed' && bookingResult && (
+                      <BookingConfirmation
+                        result={bookingResult}
+                        guestFirstName={submittedGuestName}
+                        onClose={close}
+                        onBookAnother={changeDates}
+                        t={t}
+                      />
+                    )}
+                    {bookingStage === 'failed' && (
+                      <BookingFailed
+                        errorCode={bookingErrorCode}
+                        onRetry={() => setBookingStage('guest-details')}
+                        onBackToRates={() => setBookingStage('rates')}
+                        t={t}
+                      />
+                    )}
+                  </>
+                ) : error ? (
+                  <p style={{ color: '#b91c1c', fontSize: 13 }}>{t('error')}</p>
+                ) : loading ? (
+                  <CalendarSkeleton weekdayLabels={weekdayLabels} />
+                ) : (
+                  <>
+                    <CalendarGrid
+                      monthLabel={monthLabel}
+                      weekdayLabels={weekdayLabels}
+                      grid={grid}
+                      viewMonth={viewMonth}
+                      getStatus={getStatus}
+                      range={range}
+                      hoverDate={hoverDate}
+                      onDayHover={setHoverDate}
+                      onDayClick={handleDayClick}
+                      onPrevMonth={() =>
+                        setViewMonth((m) => new Date(m.getFullYear(), m.getMonth() - 1, 1))
+                      }
+                      onNextMonth={() =>
+                        setViewMonth((m) => new Date(m.getFullYear(), m.getMonth() + 1, 1))
+                      }
+                      prevMonthDisabled={isAtInitialMonth}
+                    />
+
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'center',
+                        gap: 20,
+                        padding: '8px 0 2px',
+                        fontSize: '11.5px',
+                        fontWeight: 500,
+                        color: '#64748b',
+                        borderTop: '1px solid #f1f5f9',
+                        marginTop: 6,
+                      }}
+                    >
+                      <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span
+                          style={{
+                            width: 13,
+                            height: 13,
+                            borderRadius: 3,
+                            display: 'inline-block',
+                            background: '#fcb6b6',
+                            border: '1px solid #e88',
+                          }}
+                        />
+                        {t('unavailable')}
+                      </span>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span
+                          style={{
+                            width: 13,
+                            height: 13,
+                            borderRadius: 3,
+                            display: 'inline-block',
+                            background: '#F4B400',
+                            border: '1px solid #c8900a',
+                          }}
+                        />
+                        {t('lowerPrice')}
+                      </span>
+                    </div>
+
+                    {range.start && (
+                      <p
+                        style={{
+                          fontSize: 13,
+                          color: '#334155',
+                          margin: '10px 0 0',
+                          textAlign: 'center',
+                        }}
+                      >
+                        {t('checkIn')}: <strong>{range.start}</strong>
+                        {range.end && (
+                          <>
+                            {' '}
+                            — {t('checkOut')}: <strong>{range.end}</strong>
+                          </>
+                        )}
+                      </p>
+                    )}
+                  </>
+                )}
+              </div>
             </div>
           </div>
         </div>
+      )}
+
+      {galleryIndex !== null && images && images.length > 0 && (
+        <Lightbox
+          open
+          index={galleryIndex}
+          close={() => setGalleryIndex(null)}
+          slides={images.map((image) => ({ src: image.url, alt: image.alt ?? roomName ?? '' }))}
+        />
       )}
     </>
   )
@@ -1520,9 +1526,15 @@ function RatePlanList({
             onMouseLeave={() => setHoveredRateId(null)}
             style={{
               position: 'relative',
-              border: isHovered ? '1px solid #4f8ef7' : '1px solid #e2e8f0',
+              border: isBest
+                ? '2px solid #2563eb'
+                : isHovered
+                  ? '1px solid #4f8ef7'
+                  : '1px solid #e2e8f0',
+              background: isBest ? '#eff6ff' : '#fff',
               borderRadius: 12,
-              padding: '14px 16px',
+              // The 2px border of the highlighted rate is compensated so all cards keep the same size.
+              padding: isBest ? '13px 15px' : '14px 16px',
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
@@ -1544,8 +1556,8 @@ function RatePlanList({
                     style={{
                       fontSize: 10.5,
                       fontWeight: 700,
-                      color: '#166534',
-                      background: '#dcfce7',
+                      color: '#fff',
+                      background: '#2563eb',
                       padding: '2px 7px',
                       borderRadius: 999,
                       whiteSpace: 'nowrap',

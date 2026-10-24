@@ -11,6 +11,7 @@ import {
   getRoomsByGroup,
 } from '@/lib/queries'
 import { BookingCalendar } from '@/components/BookingCalendar/BookingCalendar'
+import { toRoomImages } from '@/lib/roomImages'
 import { MediaCover } from '@/components/sections/MediaCover'
 
 type Args = {
@@ -305,7 +306,7 @@ export default async function RoomGroupPage({ params: paramsPromise }: Args) {
                     triggerLabel={tCommon('bookNow')}
                     unitPhobsId={room.phobsUnitId}
                     roomName={String(room.name)}
-                    roomImageUrl={heroImg?.url}
+                    images={toRoomImages(room.images)}
                     roomMeta={[
                       room.size && String(room.size),
                       room.bedType && String(room.bedType),

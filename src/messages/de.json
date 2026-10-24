@@ -60,6 +60,7 @@
     "changeDates": "Daten \u00e4ndern",
     "nights": "N\u00e4chte",
     "bestPrice": "Bester Preis",
+    "photos": "{count, plural, one {# Foto} other {# Fotos}}",
     "adults": "Erwachsene",
     "children": "Kinder",
     "age": "Alter",

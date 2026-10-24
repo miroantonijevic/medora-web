@@ -60,6 +60,7 @@
     "changeDates": "Promijeni datume",
     "nights": "no\u0107i",
     "bestPrice": "Najbolja cijena",
+    "photos": "{count, plural, one {# fotografija} few {# fotografije} other {# fotografija}}",
     "adults": "Odrasli",
     "children": "Djeca",
     "age": "Dob",

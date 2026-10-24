@@ -14,6 +14,7 @@ import { RichText } from '@/components/RichText'
 import { RoomGallery } from '@/components/sections/RoomGallery'
 import { MediaCover } from '@/components/sections/MediaCover'
 import { BookingCalendar } from '@/components/BookingCalendar/BookingCalendar'
+import { toRoomImages } from '@/lib/roomImages'
 import { staticParamsOrEmpty } from '@/lib/staticParams'
 
 type Args = {
@@ -166,7 +167,7 @@ export default async function RoomDetailPage({ params: paramsPromise }: Args) {
               triggerLabel={tCommon('bookNow')}
               unitPhobsId={room.phobsUnitId}
               roomName={String(room.name)}
-              roomImageUrl={heroImage?.url}
+              images={toRoomImages(room.images)}
               roomMeta={[
                 room.size && String(room.size),
                 room.bedType && String(room.bedType),
