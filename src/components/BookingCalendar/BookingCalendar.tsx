@@ -16,6 +16,7 @@ import { DealsView } from './DealsView'
 import { fetchRateDetails } from './fetchRateDetails'
 import { RateDetailsPanel } from './RateDetailsPanel'
 import { RoomPanel } from './RoomPanel'
+import { SecurityNotice } from './SecurityNotice'
 
 type DayStatus = 'unknown' | 'available' | 'unavailable' | 'promo'
 
@@ -774,6 +775,9 @@ function BookingCalendarModal({
                             {t('showAllDeals', { group: groupName })}
                           </button>
                         )}
+                        {!ratesLoading && ratePlans && ratePlans.length > 0 && (
+                          <SecurityNotice t={t} />
+                        )}
                       </>
                     )}
                     {bookingStage === 'guest-details' && selectedRatePlan && (
@@ -1094,6 +1098,8 @@ function GuestDetailsForm({
           maxLength={40}
         />
       </div>
+
+      <SecurityNotice t={t} />
 
       <button
         type="submit"

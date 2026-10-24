@@ -160,6 +160,12 @@ test.describe('Frontend', () => {
       await expect(badge).toHaveCSS('background-color', 'rgb(37, 99, 235)')
     })
 
+    test('the payment security notice shows with the rates', async ({ page }) => {
+      const { dialog } = await openRates(page)
+
+      await expect(dialog.getByRole('note')).toContainText('Secured by Phobs & Monri')
+    })
+
     test('"Show all deals" lists the rooms of the group and goes back', async ({ page }) => {
       const response = await page.goto(
         '/en/properties/medora-auri/rooms/auri-family-rooms/family-room',

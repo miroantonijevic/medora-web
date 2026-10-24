@@ -29,6 +29,11 @@ Started from the Payload Website Template, so the README is generic template tex
 Direct booking creation works only for one unit on the Phobs test account (`TEST_MODE_UNIT_IDS`, env `PHOBS_TEST_*`). Other units get
 `403 not_available_yet` until production has the `PCBookingNew` permission; then remove the test-mode code. `lib/booking.ts` is the fallback to `/inquiry`.
 
+Booking popup (`src/components/BookingCalendar`):
+- `/api/phobs/rate-details` reads the policies of a rate with PCPriceQuote; the production account may lack that permission until Phobs certifies the integration, and the panel then says the details are unavailable. The inclusions on a rate card come from the rate plan `ShortDescription` in the availability answer and work without it.
+- `/api/phobs/deals` ("Show all deals") reads availability only: one property-wide request per Phobs property and environment (test and production units are never mixed), grouped by room group. Phobs does not translate rate names; they show as delivered.
+- The cheapest rate is highlighted automatically. `SecurityNotice` ("Secured by Phobs & Monri", encrypted card data) is shown with the rates and above the guest form submit button. Its wording was written ahead of the payment solution: before production, confirm with Phobs and Monri that every claim is true and the names and logos are allowed.
+
 ## Known debt
 
 Do not fix as a side effect of another task; propose it first.
