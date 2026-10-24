@@ -1752,18 +1752,13 @@ export async function seedPages({ payload }: { payload: Payload }) {
         null,
       ),
       cardGrid(null, [
+        // Same offers, same order as the live site's Packages & Special offers page.
         {
           imageId: null,
-          title: 'Last minute free lunch',
-          excerpt: 'Book last minute and enjoy complimentary lunch included in your stay.',
-          link: '/offers/last-minute-free-lunch',
-        },
-        {
-          imageId: null,
-          title: 'Luxury camping with hotel breakfast',
+          title: '2027 Holidays at Medora Auri — Coming Soon!',
           excerpt:
-            'Experience the best of luxury camping with a full hotel breakfast every morning.',
-          link: '/offers/luxury-camping-with-hotel-breakfast',
+            'Be among the first to discover our 2027 offers: sign up to the priority list and hear first when reservations open.',
+          link: '/offers/2027-holidays-at-medora-auri-coming-soon',
         },
         {
           imageId: null,
@@ -1774,16 +1769,23 @@ export async function seedPages({ payload }: { payload: Payload }) {
         },
         {
           imageId: null,
+          title: 'Family holiday at Medora',
+          excerpt:
+            'Make unforgettable memories with your family at Medora Auri Family Beach Resort.',
+          link: '/offers/family-holiday-at-medora',
+        },
+        {
+          imageId: null,
           title: 'One summer in Orbis',
           excerpt: 'Experience the unique atmosphere of Medora Orbis Luxury Homes & Camping.',
           link: '/offers/one-summer-in-orbis',
         },
         {
           imageId: null,
-          title: 'Family holiday at Medora',
+          title: 'Secure Your 2027 Holiday Today! ☀️',
           excerpt:
-            'Make unforgettable memories with your family at Medora Auri Family Beach Resort.',
-          link: '/offers/family-holiday-at-medora',
+            'Join the waiting list and we will contact you with our best offer as soon as 2027 bookings open.',
+          link: '/offers/secure-your-2027-holiday',
         },
       ]),
     ],

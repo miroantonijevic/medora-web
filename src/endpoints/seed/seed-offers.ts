@@ -85,9 +85,6 @@ function bulletList(items: (Run | Run[])[]) {
 function bold(text: string): Run {
   return { text, bold: true }
 }
-function italic(text: string): Run {
-  return { text, italic: true }
-}
 function boldUnderline(text: string): Run {
   return { text, bold: true, underline: true }
 }
@@ -128,111 +125,25 @@ async function uploadGalleryImages(
   return ids
 }
 
-const OFFERS = [
-  {
-    slug: 'last-minute-free-lunch',
-    imageUrl: 'https://medorahotels.com/UserDocsImages//special-offers/Spring offer mobile.jpg',
-    imageFile: 'offer-last-minute-free-lunch.jpg',
-    propertySlug: 'medora-auri',
-    validFrom: '2026-08-14',
-    validUntil: '2026-08-31',
-    en: {
-      title: 'Last minute free lunch',
-      description: [
-        paragraph(
-          'Enjoy a completely carefree start to summer with all meals included in the price of your stay in our special offer!',
-        ),
-        bulletList([
-          [
-            bold('free à la carte lunch'),
-            ' included in the half board price, with breakfast and dinner, ',
-            bold('even for 1 night stays!'),
-          ],
-        ]),
-        paragraph(bold('The price also includes:')),
-        bulletList([
-          'free parking',
-          'access to outdoor heated pools',
-          'wellness zone (saunas, jacuzzi)',
-          'fitness with sea view',
-          'breakfast and dinner throughout your stay',
-          'drinks included with breakfast and dinner',
-          'free sun loungers, parasols and beach towels',
-          "children's playroom and animation program",
-        ]),
-        paragraph(
-          bold(
-            'The offer is valid for the following dates: 21. - 23.8., 28.8. - 31.8. i 1. - 30.9.',
-          ),
-        ),
-        paragraph(bold('Book early, the number of rooms in this offer is limited! 🤗')),
-      ],
-    },
-    hr: {
-      title: 'Last minute besplatni ru\u010dak',
-      description: [
-        paragraph(
-          'U\u017eivajte u potpuno bezbri\u017enom po\u010detku ljeta sa svim obrocima uklju\u010denima u cijenu va\u0161eg boravka u na\u0161oj posebnoj ponudi!',
-        ),
-        bulletList([
-          [
-            bold('besplatan ru\u010dak \u00e0 la carte'),
-            ' uklju\u010den u polupansionsku cijenu, uz doru\u010dak i ve\u010deru, ',
-            bold('\u010dak i za 1 no\u0107 boravka!'),
-          ],
-        ]),
-        paragraph(bold('Cijena tako\u0111er uklju\u010duje:')),
-        bulletList([
-          'besplatan parking',
-          'pristup grijanim vanjskim bazenima',
-          'wellness zona (saune, jacuzzi)',
-          'fitness s pogledom na more',
-          'doru\u010dak i ve\u010dera za cijelo vrijeme boravka',
-          'pi\u0107a uz doru\u010dak i ve\u010deru',
-          'besplatne le\u017ealice, sun\u010danici i ru\u010dnici za pla\u017eu',
-          'dje\u010dja igraonica i animacijski program',
-        ]),
-        paragraph(
-          bold('Ponuda vrijedi za sljede\u0107e datume: 21. - 23.8., 28.8. - 31.8. i 1. - 30.9.'),
-        ),
-        paragraph(bold('Rezervirajte rano, broj soba u ovoj ponudi je ograni\u010den! 🤗')),
-      ],
-    },
-    de: {
-      title: 'Last Minute kostenloses Mittagessen',
-      description: [
-        paragraph(
-          'Genie\u00dfen Sie einen v\u00f6llig unbeschwerten Sommerstart mit allen Mahlzeiten im Preis Ihres Aufenthalts in unserem Sonderangebot!',
-        ),
-        bulletList([
-          [
-            bold('kostenloses \u00e0-la-carte-Mittagessen'),
-            ' im Halbpensionspreis inklusive, mit Fr\u00fchst\u00fcck und Abendessen, ',
-            bold('auch f\u00fcr 1 Nacht!'),
-          ],
-        ]),
-        paragraph(bold('Der Preis beinhaltet au\u00dferdem:')),
-        bulletList([
-          'kostenloses Parken',
-          'Zugang zu beheizten Au\u00dfenpools',
-          'Wellnessbereich (Saunen, Jacuzzi)',
-          'Fitness mit Meerblick',
-          'Fr\u00fchst\u00fcck und Abendessen w\u00e4hrend des gesamten Aufenthalts',
-          'Getr\u00e4nke zu Fr\u00fchst\u00fcck und Abendessen inklusive',
-          'kostenlose Liegest\u00fchle, Sonnenschirme und Strandt\u00fccher',
-          'Kinderspielzimmer und Animationsprogramm',
-        ]),
-        paragraph(
-          bold(
-            'Das Angebot gilt f\u00fcr folgende Termine: 21.\u201323.8., 28.8.\u201331.8. und 1.\u201330.9.',
-          ),
-        ),
-        paragraph(
-          bold('Fr\u00fch buchen \u2014 die Zimmeranzahl in diesem Angebot ist begrenzt! 🤗'),
-        ),
-      ],
-    },
-  },
+type OfferLocale = { title: string; description: Block[] }
+
+type OfferSeed = {
+  slug: string
+  imageUrl: string
+  imageFile: string
+  propertySlug: 'medora-auri' | 'luxury-camp-orbis'
+  // An offer without dates is always valid; the offers list hides offers whose validUntil has passed.
+  validFrom?: string
+  validUntil?: string
+  galleryFolder?: string
+  galleryFiles?: string[]
+  en: OfferLocale
+  // Optional: a locale without text falls back to English (Payload localization fallback).
+  hr?: OfferLocale
+  de?: OfferLocale
+}
+
+const OFFERS: OfferSeed[] = [
   {
     slug: 'book-directly-and-feel-safe',
     imageUrl:
@@ -413,8 +324,6 @@ const OFFERS = [
       'https://medorahotels.com/UserDocsImages//galerije/Family superior/Superior family room mobile.jpg',
     imageFile: 'offer-family-holiday.jpg',
     propertySlug: 'medora-auri',
-    validFrom: '2026-06-01',
-    validUntil: '2026-09-15',
     galleryFolder: 'galerije/dje\u010dji sadr\u017eaj',
     galleryFiles: [
       'Family room.jpg',
@@ -525,8 +434,6 @@ const OFFERS = [
     imageUrl: 'https://medorahotels.com/UserDocsImages//slike za novi web/Mobitel Orbis.jpg',
     imageFile: 'offer-orbis-summer.jpg',
     propertySlug: 'luxury-camp-orbis',
-    validFrom: '2026-06-01',
-    validUntil: '2026-09-30',
     galleryFolder: 'slike za novi web',
     galleryFiles: [
       'Luxury Camp.jpg',
@@ -642,90 +549,60 @@ const OFFERS = [
     },
   },
   {
-    slug: 'luxury-camping-with-hotel-breakfast',
+    slug: 'secure-your-2027-holiday',
     imageUrl:
-      'https://medorahotels.com/UserDocsImages//galerije/Premium%204/Premium%202%20spava%C4%87e%20pogled%20desktop.jpg',
-    imageFile: 'offer-luxury-camping-hq.jpg',
+      'https://medorahotels.com/UserDocsImages//galerije/Medora Orbis/Orbis 2027 mobile.jpg',
+    imageFile: 'offer-secure-2027.jpg',
     propertySlug: 'luxury-camp-orbis',
-    validFrom: '2026-06-01',
-    validUntil: '2026-09-30',
     en: {
-      title: 'Luxury camping with hotel breakfast',
+      title: 'Secure Your 2027 Holiday Today! ☀️',
       description: [
+        paragraph('Bookings for the 2027 season are opening soon!'),
+        paragraph('Planning your holiday at Medora on the Makarska Riviera?'),
         paragraph(
-          'Stay at Medora Orbis ',
-          bold('between 21 July and 21 August'),
-          ' and start every day with a delicious hotel breakfast*.',
-          'BR',
-          italic('*Breakfast is served at Medora Auri, just a 7-minute walk along the seaside.'),
+          'If you already know when you’d like to visit us, join our waiting list. As soon as bookings for 2027 open, we’ll contact you with our best offer for your preferred dates.',
         ),
-        paragraph('Also included in your stay:'),
+        paragraph('To join the waiting list, simply send us:'),
         bulletList([
-          'Free parking',
-          'Medora Auri animation programme',
-          'Sun loungers and beach towels at Medora Auri Beach',
-          'Access to the fitness and wellness area at Medora Auri',
-          'Washer and dryer',
+          '📅 Your preferred stay dates',
+          '👨‍👩‍👧‍👦 Number of guests',
+          '📧 Your email address',
         ]),
-        paragraph(
-          'Send us ',
-          bold('a quick inquiry'),
-          ", and we'll prepare the best available offer for you.",
-        ),
+        paragraph('Medora Orbis - sea, sunshine and a carefree holiday on the Makarska Riviera.'),
+        paragraph('⭐ Guest rating: 9.5/10 on Booking.com'),
+        paragraph('Be among the first! 💙'),
       ],
     },
-    hr: {
-      title: 'Luksuzni kampiranje s hotelskim doru\u010dkom',
+  },
+  {
+    slug: '2027-holidays-at-medora-auri-coming-soon',
+    imageUrl:
+      'https://medorahotels.com/UserDocsImages//special-offers/Medora Auri beach mobile.png',
+    imageFile: 'offer-auri-2027.png',
+    propertySlug: 'medora-auri',
+    en: {
+      title: '2027 Holidays at Medora Auri — Coming Soon!',
       description: [
+        paragraph('Your Adriatic Summer Starts Here'),
         paragraph(
-          'Odsjednite u Medora Orbisu ',
-          bold('izme\u0111u 21. srpnja i 21. kolovoza'),
-          ' i zapo\u010dnite svaki dan ukusnim hotelskim doru\u010dkom*.',
-          'BR',
-          italic(
-            '*Doru\u010dak se poslu\u017euje u hotelu Medora Auri, udaljenom samo 7 minuta hoda uz obalu.',
-          ),
+          'The sea is calling, and your next unforgettable summer on the Adriatic is just around the corner. ☀️',
         ),
-        paragraph('Tako\u0111er uklju\u010deno u va\u0161 boravak:'),
+        paragraph(
+          'Picture sun-soaked days by the beach, crystal-clear waters, breathtaking views of the Adriatic and precious moments with the people who matter most.',
+        ),
+        paragraph(
+          "At Medora Auri Family Beach Resort, every summer brings something to remember. And now, it's time to start dreaming about summer 2027.",
+        ),
+        paragraph(
+          'Be among the first to discover our 2027 offers! Sign up to our priority list and be the first to know when reservations open.',
+        ),
+        paragraph('To join the waiting list, simply send us:'),
         bulletList([
-          'besplatan parking',
-          'animacijski program hotela Medora Auri',
-          'le\u017ealjke i ru\u010dnici na pla\u017ei hotela Medora Auri',
-          'pristup fitness i wellness zoni hotela Medora Auri',
-          'perilica i su\u0161ilica rublja',
+          '📅 Your preferred stay dates',
+          '👨‍👩‍👧‍👦 Number of guests',
+          '📧 Your email address',
         ]),
-        paragraph(
-          'Po\u0161aljite nam ',
-          bold('brzi upit'),
-          ' i pripremit \u0107emo vam najbolju dostupnu ponudu.',
-        ),
-      ],
-    },
-    de: {
-      title: 'Luxuscamping mit Hotelfr\u00fchst\u00fcck',
-      description: [
-        paragraph(
-          '\u00dcbernachten Sie ',
-          bold('zwischen dem 21. Juli und dem 21. August'),
-          ' im Medora Orbis und starten Sie jeden Tag mit einem k\u00f6stlichen Hotelfr\u00fchst\u00fcck*.',
-          'BR',
-          italic(
-            '*Das Fr\u00fchst\u00fcck wird im Hotel Medora Auri serviert, nur 7 Gehminuten entlang der K\u00fcste entfernt.',
-          ),
-        ),
-        paragraph('Ebenfalls in Ihrem Aufenthalt enthalten:'),
-        bulletList([
-          'kostenloses Parken',
-          'Animationsprogramm des Hotels Medora Auri',
-          'Liegest\u00fchle und Strandt\u00fccher am Strand des Medora Auri',
-          'Zugang zum Fitness- und Wellnessbereich im Medora Auri',
-          'Waschmaschine und Trockner',
-        ]),
-        paragraph(
-          'Senden Sie uns eine ',
-          bold('Schnellanfrage'),
-          ', und wir bereiten Ihnen das bestm\u00f6gliche Angebot vor.',
-        ),
+        paragraph('Your next summer story begins here. 💙'),
       ],
     },
   },
@@ -790,36 +667,29 @@ export async function seedOffers({ payload }: { payload: Payload }) {
         draft: false,
         data: {
           title: offer.en.title,
-          validFrom: offer.validFrom,
-          validUntil: offer.validUntil,
+          validFrom: offer.validFrom ?? null,
+          validUntil: offer.validUntil ?? null,
           description: buildRichText(offer.en.description),
           ...(imageId ? { heroImage: imageId } : {}),
           ...galleryData,
           _status: 'published',
         },
       })
-      await payload.update({
-        collection: 'offers',
-        id: existingId,
-        locale: 'hr',
-        draft: false,
-        data: {
-          title: offer.hr.title,
-          description: buildRichText(offer.hr.description),
-          _status: 'published',
-        },
-      })
-      await payload.update({
-        collection: 'offers',
-        id: existingId,
-        locale: 'de',
-        draft: false,
-        data: {
-          title: offer.de.title,
-          description: buildRichText(offer.de.description),
-          _status: 'published',
-        },
-      })
+      for (const locale of ['hr', 'de'] as const) {
+        const text = offer[locale]
+        if (!text) continue
+        await payload.update({
+          collection: 'offers',
+          id: existingId,
+          locale,
+          draft: false,
+          data: {
+            title: text.title,
+            description: buildRichText(text.description),
+            _status: 'published',
+          },
+        })
+      }
       payload.logger.info(`  Updated content: ${offer.slug}`)
       continue
     }
@@ -841,27 +711,19 @@ export async function seedOffers({ payload }: { payload: Payload }) {
       },
     })
 
-    // Update HR locale
-    await payload.update({
-      collection: 'offers',
-      id: created.id,
-      locale: 'hr',
-      data: {
-        title: offer.hr.title,
-        description: buildRichText(offer.hr.description),
-      },
-    })
-
-    // Update DE locale
-    await payload.update({
-      collection: 'offers',
-      id: created.id,
-      locale: 'de',
-      data: {
-        title: offer.de.title,
-        description: buildRichText(offer.de.description),
-      },
-    })
+    for (const locale of ['hr', 'de'] as const) {
+      const text = offer[locale]
+      if (!text) continue
+      await payload.update({
+        collection: 'offers',
+        id: created.id,
+        locale,
+        data: {
+          title: text.title,
+          description: buildRichText(text.description),
+        },
+      })
+    }
 
     payload.logger.info(`  Created offer: ${offer.slug} (id=${created.id})`)
   }
