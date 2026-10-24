@@ -4,7 +4,7 @@ import Image from 'next/image'
 import { useState, useRef, useEffect } from 'react'
 import { useLocale, useTranslations } from 'next-intl'
 import { Link, usePathname } from '@/i18n/navigation'
-import { AURI_SLUG, ORBIS_SLUG } from '@/lib/properties'
+import { AURI_SLUG, ORBIS_SLUG, propertySlugForPath } from '@/lib/properties'
 
 interface NavGreatGrandchild {
   label: string
@@ -56,9 +56,8 @@ export function MedoraHeader({ navItems = [] }: { navItems?: NavItem[] }) {
   const tCommon = useTranslations('common')
   const tHeader = useTranslations('header')
   const pathname = usePathname()
-  const activeProperty = PROPERTIES.findIndex((p) =>
-    p.href === '/' ? pathname === '/' : pathname.startsWith(p.href),
-  )
+  const activeSlug = propertySlugForPath(pathname)
+  const activeProperty = PROPERTIES.findIndex((p) => p.slug === activeSlug)
   const [expandedItem, setExpandedItem] = useState<string | null>(null)
   const [expandedChild, setExpandedChild] = useState<string | null>(null)
   const [expandedGrandchild, setExpandedGrandchild] = useState<string | null>(null)
@@ -449,7 +448,7 @@ export function MedoraHeader({ navItems = [] }: { navItems?: NavItem[] }) {
         }}
       >
         <Link
-          href={`/properties/${PROPERTIES[activeProperty]?.slug ?? AURI_SLUG}/rooms`}
+          href={`/properties/${activeSlug ?? AURI_SLUG}/rooms`}
           style={{
             background: '#fff',
             color: '#012B59',
