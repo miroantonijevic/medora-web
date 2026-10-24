@@ -307,6 +307,8 @@ export default async function RoomGroupPage({ params: paramsPromise }: Args) {
                     unitPhobsId={room.phobsUnitId}
                     roomName={String(room.name)}
                     images={toRoomImages(room.images)}
+                    groupName={groupName}
+                    hasGroupDeals={rooms.filter((candidate) => candidate.phobsUnitId).length > 1}
                     roomMeta={[
                       room.size && String(room.size),
                       room.bedType && String(room.bedType),

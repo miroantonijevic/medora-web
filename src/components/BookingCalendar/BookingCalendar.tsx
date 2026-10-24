@@ -9,9 +9,10 @@ import { bookingService } from '@/lib/booking'
 import { buildPhobsBookingLink } from '@/lib/phobsBookingLink'
 import { useMediaQuery } from '@/utilities/useMediaQuery'
 
-import type { PhobsRateDetails } from '@/lib/phobs'
+import type { PhobsDeal, PhobsRateDetails } from '@/lib/phobs'
 import type { RoomImage } from '@/lib/roomImages'
 
+import { DealsView } from './DealsView'
 import { fetchRateDetails } from './fetchRateDetails'
 import { RateDetailsPanel } from './RateDetailsPanel'
 import { RoomPanel } from './RoomPanel'
@@ -37,6 +38,7 @@ type RatePlan = {
   stayTotal: number | null
   currency: string | null
   bookUrl: string | null
+  highlights: string[]
   occupancyMin: number | null
   occupancyMax: number | null
   occupancyMinAdult: number | null
@@ -82,6 +84,9 @@ type BookingCalendarProps = {
   /** All photos of the room; the first one is the main photo, a click opens the gallery. */
   images?: RoomImage[]
   roomMeta?: string
+  /** Name of the room's group; with other rooms in it, the popup offers "show all deals" for the group. */
+  groupName?: string
+  hasGroupDeals?: boolean
 }
 
 const STATUS_COLOR: Record<Exclude<DayStatus, 'unknown'>, string> = {
@@ -130,6 +135,8 @@ export function BookingCalendar({
   roomName,
   images,
   roomMeta,
+  groupName,
+  hasGroupDeals,
 }: BookingCalendarProps) {
   const t = useTranslations('bookingCalendar')
   const fallbackLink = useMemo(
@@ -155,6 +162,7 @@ export function BookingCalendar({
       unitPhobsId={unitPhobsId}
       roomName={roomName}
       images={images}
+      groupName={hasGroupDeals ? groupName : undefined}
       roomMeta={roomMeta}
       fallbackHref={fallbackLink.href}
       fallbackLabel={fallbackLink.label}
@@ -241,6 +249,7 @@ function BookingCalendarModal({
   roomName,
   images,
   roomMeta,
+  groupName,
   fallbackHref,
   fallbackLabel,
   t,
@@ -253,6 +262,7 @@ function BookingCalendarModal({
   roomName?: string
   images?: RoomImage[]
   roomMeta?: string
+  groupName?: string
   fallbackHref: string
   fallbackLabel: string
   t: ReturnType<typeof useTranslations>
@@ -260,6 +270,7 @@ function BookingCalendarModal({
   const [open, setOpen] = useState(false)
   const isDesktop = useMediaQuery('(min-width: 900px)')
   const [galleryIndex, setGalleryIndex] = useState<number | null>(null)
+  const [showDeals, setShowDeals] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
   const [notConfigured, setNotConfigured] = useState(false)
@@ -400,6 +411,7 @@ function BookingCalendarModal({
   const occupancyLimits = useMemo(() => computeOccupancyLimits(ratePlans), [ratePlans])
 
   function changeDates() {
+    setShowDeals(false)
     setRange({ start: null, end: null })
     setRatesResult(null)
     setHoverDate(null)
@@ -429,6 +441,7 @@ function BookingCalendarModal({
 
   function close() {
     setOpen(false)
+    setShowDeals(false)
     setRange({ start: null, end: null })
     setRatesResult(null)
     setHoverDate(null)
@@ -439,8 +452,44 @@ function BookingCalendarModal({
   }
 
   function selectTestRate(plan: RatePlan) {
+    setShowDeals(false)
     setSelectedRatePlan(plan)
     setBookingStage('guest-details')
+  }
+
+  function selectDealInSite(deal: PhobsDeal): boolean {
+    if (!isTestMode || deal.unitId !== unitPhobsId) return false
+    selectTestRate({
+      rateId: deal.rateId,
+      name: deal.rateName,
+      pricePerNight: deal.pricePerNight,
+      priceOriginalPerNight: deal.priceOriginalPerNight,
+      stayTotal: deal.stayTotal,
+      currency: deal.currency,
+      bookUrl: null,
+      highlights: deal.highlights,
+      occupancyMin: null,
+      occupancyMax: null,
+      occupancyMinAdult: null,
+      occupancyMaxAdult: null,
+      occupancyMinChd: null,
+      occupancyMaxChd: null,
+      occupancyMaxChdAge: null,
+    })
+    return true
+  }
+
+  function dealHref(deal: PhobsDeal): string {
+    return buildPhobsBookingLink({
+      propertyPhobsId: deal.propertyId,
+      unitPhobsId: deal.unitId,
+      dateFrom: range.start!,
+      nights: daysBetween(range.start!, range.end!),
+      lang: locale,
+      rateId: deal.rateId,
+      adults: debouncedAdults,
+      childrenCount: debouncedChildAges.length,
+    })
   }
 
   async function submitTestBooking(guest: GuestDetails) {
@@ -637,7 +686,26 @@ function BookingCalendarModal({
                 ) : showRates ? (
                   <>
                     {isTestMode && <TestModeBanner t={t} />}
-                    {bookingStage === 'rates' && (
+                    {bookingStage === 'rates' &&
+                      showDeals &&
+                      groupName &&
+                      range.start &&
+                      range.end && (
+                        <DealsView
+                          roomSlug={roomSlug}
+                          groupName={groupName}
+                          from={range.start}
+                          to={range.end}
+                          adults={debouncedAdults}
+                          childAges={debouncedChildAges}
+                          locale={locale}
+                          buildHref={dealHref}
+                          onSelectInSite={selectDealInSite}
+                          onBack={() => setShowDeals(false)}
+                          t={t}
+                        />
+                      )}
+                    {bookingStage === 'rates' && !(showDeals && groupName) && (
                       <>
                         <GuestSelector
                           adults={adults}
@@ -686,6 +754,26 @@ function BookingCalendarModal({
                           }
                           t={t}
                         />
+                        {groupName && !ratesLoading && ratePlans && ratePlans.length > 0 && (
+                          <button
+                            type="button"
+                            onClick={() => setShowDeals(true)}
+                            style={{
+                              width: '100%',
+                              marginTop: 14,
+                              padding: '11px 14px',
+                              background: '#fff',
+                              border: '1.5px solid #2563eb',
+                              borderRadius: 10,
+                              color: '#2563eb',
+                              fontWeight: 700,
+                              fontSize: 13,
+                              cursor: 'pointer',
+                            }}
+                          >
+                            {t('showAllDeals', { group: groupName })}
+                          </button>
+                        )}
                       </>
                     )}
                     {bookingStage === 'guest-details' && selectedRatePlan && (
@@ -1609,6 +1697,21 @@ function RatePlanList({
                     </span>
                   )}
                 </div>
+                {plan.highlights?.length > 0 && (
+                  <ul
+                    style={{
+                      margin: '6px 0 0',
+                      padding: 0,
+                      listStyle: 'none',
+                      fontSize: 12,
+                      color: '#475569',
+                    }}
+                  >
+                    {plan.highlights.map((item) => (
+                      <li key={item}>✓ {item}</li>
+                    ))}
+                  </ul>
+                )}
                 {plan.pricePerNight != null && (
                   <p style={{ margin: '6px 0 0', display: 'flex', alignItems: 'baseline', gap: 6 }}>
                     {hasDiscount && (

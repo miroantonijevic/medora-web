@@ -160,6 +160,31 @@ test.describe('Frontend', () => {
       await expect(badge).toHaveCSS('background-color', 'rgb(37, 99, 235)')
     })
 
+    test('"Show all deals" lists the rooms of the group and goes back', async ({ page }) => {
+      const response = await page.goto(
+        '/en/properties/medora-auri/rooms/auri-family-rooms/family-room',
+      )
+      test.skip(response?.status() !== 200, 'the family room is not in this database')
+      await page.getByRole('button', { name: 'Book now' }).first().click()
+
+      const dialog = page.getByRole('dialog')
+      const openDays = dialog.locator('button:not([disabled])').filter({ hasText: /^\d{1,2}$/ })
+      await expect(openDays.first()).toBeVisible({ timeout: 20_000 })
+      test.skip((await openDays.count()) < 2, 'Phobs has no open days')
+      await openDays.nth(0).click()
+      await openDays.nth(1).click()
+
+      const showAll = dialog.getByRole('button', { name: /^Show all deals/ })
+      await showAll.waitFor({ timeout: 25_000 }).catch(() => undefined)
+      test.skip((await showAll.count()) === 0, 'Phobs has no rates for these days')
+      await showAll.click()
+
+      await expect(dialog.getByText(/^All deals:/)).toBeVisible()
+      await expect(dialog.getByText('Best price')).toHaveCount(1, { timeout: 25_000 })
+      await dialog.getByRole('button', { name: /Back to this room/ }).click()
+      await expect(showAll).toBeVisible()
+    })
+
     test('a click on the room photo opens the gallery', async ({ page }) => {
       const response = await page.goto(TEST_ROOM_URL)
       test.skip(response?.status() !== 200, 'the internal test room is not in this database')

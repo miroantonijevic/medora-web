@@ -18,6 +18,8 @@ type PhobsRatePlan = {
   stayTotal: number | null
   currency: string | null
   bookUrl: string | null
+  /** What the rate includes, as Phobs describes it ("breakfast and dinner included", "parking", ...). */
+  highlights: string[]
   occupancyMin: number | null
   occupancyMax: number | null
   occupancyMinAdult: number | null
@@ -163,7 +165,8 @@ export function parseAttrList(xml: string, tag: string, attrName: string): strin
 function buildPropertyAvailabilityRequestXml(params: {
   siteId: string
   propertyId: string
-  unitId: string
+  /** Without a unit the response lists every unit of the property. */
+  unitId?: string
   dateFrom: string
   nights: number
   adults: number
@@ -181,7 +184,7 @@ function buildPropertyAvailabilityRequestXml(params: {
     <UnitFilter>
         <Date>${dateFrom}</Date>
         <Nights>${nights}</Nights>
-        <UnitId>${unitId}</UnitId>
+        ${unitId ? `<UnitId>${unitId}</UnitId>` : ''}
         <UnitItem>
             <Item>
                 <Adults>${adults}</Adults>
@@ -223,6 +226,20 @@ export function policyHtmlToText(value: string): string {
     .join('\n')
 }
 
+/**
+ * The ShortDescription of a rate plan is a run of check-marked phrases ("✔ breakfast ✔ parking");
+ * this returns the phrases, or the whole text as one phrase when it has no check marks.
+ */
+export function parseHighlights(block: string): string[] {
+  const raw = /<ShortDescription>([\s\S]*?)<\/ShortDescription>/.exec(block)?.[1]
+  if (!raw) return []
+
+  return policyHtmlToText(raw)
+    .split(/[✔✓☑]\uFE0F?/u)
+    .map((item) => item.trim())
+    .filter(Boolean)
+}
+
 /** Extracts per-RatePlan pricing/BookUrl from a PCPropertyAvailabilityRS body (assumes a single Unit per plan, since the request is UnitId-scoped). */
 export function parseRatePlansXml(xml: string): PhobsRatePlan[] {
   const plans: PhobsRatePlan[] = []
@@ -254,6 +271,7 @@ export function parseRatePlansXml(xml: string): PhobsRatePlan[] {
       priceOriginalPerNight: originalMatch ? Number(originalMatch[1]) : null,
       stayTotal: stayTotalMatch ? Number(stayTotalMatch[1]) : null,
       bookUrl: bookUrlMatch ? decodeXmlEntities(bookUrlMatch[1].replace(/\s+/g, '')) : null,
+      highlights: parseHighlights(block),
       occupancyMin: occupancyMinMatch ? Number(occupancyMinMatch[1]) : null,
       occupancyMax: occupancyMaxMatch ? Number(occupancyMaxMatch[1]) : null,
       occupancyMinAdult: occupancyMinAdultMatch ? Number(occupancyMinAdultMatch[1]) : null,
@@ -264,6 +282,61 @@ export function parseRatePlansXml(xml: string): PhobsRatePlan[] {
     })
   }
   return plans
+}
+
+export type PhobsDeal = {
+  rateId: string
+  rateName: string
+  highlights: string[]
+  unitId: string
+  unitName: string
+  propertyId: string
+  board: string | null
+  pricePerNight: number | null
+  priceOriginalPerNight: number | null
+  stayTotal: number | null
+  currency: string | null
+  availableUnits: number | null
+}
+
+/** Reads a property-wide PCPropertyAvailabilityRS: every rate plan, with one entry per unit it offers. */
+export function parseUnitDealsXml(xml: string, propertyId: string): PhobsDeal[] {
+  const deals: PhobsDeal[] = []
+  const planPattern = /<RatePlan RateId="([^"]+)">([\s\S]*?)<\/RatePlan>/g
+  let planMatch: RegExpExecArray | null
+  while ((planMatch = planPattern.exec(xml)) !== null) {
+    const rateId = planMatch[1]!
+    const planBlock = planMatch[2]!
+    const rateName = decodeXmlEntities(/<Name>([^<]*)<\/Name>/.exec(planBlock)?.[1] ?? '')
+    const highlights = parseHighlights(planBlock)
+
+    const unitPattern = /<Unit\s+([^>]*)>([\s\S]*?)<\/Unit>/g
+    let unitMatch: RegExpExecArray | null
+    while ((unitMatch = unitPattern.exec(planBlock)) !== null) {
+      const attrs = parseAttrsFromString(unitMatch[1]!)
+      const block = unitMatch[2]!
+      if (!attrs.UnitId) continue
+
+      const price = /<Price Currency="([^"]+)" PriceType="PerNight">([\d.]+)<\/Price>/.exec(block)
+      const original = /<PriceOriginal[^>]*>\s*<Price>([\d.]+)<\/Price>/.exec(block)
+      const stayTotal = /<StayTotal[^>]*>\s*<Price>([\d.]+)<\/Price>/.exec(block)
+      deals.push({
+        rateId,
+        rateName,
+        highlights,
+        unitId: attrs.UnitId,
+        unitName: decodeXmlEntities(/<Name>([^<]*)<\/Name>/.exec(block)?.[1] ?? ''),
+        propertyId,
+        board: /<Board>([^<]*)<\/Board>/.exec(block)?.[1]?.trim() || null,
+        pricePerNight: price ? Number(price[2]) : null,
+        priceOriginalPerNight: original ? Number(original[1]) : null,
+        stayTotal: stayTotal ? Number(stayTotal[1]) : null,
+        currency: price ? price[1]! : null,
+        availableUnits: attrs.AvailableUnits ? Number(attrs.AvailableUnits) : null,
+      })
+    }
+  }
+  return deals
 }
 
 async function phobsRequest(xmlBody: string, env: PhobsEnv = 'production'): Promise<string> {
@@ -377,6 +450,51 @@ export async function checkUnitAvailability(
     }
   }
   throw lastError instanceof Error ? lastError : new Error('Phobs availability request failed')
+}
+
+/**
+ * The rate plans of several units for one stay. Units are grouped by Phobs property (and by
+ * environment, since the TEST units live on another account); each group costs one property-wide
+ * request, whatever the number of units in it.
+ */
+export async function getUnitDeals(params: {
+  unitIds: string[]
+  dateFrom: string
+  nights: number
+  adults: number
+  childAges: number[]
+}): Promise<PhobsDeal[]> {
+  const { unitIds, dateFrom, nights, adults, childAges } = params
+
+  const groups = new Map<string, { env: PhobsEnv; propertyId: string; unitIds: Set<string> }>()
+  for (const unitId of unitIds) {
+    const propertyId = await getPropertyForUnit(unitId)
+    if (!propertyId) continue
+    const env = envForUnit(unitId)
+    const key = `${env}:${propertyId}`
+    const group = groups.get(key) ?? { env, propertyId, unitIds: new Set<string>() }
+    group.unitIds.add(unitId)
+    groups.set(key, group)
+  }
+
+  const results = await Promise.all(
+    [...groups.values()].map(async ({ env, propertyId, unitIds: wanted }) => {
+      const { siteId } = getConfig(env)
+      const xml = await phobsRequest(
+        buildPropertyAvailabilityRequestXml({
+          siteId,
+          propertyId,
+          dateFrom,
+          nights,
+          adults,
+          childAges,
+        }),
+        env,
+      )
+      return parseUnitDealsXml(xml, propertyId).filter((deal) => wanted.has(deal.unitId))
+    }),
+  )
+  return results.flat()
 }
 
 /**

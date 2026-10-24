@@ -8,6 +8,7 @@ import {
   getPropertyBySlug,
   getPublishedProperties,
   getRoomBySlug,
+  getRoomsByGroup,
   getRoomsByProperty,
 } from '@/lib/queries'
 import { RichText } from '@/components/RichText'
@@ -80,6 +81,8 @@ export default async function RoomDetailPage({ params: paramsPromise }: Args) {
     Boolean(img.url),
   )
   const heroImage = images[0]
+  const groupId = typeof room.group === 'object' && room.group ? room.group.id : null
+  const groupRooms = groupId ? (await getRoomsByGroup(groupId, locale)).docs : []
   type Inclusion = { label?: unknown }
   const inclusions = (room.inclusions ?? []) as Inclusion[]
 
@@ -168,6 +171,14 @@ export default async function RoomDetailPage({ params: paramsPromise }: Args) {
               unitPhobsId={room.phobsUnitId}
               roomName={String(room.name)}
               images={toRoomImages(room.images)}
+              groupName={
+                groupDoc && typeof groupDoc === 'object' && groupDoc.name
+                  ? String(groupDoc.name)
+                  : undefined
+              }
+              hasGroupDeals={groupRooms.some(
+                (candidate) => candidate.slug !== room.slug && candidate.phobsUnitId,
+              )}
               roomMeta={[
                 room.size && String(room.size),
                 room.bedType && String(room.bedType),
