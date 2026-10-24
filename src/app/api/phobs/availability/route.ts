@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 
 import { getPayloadClient } from '@/lib/payload'
 import { checkUnitAvailability, getPropertyForUnit } from '@/lib/phobs'
+import { MAX_AVAILABILITY_RANGE_DAYS, daysBetweenYMD, parseYMD } from '@/lib/phobsParams'
 
 type PromoRange = { dateFrom?: string | null; dateTo?: string | null }
 
@@ -25,8 +26,15 @@ export async function GET(request: Request): Promise<Response> {
   const defaultTo = new Date(today)
   defaultTo.setMonth(defaultTo.getMonth() + 18)
   const toYMD = (d: Date) => d.toISOString().slice(0, 10)
-  const dateFrom = searchParams.get('from') ?? toYMD(today)
-  const dateTo = searchParams.get('to') ?? toYMD(defaultTo)
+  const dateFrom = parseYMD(searchParams.get('from') ?? toYMD(today))
+  const dateTo = parseYMD(searchParams.get('to') ?? toYMD(defaultTo))
+  if (!dateFrom || !dateTo) {
+    return NextResponse.json({ error: 'invalid_range' }, { status: 400 })
+  }
+  const rangeDays = daysBetweenYMD(dateFrom, dateTo)
+  if (rangeDays < 1 || rangeDays > MAX_AVAILABILITY_RANGE_DAYS) {
+    return NextResponse.json({ error: 'invalid_range' }, { status: 400 })
+  }
 
   const payload = await getPayloadClient()
   const result = await payload.find({

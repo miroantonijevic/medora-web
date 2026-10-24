@@ -40,7 +40,25 @@ type RatePlan = {
 type RatesResponse = {
   propertyId: string
   ratePlans: RatePlan[]
+  isTestMode?: boolean
 }
+
+type GuestDetails = {
+  firstName: string
+  lastName: string
+  email: string
+  phone: string
+}
+
+type BookingResult = {
+  reservationId: string
+  currency: string | null
+  grandTotal: number | null
+  checkIn: string
+  checkOut: string | null
+}
+
+type BookingStage = 'rates' | 'guest-details' | 'submitting' | 'confirmed' | 'failed'
 
 type BookingCalendarProps = {
   roomSlug: string
@@ -135,6 +153,75 @@ export function BookingCalendar({
   )
 }
 
+// Phobs returns per-rate-plan occupancy caps; take the most restrictive one across
+// the returned plans so the guest selector never lets the user pick an unbookable combination.
+function computeOccupancyLimits(ratePlans: RatePlan[] | null) {
+  if (!ratePlans || ratePlans.length === 0) return null
+  let maxAdults: number | null = null
+  let maxChildren: number | null = null
+  let maxChildAge: number | null = null
+  let minOccupancy: number | null = null
+  let maxTotal: number | null = null
+  for (const plan of ratePlans) {
+    if (plan.occupancyMaxAdult != null) {
+      maxAdults =
+        maxAdults == null ? plan.occupancyMaxAdult : Math.min(maxAdults, plan.occupancyMaxAdult)
+    }
+    if (plan.occupancyMaxChd != null) {
+      maxChildren =
+        maxChildren == null ? plan.occupancyMaxChd : Math.min(maxChildren, plan.occupancyMaxChd)
+    }
+    if (plan.occupancyMaxChdAge != null) {
+      maxChildAge =
+        maxChildAge == null
+          ? plan.occupancyMaxChdAge
+          : Math.min(maxChildAge, plan.occupancyMaxChdAge)
+    }
+    // Most restrictive minimum: Phobs may omit StayTotal (but still return a nightly
+    // average) for a stay that doesn't meet a plan's minimum total occupancy.
+    if (plan.occupancyMin != null) {
+      minOccupancy =
+        minOccupancy == null ? plan.occupancyMin : Math.max(minOccupancy, plan.occupancyMin)
+    }
+    // Combined adults+children cap — can be stricter than maxAdults/maxChildren added
+    // together (e.g. max 3 adults, max 2 children, but only 3 guests total allowed).
+    if (plan.occupancyMax != null) {
+      maxTotal = maxTotal == null ? plan.occupancyMax : Math.min(maxTotal, plan.occupancyMax)
+    }
+  }
+  return { maxAdults, maxChildren, maxChildAge, minOccupancy, maxTotal }
+}
+
+type OccupancyLimits = NonNullable<ReturnType<typeof computeOccupancyLimits>>
+
+function clampGuests(adults: number, childAges: number[], limits: OccupancyLimits | null) {
+  if (!limits) return { adults, childAges }
+  let nextAdults = adults
+  let nextChildAges = childAges
+  if (limits.maxAdults != null && nextAdults > limits.maxAdults) nextAdults = limits.maxAdults
+  if (limits.maxChildren != null && nextChildAges.length > limits.maxChildren) {
+    nextChildAges = nextChildAges.slice(0, limits.maxChildren)
+  }
+  if (limits.maxTotal != null && nextAdults + nextChildAges.length > limits.maxTotal) {
+    const maxChildAgesLeft = Math.max(0, limits.maxTotal - nextAdults)
+    if (nextChildAges.length > maxChildAgesLeft) {
+      nextChildAges = nextChildAges.slice(0, maxChildAgesLeft)
+    } else {
+      nextAdults = Math.max(1, limits.maxTotal - nextChildAges.length)
+    }
+  }
+  return { adults: nextAdults, childAges: nextChildAges }
+}
+
+function getRatesKey(
+  range: { start: string | null; end: string | null },
+  adults: number,
+  childAges: number[],
+): string | null {
+  if (!range.start || !range.end) return null
+  return `${range.start}|${range.end}|${adults}|${childAges.join(',')}`
+}
+
 function BookingCalendarModal({
   roomSlug,
   locale,
@@ -172,11 +259,20 @@ function BookingCalendarModal({
     end: null,
   })
   const [hoverDate, setHoverDate] = useState<string | null>(null)
-  const [ratePlans, setRatePlans] = useState<RatePlan[] | null>(null)
-  const [ratesLoading, setRatesLoading] = useState(false)
-  const [ratesError, setRatesError] = useState(false)
+  // Rates are keyed by the stay they were fetched for; plans/loading/error are derived from it.
+  const [ratesResult, setRatesResult] = useState<{
+    key: string
+    plans: RatePlan[] | null
+    error: boolean
+  } | null>(null)
   const [adults, setAdults] = useState(2)
   const [childAges, setChildAges] = useState<number[]>([])
+  const [isTestMode, setIsTestMode] = useState(false)
+  const [bookingStage, setBookingStage] = useState<BookingStage>('rates')
+  const [selectedRatePlan, setSelectedRatePlan] = useState<RatePlan | null>(null)
+  const [bookingResult, setBookingResult] = useState<BookingResult | null>(null)
+  const [bookingErrorCode, setBookingErrorCode] = useState<string | null>(null)
+  const [submittedGuestName, setSubmittedGuestName] = useState<string | null>(null)
   // Rapid +/- clicks (or dropdown jumps) shouldn't each trigger their own rates refetch —
   // only the settled value (after a short pause) is used to fetch/build the booking link.
   const [debouncedAdults, setDebouncedAdults] = useState(adults)
@@ -190,12 +286,15 @@ function BookingCalendarModal({
     return () => clearTimeout(handle)
   }, [adults, childAges])
 
+  const ratesKey = getRatesKey(range, debouncedAdults, debouncedChildAges)
+  const currentRates = ratesKey && ratesResult?.key === ratesKey ? ratesResult : null
+  const ratePlans = currentRates?.plans ?? null
+  const ratesLoading = ratesKey !== null && currentRates === null
+  const ratesError = currentRates?.error ?? false
+
   useEffect(() => {
     if (!open) return
     let cancelled = false
-    setLoading(true)
-    setError(false)
-    setNotConfigured(false)
 
     fetch(
       `/api/phobs/availability?room=${encodeURIComponent(roomSlug)}&from=${toYMD(addDays(startOfMonth(new Date()), -7))}`,
@@ -248,11 +347,9 @@ function BookingCalendarModal({
 
   // Once both dates are picked, fetch rate plans + pricing for that stay instead of redirecting blindly.
   useEffect(() => {
-    if (!range.start || !range.end) return
+    const key = getRatesKey(range, debouncedAdults, debouncedChildAges)
+    if (!key || !range.start || !range.end) return
     let cancelled = false
-    setRatesLoading(true)
-    setRatesError(false)
-    setRatePlans(null)
 
     const childrenParam =
       debouncedChildAges.length > 0 ? `&children=${debouncedChildAges.join(',')}` : ''
@@ -263,14 +360,22 @@ function BookingCalendarModal({
         if (cancelled) return
         if (!res.ok) throw new Error('request_failed')
         const data = (await res.json()) as RatesResponse
-        setRatePlans(data.ratePlans)
+        if (cancelled) return
+        setRatesResult({ key, plans: data.ratePlans, error: false })
         setPropertyPhobsId(data.propertyId)
+        setIsTestMode(Boolean(data.isTestMode))
+        // Phobs doesn't reject over-occupancy requests, so correct a selection that exceeds the
+        // caps learned from this response instead of silently showing a stale/incomplete price.
+        const clamped = clampGuests(
+          debouncedAdults,
+          debouncedChildAges,
+          computeOccupancyLimits(data.ratePlans),
+        )
+        if (clamped.adults !== debouncedAdults) setAdults(clamped.adults)
+        if (clamped.childAges.length !== debouncedChildAges.length) setChildAges(clamped.childAges)
       })
       .catch(() => {
-        if (!cancelled) setRatesError(true)
-      })
-      .finally(() => {
-        if (!cancelled) setRatesLoading(false)
+        if (!cancelled) setRatesResult({ key, plans: null, error: true })
       })
 
     return () => {
@@ -280,54 +385,16 @@ function BookingCalendarModal({
 
   // Phobs returns per-rate-plan occupancy caps; take the most restrictive one across
   // the returned plans so the guest selector never lets the user pick an unbookable combination.
-  const occupancyLimits = useMemo(() => {
-    if (!ratePlans || ratePlans.length === 0) return null
-    let maxAdults: number | null = null
-    let maxChildren: number | null = null
-    let maxChildAge: number | null = null
-    let minOccupancy: number | null = null
-    for (const plan of ratePlans) {
-      if (plan.occupancyMaxAdult != null) {
-        maxAdults =
-          maxAdults == null ? plan.occupancyMaxAdult : Math.min(maxAdults, plan.occupancyMaxAdult)
-      }
-      if (plan.occupancyMaxChd != null) {
-        maxChildren =
-          maxChildren == null ? plan.occupancyMaxChd : Math.min(maxChildren, plan.occupancyMaxChd)
-      }
-      if (plan.occupancyMaxChdAge != null) {
-        maxChildAge =
-          maxChildAge == null
-            ? plan.occupancyMaxChdAge
-            : Math.min(maxChildAge, plan.occupancyMaxChdAge)
-      }
-      // Most restrictive minimum: Phobs may omit StayTotal (but still return a nightly
-      // average) for a stay that doesn't meet a plan's minimum total occupancy.
-      if (plan.occupancyMin != null) {
-        minOccupancy =
-          minOccupancy == null ? plan.occupancyMin : Math.max(minOccupancy, plan.occupancyMin)
-      }
-    }
-    return { maxAdults, maxChildren, maxChildAge, minOccupancy }
-  }, [ratePlans])
-
-  // Auto-correct a selection that exceeds a newly-learned occupancy cap instead of silently
-  // showing a stale/incomplete price (Phobs itself doesn't reject over-occupancy requests).
-  useEffect(() => {
-    if (!occupancyLimits) return
-    if (occupancyLimits.maxAdults != null && adults > occupancyLimits.maxAdults) {
-      setAdults(occupancyLimits.maxAdults)
-    }
-    if (occupancyLimits.maxChildren != null && childAges.length > occupancyLimits.maxChildren) {
-      setChildAges((prev) => prev.slice(0, occupancyLimits.maxChildren!))
-    }
-  }, [occupancyLimits, adults, childAges])
+  const occupancyLimits = useMemo(() => computeOccupancyLimits(ratePlans), [ratePlans])
 
   function changeDates() {
     setRange({ start: null, end: null })
-    setRatePlans(null)
-    setRatesError(false)
+    setRatesResult(null)
     setHoverDate(null)
+    setBookingStage('rates')
+    setSelectedRatePlan(null)
+    setBookingResult(null)
+    setBookingErrorCode(null)
   }
 
   const grid = useMemo(() => buildMonthGrid(viewMonth), [viewMonth])
@@ -341,19 +408,78 @@ function BookingCalendarModal({
     )
   }, [locale])
 
+  function openModal() {
+    setLoading(true)
+    setError(false)
+    setNotConfigured(false)
+    setOpen(true)
+  }
+
   function close() {
     setOpen(false)
     setRange({ start: null, end: null })
-    setRatePlans(null)
-    setRatesError(false)
+    setRatesResult(null)
     setHoverDate(null)
+    setBookingStage('rates')
+    setSelectedRatePlan(null)
+    setBookingResult(null)
+    setBookingErrorCode(null)
+  }
+
+  function selectTestRate(plan: RatePlan) {
+    setSelectedRatePlan(plan)
+    setBookingStage('guest-details')
+  }
+
+  async function submitTestBooking(guest: GuestDetails) {
+    if (!selectedRatePlan || !range.start || !range.end) return
+    setBookingStage('submitting')
+    setBookingErrorCode(null)
+    setSubmittedGuestName(guest.firstName)
+    try {
+      const res = await fetch('/api/phobs/book', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          roomSlug,
+          rateId: selectedRatePlan.rateId,
+          dateFrom: range.start,
+          nights: daysBetween(range.start, range.end),
+          adults: debouncedAdults,
+          childAges: debouncedChildAges,
+          guest: {
+            firstName: guest.firstName,
+            lastName: guest.lastName,
+            email: guest.email,
+            phone: guest.phone || undefined,
+          },
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok || !data.success) {
+        setBookingErrorCode(typeof data.error === 'string' ? data.error : 'unknown')
+        setBookingStage('failed')
+        return
+      }
+      setBookingResult({
+        reservationId: data.reservationId,
+        currency: data.currency ?? null,
+        grandTotal: data.grandTotal ?? null,
+        checkIn: data.checkIn ?? range.start,
+        checkOut: data.checkOut ?? range.end,
+      })
+      setBookingStage('confirmed')
+    } catch {
+      setBookingErrorCode('network')
+      setBookingStage('failed')
+    }
   }
 
   const showRates = Boolean(range.start && range.end)
 
   return (
     <>
-      <button type="button" style={triggerStyle} onClick={() => setOpen(true)}>
+      <button type="button" style={triggerStyle} onClick={openModal}>
         {triggerLabel}
       </button>
 
@@ -511,37 +637,72 @@ function BookingCalendarModal({
                 </div>
               ) : showRates ? (
                 <>
-                  <GuestSelector
-                    adults={adults}
-                    childAges={childAges}
-                    onAdultsChange={setAdults}
-                    onChildAgesChange={setChildAges}
-                    maxAdults={occupancyLimits?.maxAdults ?? null}
-                    maxChildren={occupancyLimits?.maxChildren ?? null}
-                    maxChildAge={occupancyLimits?.maxChildAge ?? null}
-                    minOccupancy={occupancyLimits?.minOccupancy ?? null}
-                    t={t}
-                  />
-                  <RatePlanList
-                    ratePlans={ratePlans}
-                    loading={ratesLoading}
-                    error={ratesError}
-                    buildHref={(rateId) =>
-                      propertyPhobsId
-                        ? buildPhobsBookingLink({
-                            propertyPhobsId,
-                            unitPhobsId,
-                            dateFrom: range.start!,
-                            nights: daysBetween(range.start!, range.end!),
-                            lang: locale,
-                            rateId,
-                            adults: debouncedAdults,
-                            childrenCount: debouncedChildAges.length,
-                          })
-                        : null
-                    }
-                    t={t}
-                  />
+                  {isTestMode && <TestModeBanner t={t} />}
+                  {bookingStage === 'rates' && (
+                    <>
+                      <GuestSelector
+                        adults={adults}
+                        childAges={childAges}
+                        onAdultsChange={setAdults}
+                        onChildAgesChange={setChildAges}
+                        maxAdults={occupancyLimits?.maxAdults ?? null}
+                        maxChildren={occupancyLimits?.maxChildren ?? null}
+                        maxChildAge={occupancyLimits?.maxChildAge ?? null}
+                        minOccupancy={occupancyLimits?.minOccupancy ?? null}
+                        maxTotal={occupancyLimits?.maxTotal ?? null}
+                        t={t}
+                      />
+                      <RatePlanList
+                        ratePlans={ratePlans}
+                        loading={ratesLoading}
+                        error={ratesError}
+                        isTestMode={isTestMode}
+                        onSelectTestRate={selectTestRate}
+                        buildHref={(rateId) =>
+                          propertyPhobsId
+                            ? buildPhobsBookingLink({
+                                propertyPhobsId,
+                                unitPhobsId,
+                                dateFrom: range.start!,
+                                nights: daysBetween(range.start!, range.end!),
+                                lang: locale,
+                                rateId,
+                                adults: debouncedAdults,
+                                childrenCount: debouncedChildAges.length,
+                              })
+                            : null
+                        }
+                        t={t}
+                      />
+                    </>
+                  )}
+                  {bookingStage === 'guest-details' && selectedRatePlan && (
+                    <GuestDetailsForm
+                      plan={selectedRatePlan}
+                      nights={daysBetween(range.start!, range.end!)}
+                      onBack={() => setBookingStage('rates')}
+                      onSubmit={submitTestBooking}
+                      t={t}
+                    />
+                  )}
+                  {bookingStage === 'submitting' && <BookingSubmitting t={t} />}
+                  {bookingStage === 'confirmed' && bookingResult && (
+                    <BookingConfirmation
+                      result={bookingResult}
+                      guestFirstName={submittedGuestName}
+                      onClose={close}
+                      onBookAnother={changeDates}
+                      t={t}
+                    />
+                  )}
+                  {bookingStage === 'failed' && (
+                    <BookingFailed
+                      errorCode={bookingErrorCode}
+                      onRetry={() => setBookingStage('guest-details')}
+                      onBackToRates={() => setBookingStage('rates')}
+                      t={t}
+                    />
+                  )}
                 </>
               ) : error ? (
                 <p style={{ color: '#b91c1c', fontSize: 13 }}>{t('error')}</p>
@@ -637,6 +798,438 @@ function BookingCalendarModal({
   )
 }
 
+function TestModeBanner({ t }: { t: ReturnType<typeof useTranslations> }) {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 8,
+        background: '#fff7ed',
+        border: '1px solid #fdba74',
+        color: '#9a3412',
+        borderRadius: 10,
+        padding: '9px 12px',
+        fontSize: 12,
+        fontWeight: 600,
+        marginBottom: 14,
+      }}
+    >
+      <span style={{ fontSize: 14, flexShrink: 0 }} aria-hidden>
+        🧪
+      </span>
+      <span>{t('testModeBanner')}</span>
+    </div>
+  )
+}
+
+function GuestDetailsForm({
+  plan,
+  nights,
+  onBack,
+  onSubmit,
+  t,
+}: {
+  plan: RatePlan
+  nights: number
+  onBack: () => void
+  onSubmit: (guest: GuestDetails) => void
+  t: ReturnType<typeof useTranslations>
+}) {
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName] = useState('')
+  const [email, setEmail] = useState('')
+  const [phone, setPhone] = useState('')
+  const [touched, setTouched] = useState(false)
+
+  const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+  const isValid = firstName.trim().length > 0 && lastName.trim().length > 0 && emailValid
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    setTouched(true)
+    if (!isValid) return
+    onSubmit({
+      firstName: firstName.trim(),
+      lastName: lastName.trim(),
+      email: email.trim(),
+      phone: phone.trim(),
+    })
+  }
+
+  const inputStyle: React.CSSProperties = {
+    width: '100%',
+    border: '1px solid #e2e8f0',
+    borderRadius: 8,
+    padding: '9px 11px',
+    fontSize: 13.5,
+    color: '#0f172a',
+    fontFamily: 'inherit',
+    boxSizing: 'border-box',
+  }
+  const labelStyle: React.CSSProperties = {
+    display: 'block',
+    fontSize: 12,
+    fontWeight: 600,
+    color: '#334155',
+    marginBottom: 5,
+  }
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <button
+        type="button"
+        onClick={onBack}
+        style={{
+          border: 'none',
+          background: 'none',
+          color: '#4f8ef7',
+          fontSize: 12.5,
+          fontWeight: 600,
+          cursor: 'pointer',
+          padding: 0,
+          marginBottom: 14,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 4,
+        }}
+      >
+        ← {t('backToRates')}
+      </button>
+
+      <div
+        style={{
+          border: '1px solid #e2e8f0',
+          borderRadius: 12,
+          padding: '12px 14px',
+          marginBottom: 16,
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          gap: 10,
+        }}
+      >
+        <div style={{ minWidth: 0 }}>
+          <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: '#1e293b' }}>
+            {plan.name || plan.rateId}
+          </p>
+          <p style={{ margin: '3px 0 0', fontSize: 11.5, color: '#64748b' }}>
+            {nights} {t('nights')}
+          </p>
+        </div>
+        {plan.stayTotal != null && (
+          <p
+            style={{
+              margin: 0,
+              fontSize: 15.5,
+              fontWeight: 700,
+              color: '#0f172a',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {plan.stayTotal} {plan.currency}
+          </p>
+        )}
+      </div>
+
+      <p style={{ margin: '0 0 14px', fontSize: 13, fontWeight: 700, color: '#0f172a' }}>
+        {t('guestDetailsTitle')}
+      </p>
+
+      <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
+        <div style={{ flex: 1 }}>
+          <label style={labelStyle}>{t('firstName')}</label>
+          <input
+            style={inputStyle}
+            value={firstName}
+            onChange={(e) => setFirstName(e.target.value)}
+            maxLength={100}
+            required
+          />
+        </div>
+        <div style={{ flex: 1 }}>
+          <label style={labelStyle}>{t('lastName')}</label>
+          <input
+            style={inputStyle}
+            value={lastName}
+            onChange={(e) => setLastName(e.target.value)}
+            maxLength={100}
+            required
+          />
+        </div>
+      </div>
+
+      <div style={{ marginBottom: 12 }}>
+        <label style={labelStyle}>{t('email')}</label>
+        <input
+          type="email"
+          style={inputStyle}
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          maxLength={200}
+          required
+        />
+        {touched && !emailValid && (
+          <p style={{ margin: '5px 0 0', fontSize: 11.5, color: '#b91c1c' }}>{t('invalidEmail')}</p>
+        )}
+      </div>
+
+      <div style={{ marginBottom: 18 }}>
+        <label style={labelStyle}>{t('phoneOptional')}</label>
+        <input
+          type="tel"
+          style={inputStyle}
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+          maxLength={40}
+        />
+      </div>
+
+      <button
+        type="submit"
+        style={{
+          width: '100%',
+          border: 'none',
+          background: '#4f8ef7',
+          color: '#fff',
+          padding: '11px 16px',
+          borderRadius: 8,
+          fontWeight: 700,
+          fontSize: 13.5,
+          cursor: 'pointer',
+        }}
+      >
+        {t('confirmTestBooking')}
+      </button>
+    </form>
+  )
+}
+
+function BookingSubmitting({ t }: { t: ReturnType<typeof useTranslations> }) {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: 14,
+        padding: '36px 0',
+      }}
+    >
+      <div
+        style={{
+          width: 34,
+          height: 34,
+          borderRadius: '50%',
+          border: '3px solid #e2e8f0',
+          borderTopColor: '#4f8ef7',
+          animation: 'medora-spin 0.8s linear infinite',
+        }}
+      />
+      <p style={{ margin: 0, fontSize: 13, color: '#334155', fontWeight: 600 }}>
+        {t('submittingBooking')}
+      </p>
+      <style>{`@keyframes medora-spin { to { transform: rotate(360deg); } }`}</style>
+    </div>
+  )
+}
+
+function SummaryRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12.5 }}>
+      <span style={{ color: '#64748b' }}>{label}</span>
+      <span style={{ fontWeight: 700, color: '#0f172a' }}>{value}</span>
+    </div>
+  )
+}
+
+function BookingConfirmation({
+  result,
+  guestFirstName,
+  onClose,
+  onBookAnother,
+  t,
+}: {
+  result: BookingResult
+  guestFirstName: string | null
+  onClose: () => void
+  onBookAnother: () => void
+  t: ReturnType<typeof useTranslations>
+}) {
+  return (
+    <div style={{ padding: '8px 0 4px' }}>
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: 10,
+          marginBottom: 18,
+        }}
+      >
+        <div
+          style={{
+            width: 46,
+            height: 46,
+            borderRadius: '50%',
+            background: '#dcfce7',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: 22,
+            color: '#166534',
+          }}
+        >
+          ✓
+        </div>
+        <p
+          style={{
+            margin: 0,
+            fontSize: 16,
+            fontWeight: 700,
+            color: '#0f172a',
+            textAlign: 'center',
+          }}
+        >
+          {guestFirstName ? t('confirmedWithName', { name: guestFirstName }) : t('confirmedTitle')}
+        </p>
+      </div>
+
+      <div
+        style={{
+          border: '1px solid #e2e8f0',
+          borderRadius: 12,
+          padding: '14px 16px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 9,
+        }}
+      >
+        <SummaryRow label={t('reservationId')} value={result.reservationId} />
+        <SummaryRow label={t('checkIn')} value={result.checkIn} />
+        {result.checkOut && <SummaryRow label={t('checkOut')} value={result.checkOut} />}
+        {result.grandTotal != null && (
+          <SummaryRow
+            label={t('totalStay')}
+            value={`${result.grandTotal} ${result.currency ?? ''}`}
+          />
+        )}
+      </div>
+
+      <div style={{ display: 'flex', gap: 10, marginTop: 18 }}>
+        <button
+          type="button"
+          onClick={onBookAnother}
+          style={{
+            flex: 1,
+            border: '1px solid #e2e8f0',
+            background: '#fff',
+            color: '#334155',
+            padding: '10px 14px',
+            borderRadius: 8,
+            fontWeight: 600,
+            fontSize: 12.5,
+            cursor: 'pointer',
+          }}
+        >
+          {t('bookAnother')}
+        </button>
+        <button
+          type="button"
+          onClick={onClose}
+          style={{
+            flex: 1,
+            border: 'none',
+            background: '#4f8ef7',
+            color: '#fff',
+            padding: '10px 14px',
+            borderRadius: 8,
+            fontWeight: 700,
+            fontSize: 12.5,
+            cursor: 'pointer',
+          }}
+        >
+          {t('close')}
+        </button>
+      </div>
+    </div>
+  )
+}
+
+function BookingFailed({
+  onRetry,
+  onBackToRates,
+  t,
+}: {
+  errorCode: string | null
+  onRetry: () => void
+  onBackToRates: () => void
+  t: ReturnType<typeof useTranslations>
+}) {
+  return (
+    <div style={{ padding: '8px 0 4px', textAlign: 'center' }}>
+      <div
+        style={{
+          width: 46,
+          height: 46,
+          borderRadius: '50%',
+          background: '#fee2e2',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: 22,
+          color: '#b91c1c',
+          margin: '0 auto 12px',
+        }}
+      >
+        ✕
+      </div>
+      <p style={{ margin: '0 0 6px', fontSize: 15, fontWeight: 700, color: '#0f172a' }}>
+        {t('bookingFailedTitle')}
+      </p>
+      <p style={{ margin: '0 0 18px', fontSize: 12.5, color: '#64748b' }}>
+        {t('bookingFailedBody')}
+      </p>
+      <div style={{ display: 'flex', gap: 10 }}>
+        <button
+          type="button"
+          onClick={onBackToRates}
+          style={{
+            flex: 1,
+            border: '1px solid #e2e8f0',
+            background: '#fff',
+            color: '#334155',
+            padding: '10px 14px',
+            borderRadius: 8,
+            fontWeight: 600,
+            fontSize: 12.5,
+            cursor: 'pointer',
+          }}
+        >
+          {t('backToRates')}
+        </button>
+        <button
+          type="button"
+          onClick={onRetry}
+          style={{
+            flex: 1,
+            border: 'none',
+            background: '#4f8ef7',
+            color: '#fff',
+            padding: '10px 14px',
+            borderRadius: 8,
+            fontWeight: 700,
+            fontSize: 12.5,
+            cursor: 'pointer',
+          }}
+        >
+          {t('tryAgain')}
+        </button>
+      </div>
+    </div>
+  )
+}
+
 function GuestSelector({
   adults,
   childAges,
@@ -646,6 +1239,7 @@ function GuestSelector({
   maxChildren,
   maxChildAge,
   minOccupancy,
+  maxTotal,
   t,
 }: {
   adults: number
@@ -656,12 +1250,21 @@ function GuestSelector({
   maxChildren: number | null
   maxChildAge: number | null
   minOccupancy: number | null
+  maxTotal: number | null
   t: ReturnType<typeof useTranslations>
 }) {
   const effectiveMaxAdults = maxAdults ?? 8
   const effectiveMaxChildren = maxChildren ?? 4
   const effectiveMaxChildAge = maxChildAge ?? 17
   const belowMinOccupancy = minOccupancy != null && adults + childAges.length < minOccupancy
+  // Combined cap can be stricter than the per-type maxes added together (e.g. max 3 adults,
+  // max 2 children, but only 3 guests total) — clamp both steppers against the remaining headroom.
+  const adultsCap =
+    maxTotal != null
+      ? Math.min(effectiveMaxAdults, maxTotal - childAges.length)
+      : effectiveMaxAdults
+  const childrenCap =
+    maxTotal != null ? Math.min(effectiveMaxChildren, maxTotal - adults) : effectiveMaxChildren
 
   function handleChildrenCountChange(count: number) {
     if (count > childAges.length) {
@@ -731,7 +1334,7 @@ function GuestSelector({
             onChange={(e) => onAdultsChange(Number(e.target.value))}
             style={countSelectStyle}
           >
-            {Array.from({ length: effectiveMaxAdults }, (_, i) => i + 1).map((value) => (
+            {Array.from({ length: Math.max(1, adultsCap) }, (_, i) => i + 1).map((value) => (
               <option key={value} value={value}>
                 {value}
               </option>
@@ -739,9 +1342,9 @@ function GuestSelector({
           </select>
           <button
             type="button"
-            disabled={adults >= effectiveMaxAdults}
-            onClick={() => onAdultsChange(Math.min(effectiveMaxAdults, adults + 1))}
-            style={stepperButtonStyle(adults >= effectiveMaxAdults)}
+            disabled={adults >= adultsCap}
+            onClick={() => onAdultsChange(Math.min(adultsCap, adults + 1))}
+            style={stepperButtonStyle(adults >= adultsCap)}
           >
             +
           </button>
@@ -765,7 +1368,7 @@ function GuestSelector({
             onChange={(e) => handleChildrenCountChange(Number(e.target.value))}
             style={countSelectStyle}
           >
-            {Array.from({ length: effectiveMaxChildren + 1 }, (_, i) => i).map((value) => (
+            {Array.from({ length: Math.max(0, childrenCap) + 1 }, (_, i) => i).map((value) => (
               <option key={value} value={value}>
                 {value}
               </option>
@@ -773,9 +1376,9 @@ function GuestSelector({
           </select>
           <button
             type="button"
-            disabled={childAges.length >= effectiveMaxChildren}
+            disabled={childAges.length >= childrenCap}
             onClick={() => onChildAgesChange([...childAges, Math.min(5, effectiveMaxChildAge)])}
-            style={stepperButtonStyle(childAges.length >= effectiveMaxChildren)}
+            style={stepperButtonStyle(childAges.length >= childrenCap)}
           >
             +
           </button>
@@ -837,12 +1440,16 @@ function RatePlanList({
   loading,
   error,
   buildHref,
+  isTestMode,
+  onSelectTestRate,
   t,
 }: {
   ratePlans: RatePlan[] | null
   loading: boolean
   error: boolean
   buildHref: (rateId: string) => string | null
+  isTestMode?: boolean
+  onSelectTestRate?: (plan: RatePlan) => void
   t: ReturnType<typeof useTranslations>
 }) {
   const [hoveredRateId, setHoveredRateId] = useState<string | null>(null)
@@ -984,26 +1591,48 @@ function RatePlanList({
                 </p>
               )}
             </div>
-            {href && (
-              <a
-                href={href}
-                target="_blank"
-                rel="noopener noreferrer"
+            {isTestMode ? (
+              <button
+                type="button"
+                onClick={() => onSelectTestRate?.(plan)}
                 style={{
                   flexShrink: 0,
+                  border: 'none',
                   background: isHovered ? '#3d7ce0' : '#4f8ef7',
                   color: '#fff',
                   padding: '9px 16px',
                   borderRadius: 8,
-                  textDecoration: 'none',
                   fontWeight: 600,
                   fontSize: 12.5,
                   whiteSpace: 'nowrap',
+                  cursor: 'pointer',
                   transition: 'background 150ms ease',
                 }}
               >
-                {t('continueToBook')} →
-              </a>
+                {t('selectRate')} →
+              </button>
+            ) : (
+              href && (
+                <a
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    flexShrink: 0,
+                    background: isHovered ? '#3d7ce0' : '#4f8ef7',
+                    color: '#fff',
+                    padding: '9px 16px',
+                    borderRadius: 8,
+                    textDecoration: 'none',
+                    fontWeight: 600,
+                    fontSize: 12.5,
+                    whiteSpace: 'nowrap',
+                    transition: 'background 150ms ease',
+                  }}
+                >
+                  {t('continueToBook')} →
+                </a>
+              )
             )}
           </div>
         )

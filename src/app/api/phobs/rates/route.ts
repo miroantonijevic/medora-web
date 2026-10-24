@@ -1,27 +1,31 @@
 import { NextResponse } from 'next/server'
 
 import { getPayloadClient } from '@/lib/payload'
-import { getUnitRatePlans } from '@/lib/phobs'
+import { getUnitRatePlans, isTestModeUnit } from '@/lib/phobs'
+import {
+  MAX_NIGHTS,
+  daysBetweenYMD,
+  isValidAdults,
+  parseChildAges,
+  parseYMD,
+} from '@/lib/phobsParams'
 
 export async function GET(request: Request): Promise<Response> {
   const { searchParams } = new URL(request.url)
   const roomSlug = searchParams.get('room')
-  const dateFrom = searchParams.get('from')
-  const dateTo = searchParams.get('to')
+  const dateFrom = parseYMD(searchParams.get('from'))
+  const dateTo = parseYMD(searchParams.get('to'))
   const adults = Number(searchParams.get('adults') ?? '2')
-  const childAges = (searchParams.get('children') ?? '')
-    .split(',')
-    .map((age) => Number(age.trim()))
-    .filter((age) => Number.isFinite(age) && age >= 0)
+  const childAges = parseChildAges(searchParams.get('children'))
   if (!roomSlug || !dateFrom || !dateTo) {
     return NextResponse.json({ error: 'missing_params' }, { status: 400 })
   }
+  if (!isValidAdults(adults) || !childAges) {
+    return NextResponse.json({ error: 'invalid_params' }, { status: 400 })
+  }
 
-  const nights = Math.round(
-    (new Date(`${dateTo}T00:00:00`).getTime() - new Date(`${dateFrom}T00:00:00`).getTime()) /
-      86_400_000,
-  )
-  if (!Number.isFinite(nights) || nights < 1) {
+  const nights = daysBetweenYMD(dateFrom, dateTo)
+  if (nights < 1 || nights > MAX_NIGHTS) {
     return NextResponse.json({ error: 'invalid_range' }, { status: 400 })
   }
 
@@ -46,7 +50,7 @@ export async function GET(request: Request): Promise<Response> {
       adults,
       childAges,
     )
-    return NextResponse.json({ propertyId, ratePlans })
+    return NextResponse.json({ propertyId, ratePlans, isTestMode: isTestModeUnit(unitId) })
   } catch (err) {
     console.error('Phobs rates fetch failed:', err)
     return NextResponse.json({ error: 'phobs_unavailable' }, { status: 502 })

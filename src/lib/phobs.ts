@@ -32,16 +32,39 @@ type CachedToken = {
   expiresAtMs: number
 }
 
-let cachedToken: CachedToken | null = null
+type PhobsEnv = 'production' | 'test'
 
-function getConfig() {
-  const apiUrl = process.env.PHOBS_API_URL
-  const username = process.env.PHOBS_USERNAME
-  const password = process.env.PHOBS_PASSWORD
-  const siteId = process.env.PHOBS_SITE_ID
+// Single known-good dummy unit on the Phobs TEST account (property b6bdc2e958d3d01c64ba7482071e0d3b,
+// unit 1447) — used by exactly one internal Payload room while we build/polish the booking-creation
+// UI, since production has no PCBookingNew permission yet. Remove once production is certified.
+const TEST_MODE_UNIT_IDS = new Set(['1447'])
+
+function envForUnit(unitId: string): PhobsEnv {
+  return TEST_MODE_UNIT_IDS.has(unitId) ? 'test' : 'production'
+}
+
+const cachedTokens = new Map<PhobsEnv, CachedToken>()
+
+// Phobs normally answers in well under a second; without a bound, a stalled Phobs would pile up requests.
+export const PHOBS_TIMEOUT_MS = 10_000
+
+export function phobsFetch(
+  url: string,
+  init: RequestInit,
+  timeoutMs = PHOBS_TIMEOUT_MS,
+): Promise<Response> {
+  return fetch(url, { ...init, signal: AbortSignal.timeout(timeoutMs) })
+}
+
+function getConfig(env: PhobsEnv = 'production') {
+  const prefix = env === 'test' ? 'PHOBS_TEST_' : 'PHOBS_'
+  const apiUrl = process.env[`${prefix}API_URL`]
+  const username = process.env[`${prefix}USERNAME`]
+  const password = process.env[`${prefix}PASSWORD`]
+  const siteId = process.env[`${prefix}SITE_ID`]
   if (!apiUrl || !username || !password || !siteId) {
     throw new Error(
-      'Phobs is not configured — missing one of PHOBS_API_URL, PHOBS_USERNAME, PHOBS_PASSWORD, PHOBS_SITE_ID',
+      `Phobs is not configured — missing one of ${prefix}API_URL, ${prefix}USERNAME, ${prefix}PASSWORD, ${prefix}SITE_ID`,
     )
   }
   return { apiUrl, username, password, siteId }
@@ -51,17 +74,18 @@ function deriveOAuthTokenUrl(apiUrl: string): string {
   return apiUrl.replace('/pconnect/service.php', '/oauth/index.php')
 }
 
-async function getOAuthToken(): Promise<string> {
+async function getOAuthToken(env: PhobsEnv = 'production'): Promise<string> {
   const now = Date.now()
-  if (cachedToken && cachedToken.expiresAtMs - now > 5 * 60 * 1000) {
-    return cachedToken.accessToken
+  const cached = cachedTokens.get(env)
+  if (cached && cached.expiresAtMs - now > 5 * 60 * 1000) {
+    return cached.accessToken
   }
 
-  const { apiUrl, username, password } = getConfig()
+  const { apiUrl, username, password } = getConfig(env)
   const tokenUrl = deriveOAuthTokenUrl(apiUrl)
   const basicAuth = Buffer.from(`${username}:${password}`).toString('base64')
 
-  const res = await fetch(tokenUrl, {
+  const res = await phobsFetch(tokenUrl, {
     method: 'POST',
     headers: {
       Authorization: `Basic ${basicAuth}`,
@@ -72,11 +96,12 @@ async function getOAuthToken(): Promise<string> {
     throw new Error(`Phobs OAuth token request failed: ${res.status} ${res.statusText}`)
   }
   const data = (await res.json()) as { access_token: string; exp: number }
-  cachedToken = {
+  const token: CachedToken = {
     accessToken: data.access_token,
     expiresAtMs: data.exp * 1000,
   }
-  return cachedToken.accessToken
+  cachedTokens.set(env, token)
+  return token.accessToken
 }
 
 function buildAvailabilityRequestXml(params: {
@@ -97,7 +122,7 @@ function buildAvailabilityRequestXml(params: {
 </PCAvailabilityCalendarRQ>`
 }
 
-function parseAvailabilityXml(xml: string, unitId: string): PhobsAvailabilityEntry[] {
+export function parseAvailabilityXml(xml: string, unitId: string): PhobsAvailabilityEntry[] {
   const entries: PhobsAvailabilityEntry[] = []
   // Namespace-agnostic tag match — Phobs responses declare the phobs: prefix but
   // the default namespace binding can vary, so match on local tag name instead of a fixed regex prefix.
@@ -123,7 +148,7 @@ function parseAvailabilityXml(xml: string, unitId: string): PhobsAvailabilityEnt
   return entries
 }
 
-function parseAttrList(xml: string, tag: string, attrName: string): string[] {
+export function parseAttrList(xml: string, tag: string, attrName: string): string[] {
   const values: string[] = []
   const tagPattern = new RegExp(`<(?:\\w+:)?${tag}\\b([^>]*)\\/?>`, 'g')
   let match: RegExpExecArray | null
@@ -167,15 +192,27 @@ function buildPropertyAvailabilityRequestXml(params: {
 </PCPropertyAvailabilityRQ>`
 }
 
+// Phobs escapes text and attribute values (e.g. "nature park &amp; sea view"); undo that before showing or linking them.
+function decodeXmlEntities(value: string): string {
+  return value
+    .replace(/&#x([\da-f]+);/gi, (_, hex: string) => String.fromCodePoint(parseInt(hex, 16)))
+    .replace(/&#(\d+);/g, (_, dec: string) => String.fromCodePoint(Number(dec)))
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'")
+    .replace(/&amp;/g, '&')
+}
+
 /** Extracts per-RatePlan pricing/BookUrl from a PCPropertyAvailabilityRS body (assumes a single Unit per plan, since the request is UnitId-scoped). */
-function parseRatePlansXml(xml: string): PhobsRatePlan[] {
+export function parseRatePlansXml(xml: string): PhobsRatePlan[] {
   const plans: PhobsRatePlan[] = []
   const blockPattern = /<RatePlan RateId="([^"]+)">([\s\S]*?)<\/RatePlan>/g
   let match: RegExpExecArray | null
   while ((match = blockPattern.exec(xml)) !== null) {
     const rateId = match[1]
     const block = match[2]
-    const name = /<Name>([^<]*)<\/Name>/.exec(block)?.[1] ?? ''
+    const name = decodeXmlEntities(/<Name>([^<]*)<\/Name>/.exec(block)?.[1] ?? '')
     const priceMatch = /<Price Currency="([^"]+)" PriceType="PerNight">([\d.]+)<\/Price>/.exec(
       block,
     )
@@ -197,7 +234,7 @@ function parseRatePlansXml(xml: string): PhobsRatePlan[] {
       currency: priceMatch ? priceMatch[1] : null,
       priceOriginalPerNight: originalMatch ? Number(originalMatch[1]) : null,
       stayTotal: stayTotalMatch ? Number(stayTotalMatch[1]) : null,
-      bookUrl: bookUrlMatch ? bookUrlMatch[1].replace(/\s+/g, '') : null,
+      bookUrl: bookUrlMatch ? decodeXmlEntities(bookUrlMatch[1].replace(/\s+/g, '')) : null,
       occupancyMin: occupancyMinMatch ? Number(occupancyMinMatch[1]) : null,
       occupancyMax: occupancyMaxMatch ? Number(occupancyMaxMatch[1]) : null,
       occupancyMinAdult: occupancyMinAdultMatch ? Number(occupancyMinAdultMatch[1]) : null,
@@ -210,10 +247,10 @@ function parseRatePlansXml(xml: string): PhobsRatePlan[] {
   return plans
 }
 
-async function phobsRequest(xmlBody: string): Promise<string> {
-  const { apiUrl } = getConfig()
-  const token = await getOAuthToken()
-  const res = await fetch(apiUrl, {
+async function phobsRequest(xmlBody: string, env: PhobsEnv = 'production'): Promise<string> {
+  const { apiUrl } = getConfig(env)
+  const token = await getOAuthToken(env)
+  const res = await phobsFetch(apiUrl, {
     method: 'POST',
     headers: {
       'Content-Type': 'text/xml',
@@ -232,18 +269,19 @@ async function phobsRequest(xmlBody: string): Promise<string> {
  * for this SiteId (PCListPropertiesRQ) and then all units per property (PCListUnitRQ) — same
  * approach ChatNav uses. Avoids needing to store a Phobs property id anywhere in Payload.
  */
-let unitToPropertyCache: Map<string, string> | null = null
-let unitToPropertyCacheAtMs = 0
+const unitToPropertyCaches = new Map<PhobsEnv, Map<string, string>>()
+const unitToPropertyCacheAtMs = new Map<PhobsEnv, number>()
 const UNIT_CACHE_TTL_MS = 60 * 60 * 1000 // 1 hour
 
-async function refreshUnitToPropertyCache(): Promise<Map<string, string>> {
-  const { siteId } = getConfig()
+async function refreshUnitToPropertyCache(env: PhobsEnv): Promise<Map<string, string>> {
+  const { siteId } = getConfig(env)
 
   const propertiesXml = await phobsRequest(
     `<?xml version="1.0" encoding="utf-8"?>
 <PCListPropertiesRQ Lang="en">
     <Auth><SiteId>${siteId}</SiteId></Auth>
 </PCListPropertiesRQ>`,
+    env,
   )
   const propertyIds = parseAttrList(propertiesXml, 'Property', 'PropertyId')
 
@@ -255,20 +293,23 @@ async function refreshUnitToPropertyCache(): Promise<Map<string, string>> {
     <Auth><SiteId>${siteId}</SiteId></Auth>
     <PropertyId>${propertyId}</PropertyId>
 </PCListUnitRQ>`,
+      env,
     )
     for (const unitId of parseAttrList(unitsXml, 'Unit', 'UnitId')) {
       map.set(unitId, propertyId)
     }
   }
 
-  unitToPropertyCache = map
-  unitToPropertyCacheAtMs = Date.now()
+  unitToPropertyCaches.set(env, map)
+  unitToPropertyCacheAtMs.set(env, Date.now())
   return map
 }
 
 export async function getPropertyForUnit(unitId: string): Promise<string | null> {
-  const isStale = !unitToPropertyCache || Date.now() - unitToPropertyCacheAtMs > UNIT_CACHE_TTL_MS
-  const map = isStale ? await refreshUnitToPropertyCache() : unitToPropertyCache
+  const env = envForUnit(unitId)
+  const cachedAt = unitToPropertyCacheAtMs.get(env) ?? 0
+  const isStale = !unitToPropertyCaches.has(env) || Date.now() - cachedAt > UNIT_CACHE_TTL_MS
+  const map = isStale ? await refreshUnitToPropertyCache(env) : unitToPropertyCaches.get(env)
   return map?.get(unitId) ?? null
 }
 
@@ -283,19 +324,20 @@ export async function checkUnitAvailability(
   dateTo: string,
   maxRetries = 3,
 ): Promise<{ propertyId: string; entries: PhobsAvailabilityEntry[] }> {
+  const env = envForUnit(unitId)
   const propertyId = await getPropertyForUnit(unitId)
   if (!propertyId) {
     throw new Error(`No Phobs property found for unit ${unitId}`)
   }
 
-  const { apiUrl, siteId } = getConfig()
+  const { apiUrl, siteId } = getConfig(env)
   const body = buildAvailabilityRequestXml({ siteId, propertyId, unitId, dateFrom, dateTo })
 
   let lastError: unknown
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
-      const token = await getOAuthToken()
-      const res = await fetch(apiUrl, {
+      const token = await getOAuthToken(env)
+      const res = await phobsFetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'text/xml',
@@ -329,12 +371,13 @@ export async function getUnitRatePlans(
   adults = 2,
   childAges: number[] = [],
 ): Promise<{ propertyId: string; ratePlans: PhobsRatePlan[] }> {
+  const env = envForUnit(unitId)
   const propertyId = await getPropertyForUnit(unitId)
   if (!propertyId) {
     throw new Error(`No Phobs property found for unit ${unitId}`)
   }
 
-  const { siteId } = getConfig()
+  const { siteId } = getConfig(env)
   const body = buildPropertyAvailabilityRequestXml({
     siteId,
     propertyId,
@@ -344,8 +387,252 @@ export async function getUnitRatePlans(
     adults,
     childAges,
   })
-  const xml = await phobsRequest(body)
+  const xml = await phobsRequest(body, env)
   return { propertyId, ratePlans: parseRatePlansXml(xml) }
 }
 
-export type { PhobsAvailabilityEntry, PhobsRatePlan }
+export function isTestModeUnit(unitId: string): boolean {
+  return envForUnit(unitId) === 'test'
+}
+
+function escapeXml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;')
+}
+
+function parseAttrsFromString(attrsStr: string): Record<string, string> {
+  const attrs: Record<string, string> = {}
+  const attrPattern = /(\w+)="([^"]*)"/g
+  let attrMatch: RegExpExecArray | null
+  while ((attrMatch = attrPattern.exec(attrsStr)) !== null) {
+    attrs[attrMatch[1]] = attrMatch[2]
+  }
+  return attrs
+}
+
+/** Finds the first tag (any name) carrying the given attribute, returning all of its attributes. */
+function findTagByAttr(xml: string, attrName: string): Record<string, string> | null {
+  const re = new RegExp(`<\\w+([^>]*\\b${attrName}="[^"]*"[^>]*)\\/?>`)
+  const match = re.exec(xml)
+  return match ? parseAttrsFromString(match[1]) : null
+}
+
+function parseResponseErrors(xml: string): string[] {
+  const errors: string[] = []
+  const errorPattern = /<Error\b[^>]*>([^<]*)<\/Error>/g
+  let match: RegExpExecArray | null
+  while ((match = errorPattern.exec(xml)) !== null) {
+    errors.push(match[1].trim())
+  }
+  return errors
+}
+
+function buildChildrenXml(childAges: number[]): string {
+  return childAges.length > 0
+    ? `<Children ChildrenNumber="${childAges.length}">${childAges.map((age) => `<Age>${age}</Age>`).join('')}</Children>`
+    : `<Children ChildrenNumber="0" />`
+}
+
+type PhobsPriceQuote = {
+  success: boolean
+  currency: string | null
+  grandTotal: number | null
+  errors: string[]
+}
+
+/** PCPriceQuoteRQ — locks in the exact price for a RateId+Unit+occupancy combo. Must not be cached. */
+export async function getPriceQuote(params: {
+  unitId: string
+  rateId: string
+  dateFrom: string
+  nights: number
+  adults: number
+  childAges: number[]
+}): Promise<PhobsPriceQuote> {
+  const { unitId, rateId, dateFrom, nights, adults, childAges } = params
+  const env = envForUnit(unitId)
+  const propertyId = await getPropertyForUnit(unitId)
+  if (!propertyId) {
+    throw new Error(`No Phobs property found for unit ${unitId}`)
+  }
+  const { siteId } = getConfig(env)
+
+  const body = `<?xml version="1.0" encoding="utf-8"?>
+<PCPriceQuoteRQ Lang="en">
+    <Auth><SiteId>${siteId}</SiteId></Auth>
+    <PropertyId>${propertyId}</PropertyId>
+    <Date>${dateFrom}</Date>
+    <Nights>${nights}</Nights>
+    <RateId>${rateId}</RateId>
+    <Units>
+        <Unit UnitId="${unitId}">
+            <Adults AdultsNumber="${adults}" />
+            ${buildChildrenXml(childAges)}
+        </Unit>
+    </Units>
+</PCPriceQuoteRQ>`
+
+  const xml = await phobsRequest(body, env)
+  const errors = parseResponseErrors(xml)
+  if (errors.length > 0) {
+    return { success: false, currency: null, grandTotal: null, errors }
+  }
+
+  // Docs shape: <Price Currency="EUR" GrandTotal="1234.56" />. A GrandTotal-attr lookup is
+  // used (rather than a fixed tag name) since this sandbox has shown quirks elsewhere where
+  // Phobs' real responses don't exactly match the documented element shape.
+  const totalAttrs = findTagByAttr(xml, 'GrandTotal')
+  if (!totalAttrs) {
+    return { success: false, currency: null, grandTotal: null, errors: ['missing_grand_total'] }
+  }
+  return {
+    success: true,
+    currency: totalAttrs.Currency ?? null,
+    grandTotal: Number(totalAttrs.GrandTotal),
+    errors: [],
+  }
+}
+
+type PhobsBookingResult = {
+  success: boolean
+  reservationId: string | null
+  bookingId: string
+  errors: string[]
+}
+
+/**
+ * PCBookingNewRQ — creates a real reservation. Guarded to TEST-mode units only: production has
+ * no booking-creation permission yet (pending PCI DSS certification), so this must never be
+ * reachable for real rooms even if a caller forgets the check at the API-route level.
+ * Uses a hardcoded Phobs test-card number since this only ever runs against the TEST sandbox.
+ */
+export async function createTestBooking(params: {
+  unitId: string
+  rateId: string
+  dateFrom: string
+  nights: number
+  adults: number
+  childAges: number[]
+  guest: { firstName: string; lastName: string; email: string; phone?: string }
+}): Promise<PhobsBookingResult> {
+  const { unitId, rateId, dateFrom, nights, adults, childAges, guest } = params
+  const env = envForUnit(unitId)
+  if (env !== 'test') {
+    throw new Error(
+      'Booking creation is only enabled for the internal test room — production lacks PCBookingNew permission pending certification.',
+    )
+  }
+  const propertyId = await getPropertyForUnit(unitId)
+  if (!propertyId) {
+    throw new Error(`No Phobs property found for unit ${unitId}`)
+  }
+  const { siteId } = getConfig(env)
+
+  const bookingId = `mt${crypto.randomUUID().replace(/-/g, '').slice(0, 20)}`
+  const firstName = escapeXml(guest.firstName)
+  const lastName = escapeXml(guest.lastName)
+  const email = escapeXml(guest.email)
+  const phoneXml = guest.phone ? `<Telephone>${escapeXml(guest.phone)}</Telephone>` : ''
+
+  const body = `<?xml version="1.0" encoding="utf-8"?>
+<PCBookingNewRQ Lang="en">
+    <Auth><SiteId>${siteId}</SiteId></Auth>
+    <BookingID>${bookingId}</BookingID>
+    <PropertyId>${propertyId}</PropertyId>
+    <Date>${dateFrom}</Date>
+    <Nights>${nights}</Nights>
+    <RateId>${rateId}</RateId>
+    <Units>
+        <Unit UnitId="${unitId}">
+            <Adults AdultsNumber="${adults}" />
+            ${buildChildrenXml(childAges)}
+            <RoomingList>
+                <Guest><FirstName>${firstName}</FirstName><LastName>${lastName}</LastName></Guest>
+            </RoomingList>
+        </Unit>
+    </Units>
+    <Client>
+        <FirstName>${firstName}</FirstName>
+        <LastName>${lastName}</LastName>
+        <BillingAddress Country="HR" />
+        <Email>${email}</Email>
+        ${phoneXml}
+    </Client>
+    <Payment>
+        <CreditCard CreditCardType="VISA" CreditCardNo="4111111111111111" VerificationCode="123" ValidThroughMonth="12" ValidThroughYear="2030">
+            <FirstName>${firstName}</FirstName>
+            <LastName>${lastName}</LastName>
+        </CreditCard>
+    </Payment>
+</PCBookingNewRQ>`
+
+  const xml = await phobsRequest(body, env)
+  const errors = parseResponseErrors(xml)
+  if (errors.length > 0) {
+    return { success: false, reservationId: null, bookingId, errors }
+  }
+  const reservationAttrs = findTagByAttr(xml, 'Id')
+  return {
+    success: true,
+    reservationId: reservationAttrs?.Id ?? null,
+    bookingId,
+    errors: [],
+  }
+}
+
+type PhobsBookingVerification = {
+  success: boolean
+  reservationId: string | null
+  checkIn: string | null
+  checkOut: string | null
+  errors: string[]
+}
+
+/** PCBookingVerifyRQ — confirms a just-created reservation actually exists on Phobs' side. */
+export async function verifyBooking(params: {
+  unitId: string
+  bookingId: string
+  reservationId: string
+}): Promise<PhobsBookingVerification> {
+  const { unitId, bookingId, reservationId } = params
+  const env = envForUnit(unitId)
+  const propertyId = await getPropertyForUnit(unitId)
+  if (!propertyId) {
+    throw new Error(`No Phobs property found for unit ${unitId}`)
+  }
+  const { siteId } = getConfig(env)
+
+  const body = `<?xml version="1.0" encoding="utf-8"?>
+<PCBookingVerifyRQ Lang="en">
+    <Auth><SiteId>${siteId}</SiteId></Auth>
+    <ReservationID>${reservationId}</ReservationID>
+    <BookingID>${bookingId}</BookingID>
+    <PropertyId>${propertyId}</PropertyId>
+</PCBookingVerifyRQ>`
+
+  const xml = await phobsRequest(body, env)
+  const errors = parseResponseErrors(xml)
+  if (errors.length > 0) {
+    return { success: false, reservationId: null, checkIn: null, checkOut: null, errors }
+  }
+  const periodAttrs = findTagByAttr(xml, 'CheckIn')
+  return {
+    success: true,
+    reservationId,
+    checkIn: periodAttrs?.CheckIn ?? null,
+    checkOut: periodAttrs?.CheckOut ?? null,
+    errors: [],
+  }
+}
+
+export type {
+  PhobsAvailabilityEntry,
+  PhobsRatePlan,
+  PhobsPriceQuote,
+  PhobsBookingResult,
+  PhobsBookingVerification,
+}
