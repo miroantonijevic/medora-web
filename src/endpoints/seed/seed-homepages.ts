@@ -341,32 +341,6 @@ async function seedOrbisHomepage(
   payload.logger.info('  orbis-homepage seeded and published.')
 }
 
-// ─── Rooms images ─────────────────────────────────────────────────────────────
-
-async function seedRoomImages(payload: Payload, roomImages: { slug: string; mediaId: number }[]) {
-  for (const { slug, mediaId } of roomImages) {
-    const result = await payload.find({
-      collection: 'rooms',
-      where: { slug: { equals: slug } },
-      limit: 1,
-      depth: 0,
-    })
-    const room = result.docs[0]
-    if (!room) {
-      payload.logger.warn(`  Room '${slug}' not found - skipping image assignment.`)
-      continue
-    }
-    const existingImages = (room.images ?? []) as number[]
-    if (existingImages.includes(mediaId)) continue
-    await payload.update({
-      collection: 'rooms',
-      id: room.id,
-      data: { images: [mediaId] },
-    })
-    payload.logger.info(`  Assigned image ${mediaId} to room '${slug}'`)
-  }
-}
-
 // ─── Main export ─────────────────────────────────────────────────────────────
 
 export async function seedHomepages({
@@ -378,20 +352,10 @@ export async function seedHomepages({
 }) {
   payload.logger.info('Seeding homepages...')
 
-  const [parkingId, sunloungersId, drinksId, doubleRoomId, familyRoomId, suiteId] =
-    await Promise.all([
-      getOrUploadMedia(payload, 'parking.svg', 'brand/parking.svg', 'image/svg+xml'),
-      getOrUploadMedia(payload, 'sunloungers.svg', 'brand/sunloungers.svg', 'image/svg+xml'),
-      getOrUploadMedia(payload, 'drinks.svg', 'brand/drinks.svg', 'image/svg+xml'),
-      getOrUploadMedia(payload, 'double-room.jpg', 'rooms/double-room.jpg', 'image/jpeg'),
-      getOrUploadMedia(payload, 'family-room.jpg', 'rooms/family-room.jpg', 'image/jpeg'),
-      getOrUploadMedia(payload, 'suite.jpg', 'rooms/suite.jpg', 'image/jpeg'),
-    ])
-
-  await seedRoomImages(payload, [
-    { slug: 'superior-double-sea-view', mediaId: doubleRoomId },
-    { slug: 'family-room-auri', mediaId: familyRoomId },
-    { slug: 'junior-suite-sea-view', mediaId: suiteId },
+  const [parkingId, sunloungersId, drinksId] = await Promise.all([
+    getOrUploadMedia(payload, 'parking.svg', 'brand/parking.svg', 'image/svg+xml'),
+    getOrUploadMedia(payload, 'sunloungers.svg', 'brand/sunloungers.svg', 'image/svg+xml'),
+    getOrUploadMedia(payload, 'drinks.svg', 'brand/drinks.svg', 'image/svg+xml'),
   ])
 
   const [skywalkId, hotelId, roomId] = await Promise.all([
