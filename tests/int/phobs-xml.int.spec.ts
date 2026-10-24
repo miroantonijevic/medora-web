@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest'
 
-import { parseAttrList, parseAvailabilityXml, parseRatePlansXml } from '@/lib/phobs'
+import {
+  parseAttrList,
+  parseAvailabilityXml,
+  parsePriceQuoteDetailsXml,
+  parseRatePlansXml,
+  policyHtmlToText,
+} from '@/lib/phobs'
 
 // Structures copied from real Phobs responses (PCAvailabilityCalendarRS, PCPropertyAvailabilityRS,
 // PCListPropertiesRS, PCListUnitRS); ids, company id and names are made up.
@@ -165,5 +171,128 @@ describe('parseAttrList', () => {
 
   it('returns an empty list when nothing matches', () => {
     expect(parseAttrList('<x/>', 'Unit', 'UnitId')).toEqual([])
+  })
+})
+
+// Structure of a real PCPriceQuoteRS, including its quirks: long lines wrapped inside the text,
+// HTML escaped inside XML, an untyped policy carrying an amount, and several payment methods.
+const priceQuoteXml = `<?xml version = "1.0" encoding = "UTF-8"?><PCPriceQuoteRS ${NS}>
+  <PriceQuote>
+    <Units>
+      <Unit UnitId="1447">
+        <Price Currency="EUR" UnitTotal="440">
+          <Board>HB</Board>
+        </Price>
+      </Unit>
+    </Units>
+    <Price Currency="EUR" GrandTotal="440"></Price>
+    <RatePolicy>
+      <Policy Type="SALES" Detail="valid_card">Valid credit card required as your reservation guarantee.</Policy>
+      <Policy Type="SALES" Detail="hotel_policy_depozit" ValueFix="132.00">If you do not have a credit card a guarantee prepayment of 30,00% is required. Guarantee prepayment
+      for clients without credit cards is accepted up to 3 day(s) before arrival.</Policy>
+      <Policy Type="SALES" Detail="chd_age">Children aged 15 and older are charged the adult rate.&lt;BR&gt;</Policy>
+      <Policy Type="SALES" Detail="note_final">&lt;p&gt;Contact reservations@example.com for info. &lt;BR&gt; The hotel may &lt;b&gt;reject&lt;/b&gt; mistakes.&lt;/p&gt;</Policy>
+      <Policy Type="CANCELLATION" Detail="cancellation_policy_time">Held by 24:00 on arrival date</Policy>
+      <Policy ValueFix="57.20">Prices include: 13.00% VAT</Policy>
+      <Policy Type="SALES" Detail="empty"></Policy>
+    </RatePolicy>
+    <AllowedPaymentMethods>
+      <MethodGroup Type="CCARD_GUARANTEE">
+        <PaymentMethod CreditCardType="VISA"></PaymentMethod>
+        <PaymentMethod CreditCardType="MASTERCARD"></PaymentMethod>
+      </MethodGroup>
+      <MethodGroup Type="BANKTRANSFER">
+        <PaymentMethod Percent="30"></PaymentMethod>
+      </MethodGroup>
+    </AllowedPaymentMethods>
+  </PriceQuote>
+  <ResponseType><Success /></ResponseType>
+</PCPriceQuoteRS>`
+
+describe('parsePriceQuoteDetailsXml', () => {
+  const parsed = parsePriceQuoteDetailsXml(priceQuoteXml)
+  const details = parsed.success ? parsed.details : null
+
+  it('reads board, currency and total', () => {
+    expect(details).toMatchObject({ board: 'HB', currency: 'EUR', grandTotal: 440 })
+  })
+
+  it('reads every policy with its type, key and amount, and skips empty ones', () => {
+    expect(details!.policies.map((policy) => policy.detail)).toEqual([
+      'valid_card',
+      'hotel_policy_depozit',
+      'chd_age',
+      'note_final',
+      'cancellation_policy_time',
+      '',
+    ])
+    expect(
+      details!.policies.find((policy) => policy.detail === 'hotel_policy_depozit'),
+    ).toMatchObject({
+      type: 'SALES',
+      amount: 132,
+    })
+    expect(details!.policies.at(-1)).toEqual({
+      type: '',
+      detail: '',
+      text: 'Prices include: 13.00% VAT',
+      amount: 57.2,
+    })
+  })
+
+  it('joins lines the XML wrapped but keeps real line breaks, and strips HTML', () => {
+    const texts = Object.fromEntries(
+      details!.policies.map((policy) => [policy.detail, policy.text]),
+    )
+
+    expect(texts.hotel_policy_depozit).toContain(
+      'Guarantee prepayment for clients without credit cards',
+    )
+    expect(texts.hotel_policy_depozit).not.toContain('\n')
+    expect(texts.note_final).toBe(
+      'Contact reservations@example.com for info.\nThe hotel may reject mistakes.',
+    )
+    expect(texts.chd_age).toBe('Children aged 15 and older are charged the adult rate.')
+  })
+
+  it('reads the payment methods per group', () => {
+    expect(details!.paymentMethods).toEqual([
+      { group: 'CCARD_GUARANTEE', cardTypes: ['VISA', 'MASTERCARD'] },
+      { group: 'BANKTRANSFER', cardTypes: [] },
+    ])
+  })
+
+  it('reports Phobs errors instead of empty details', () => {
+    const errorXml = `<PCPriceQuoteRS ${NS}><PriceQuote /><ResponseType><Errors>
+      <Error Code="3" Type="FAIL" ID="3011">Illegal rate plan id: UNDEFINED</Error>
+    </Errors></ResponseType></PCPriceQuoteRS>`
+
+    expect(parsePriceQuoteDetailsXml(errorXml)).toEqual({
+      success: false,
+      errors: ['Illegal rate plan id: UNDEFINED'],
+    })
+  })
+
+  it('returns empty lists for a quote without policies', () => {
+    const bare = parsePriceQuoteDetailsXml(
+      `<PCPriceQuoteRS ${NS}><PriceQuote><Price Currency="EUR" GrandTotal="10"/></PriceQuote></PCPriceQuoteRS>`,
+    )
+
+    expect(bare).toMatchObject({
+      success: true,
+      details: { board: null, grandTotal: 10, policies: [], paymentMethods: [] },
+    })
+  })
+})
+
+describe('policyHtmlToText', () => {
+  it('is plain text: tags are dropped and entities decoded', () => {
+    expect(policyHtmlToText('a &amp; b &lt;script&gt;alert(1)&lt;/script&gt;')).toBe(
+      'a & b alert(1)',
+    )
+  })
+
+  it('never lets markup through', () => {
+    expect(policyHtmlToText('&lt;img src=x onerror=alert(1)&gt;ok')).toBe('ok')
   })
 })

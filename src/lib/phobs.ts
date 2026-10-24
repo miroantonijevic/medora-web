@@ -193,7 +193,7 @@ function buildPropertyAvailabilityRequestXml(params: {
 }
 
 // Phobs escapes text and attribute values (e.g. "nature park &amp; sea view"); undo that before showing or linking them.
-function decodeXmlEntities(value: string): string {
+export function decodeXmlEntities(value: string): string {
   return value
     .replace(/&#x([\da-f]+);/gi, (_, hex: string) => String.fromCodePoint(parseInt(hex, 16)))
     .replace(/&#(\d+);/g, (_, dec: string) => String.fromCodePoint(Number(dec)))
@@ -202,6 +202,25 @@ function decodeXmlEntities(value: string): string {
     .replace(/&quot;/g, '"')
     .replace(/&apos;/g, "'")
     .replace(/&amp;/g, '&')
+}
+
+/**
+ * Phobs policy texts carry HTML (<BR>, <p>) inside XML. This returns plain text with line breaks, so the
+ * UI can render it as text and never has to inject HTML.
+ */
+export function policyHtmlToText(value: string): string {
+  // The XML source wraps long lines, so every whitespace run is one space; only <br> and </p> are breaks.
+  const lineBreak = '\u0000'
+  return decodeXmlEntities(value)
+    .replace(/<br\s*\/?>/gi, lineBreak)
+    .replace(/<\/p>/gi, lineBreak)
+    .replace(/<[^>]*>/g, '')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .split(lineBreak)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .join('\n')
 }
 
 /** Extracts per-RatePlan pricing/BookUrl from a PCPropertyAvailabilityRS body (assumes a single Unit per plan, since the request is UnitId-scoped). */
@@ -444,15 +463,18 @@ type PhobsPriceQuote = {
   errors: string[]
 }
 
-/** PCPriceQuoteRQ — locks in the exact price for a RateId+Unit+occupancy combo. Must not be cached. */
-export async function getPriceQuote(params: {
+export type PhobsLang = 'en' | 'hr' | 'de'
+
+type PriceQuoteParams = {
   unitId: string
   rateId: string
   dateFrom: string
   nights: number
   adults: number
   childAges: number[]
-}): Promise<PhobsPriceQuote> {
+}
+
+async function requestPriceQuoteXml(params: PriceQuoteParams, lang: PhobsLang): Promise<string> {
   const { unitId, rateId, dateFrom, nights, adults, childAges } = params
   const env = envForUnit(unitId)
   const propertyId = await getPropertyForUnit(unitId)
@@ -462,7 +484,7 @@ export async function getPriceQuote(params: {
   const { siteId } = getConfig(env)
 
   const body = `<?xml version="1.0" encoding="utf-8"?>
-<PCPriceQuoteRQ Lang="en">
+<PCPriceQuoteRQ Lang="${lang}">
     <Auth><SiteId>${siteId}</SiteId></Auth>
     <PropertyId>${propertyId}</PropertyId>
     <Date>${dateFrom}</Date>
@@ -476,7 +498,94 @@ export async function getPriceQuote(params: {
     </Units>
 </PCPriceQuoteRQ>`
 
-  const xml = await phobsRequest(body, env)
+  return phobsRequest(body, env)
+}
+
+export type PhobsPolicy = {
+  /** SALES, CANCELLATION, MODIFICATION, or empty for untyped entries such as the VAT line. */
+  type: string
+  /** Phobs' key for the kind of policy, e.g. check_in, valid_card, cancellation_policy_time. */
+  detail: string
+  text: string
+  /** An amount attached to the policy (the guarantee prepayment, the VAT included in the price). */
+  amount: number | null
+}
+
+export type PhobsRateDetails = {
+  board: string | null
+  currency: string | null
+  grandTotal: number | null
+  policies: PhobsPolicy[]
+  paymentMethods: { group: string; cardTypes: string[] }[]
+}
+
+/** Reads the policy and payment details of a PCPriceQuoteRS (an error response yields `success: false`). */
+export function parsePriceQuoteDetailsXml(
+  xml: string,
+): { success: true; details: PhobsRateDetails } | { success: false; errors: string[] } {
+  const errors = parseResponseErrors(xml)
+  if (errors.length > 0) return { success: false, errors }
+
+  const board = /<Board>([^<]*)<\/Board>/.exec(xml)?.[1]?.trim() || null
+  const totalAttrs = findTagByAttr(xml, 'GrandTotal')
+
+  const policies: PhobsPolicy[] = []
+  const policyBlock = /<RatePolicy>([\s\S]*?)<\/RatePolicy>/.exec(xml)?.[1] ?? ''
+  const policyPattern = /<Policy\b([^>]*)>([\s\S]*?)<\/Policy>/g
+  let policyMatch: RegExpExecArray | null
+  while ((policyMatch = policyPattern.exec(policyBlock)) !== null) {
+    const attrs = parseAttrsFromString(policyMatch[1])
+    const text = policyHtmlToText(policyMatch[2])
+    if (!text) continue
+    policies.push({
+      type: attrs.Type ?? '',
+      detail: attrs.Detail ?? '',
+      text,
+      amount: attrs.ValueFix != null && attrs.ValueFix !== '' ? Number(attrs.ValueFix) : null,
+    })
+  }
+
+  const paymentMethods: { group: string; cardTypes: string[] }[] = []
+  const groupPattern = /<MethodGroup\b([^>]*)>([\s\S]*?)<\/MethodGroup>/g
+  let groupMatch: RegExpExecArray | null
+  while ((groupMatch = groupPattern.exec(xml)) !== null) {
+    paymentMethods.push({
+      group: parseAttrsFromString(groupMatch[1]).Type ?? '',
+      cardTypes: parseAttrList(groupMatch[2], 'PaymentMethod', 'CreditCardType'),
+    })
+  }
+
+  return {
+    success: true,
+    details: {
+      board,
+      currency: totalAttrs?.Currency ?? null,
+      grandTotal: totalAttrs?.GrandTotal != null ? Number(totalAttrs.GrandTotal) : null,
+      policies,
+      paymentMethods,
+    },
+  }
+}
+
+/**
+ * PCPriceQuoteRQ for the policies of a rate plan (cancellation, guarantee, check-in/out, VAT, payment
+ * methods), in the guest's language. Shown on request in the booking popup. Like any price quote, the
+ * production account needs the booking permission for it, so callers must handle a failure.
+ */
+export async function getRateDetails(
+  params: PriceQuoteParams & { lang: PhobsLang },
+): Promise<PhobsRateDetails> {
+  const xml = await requestPriceQuoteXml(params, params.lang)
+  const parsed = parsePriceQuoteDetailsXml(xml)
+  if (!parsed.success) {
+    throw new Error(`Phobs price quote failed: ${parsed.errors.join('; ')}`)
+  }
+  return parsed.details
+}
+
+/** PCPriceQuoteRQ — locks in the exact price for a RateId+Unit+occupancy combo. Must not be cached. */
+export async function getPriceQuote(params: PriceQuoteParams): Promise<PhobsPriceQuote> {
+  const xml = await requestPriceQuoteXml(params, 'en')
   const errors = parseResponseErrors(xml)
   if (errors.length > 0) {
     return { success: false, currency: null, grandTotal: null, errors }

@@ -9,8 +9,11 @@ import { bookingService } from '@/lib/booking'
 import { buildPhobsBookingLink } from '@/lib/phobsBookingLink'
 import { useMediaQuery } from '@/utilities/useMediaQuery'
 
+import type { PhobsRateDetails } from '@/lib/phobs'
 import type { RoomImage } from '@/lib/roomImages'
 
+import { fetchRateDetails } from './fetchRateDetails'
+import { RateDetailsPanel } from './RateDetailsPanel'
 import { RoomPanel } from './RoomPanel'
 
 type DayStatus = 'unknown' | 'available' | 'unavailable' | 'promo'
@@ -654,6 +657,19 @@ function BookingCalendarModal({
                           error={ratesError}
                           isTestMode={isTestMode}
                           onSelectTestRate={selectTestRate}
+                          nights={daysBetween(range.start!, range.end!)}
+                          stayKey={ratesKey ?? ''}
+                          loadDetails={(rateId) =>
+                            fetchRateDetails({
+                              roomSlug,
+                              rateId,
+                              from: range.start!,
+                              to: range.end!,
+                              adults: debouncedAdults,
+                              childAges: debouncedChildAges,
+                              lang: locale,
+                            })
+                          }
                           buildHref={(rateId) =>
                             propertyPhobsId
                               ? buildPhobsBookingLink({
@@ -1448,6 +1464,9 @@ function RatePlanList({
   buildHref,
   isTestMode,
   onSelectTestRate,
+  nights,
+  stayKey,
+  loadDetails,
   t,
 }: {
   ratePlans: RatePlan[] | null
@@ -1456,6 +1475,10 @@ function RatePlanList({
   buildHref: (rateId: string) => string | null
   isTestMode?: boolean
   onSelectTestRate?: (plan: RatePlan) => void
+  nights: number
+  /** Identifies the stay the rates belong to, so open detail panels reset when it changes. */
+  stayKey: string
+  loadDetails: (rateId: string) => Promise<PhobsRateDetails>
   t: ReturnType<typeof useTranslations>
 }) {
   const [hoveredRateId, setHoveredRateId] = useState<string | null>(null)
@@ -1535,10 +1558,6 @@ function RatePlanList({
               borderRadius: 12,
               // The 2px border of the highlighted rate is compensated so all cards keep the same size.
               padding: isBest ? '13px 15px' : '14px 16px',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              gap: 12,
               transition: 'border-color 150ms ease, box-shadow 150ms ease, transform 150ms ease',
               boxShadow: isHovered
                 ? '0 6px 16px rgba(79,142,247,0.16)'
@@ -1546,106 +1565,132 @@ function RatePlanList({
               transform: isHovered ? 'translateY(-1px)' : 'none',
             }}
           >
-            <div style={{ minWidth: 0 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-                <p style={{ margin: 0, fontSize: 13.5, fontWeight: 700, color: '#1e293b' }}>
-                  {plan.name || plan.rateId}
-                </p>
-                {isBest && (
-                  <span
-                    style={{
-                      fontSize: 10.5,
-                      fontWeight: 700,
-                      color: '#fff',
-                      background: '#2563eb',
-                      padding: '2px 7px',
-                      borderRadius: 999,
-                      whiteSpace: 'nowrap',
-                    }}
-                  >
-                    {t('bestPrice')}
-                  </span>
-                )}
-                {discountPct != null && discountPct > 0 && (
-                  <span
-                    style={{
-                      fontSize: 10.5,
-                      fontWeight: 700,
-                      color: '#9a3412',
-                      background: '#ffedd5',
-                      padding: '2px 7px',
-                      borderRadius: 999,
-                      whiteSpace: 'nowrap',
-                    }}
-                  >
-                    -{discountPct}%
-                  </span>
-                )}
-              </div>
-              {plan.pricePerNight != null && (
-                <p style={{ margin: '6px 0 0', display: 'flex', alignItems: 'baseline', gap: 6 }}>
-                  {hasDiscount && (
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                gap: 12,
+              }}
+            >
+              <div style={{ minWidth: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                  <p style={{ margin: 0, fontSize: 13.5, fontWeight: 700, color: '#1e293b' }}>
+                    {plan.name || plan.rateId}
+                  </p>
+                  {isBest && (
                     <span
-                      style={{ fontSize: 12, color: '#94a3b8', textDecoration: 'line-through' }}
+                      style={{
+                        fontSize: 10.5,
+                        fontWeight: 700,
+                        color: '#fff',
+                        background: '#2563eb',
+                        padding: '2px 7px',
+                        borderRadius: 999,
+                        whiteSpace: 'nowrap',
+                      }}
                     >
-                      {plan.priceOriginalPerNight} {plan.currency}
+                      {t('bestPrice')}
                     </span>
                   )}
-                  <span style={{ fontSize: 15.5, fontWeight: 700, color: '#0f172a' }}>
-                    {plan.pricePerNight} {plan.currency}
-                  </span>
-                  <span style={{ fontSize: 12, color: '#94a3b8' }}>/ {t('perNight')}</span>
-                </p>
-              )}
-              {plan.stayTotal != null && (
-                <p style={{ margin: '2px 0 0', fontSize: 12, color: '#64748b' }}>
-                  {t('totalStay')}: {plan.stayTotal} {plan.currency}
-                </p>
-              )}
-            </div>
-            {isTestMode ? (
-              <button
-                type="button"
-                onClick={() => onSelectTestRate?.(plan)}
-                style={{
-                  flexShrink: 0,
-                  border: 'none',
-                  background: isHovered ? '#3d7ce0' : '#4f8ef7',
-                  color: '#fff',
-                  padding: '9px 16px',
-                  borderRadius: 8,
-                  fontWeight: 600,
-                  fontSize: 12.5,
-                  whiteSpace: 'nowrap',
-                  cursor: 'pointer',
-                  transition: 'background 150ms ease',
-                }}
-              >
-                {t('selectRate')} →
-              </button>
-            ) : (
-              href && (
-                <a
-                  href={href}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  {discountPct != null && discountPct > 0 && (
+                    <span
+                      style={{
+                        fontSize: 10.5,
+                        fontWeight: 700,
+                        color: '#9a3412',
+                        background: '#ffedd5',
+                        padding: '2px 7px',
+                        borderRadius: 999,
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      -{discountPct}%
+                    </span>
+                  )}
+                </div>
+                {plan.pricePerNight != null && (
+                  <p style={{ margin: '6px 0 0', display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                    {hasDiscount && (
+                      <span
+                        style={{ fontSize: 12, color: '#94a3b8', textDecoration: 'line-through' }}
+                      >
+                        {plan.priceOriginalPerNight} {plan.currency}
+                      </span>
+                    )}
+                    <span style={{ fontSize: 15.5, fontWeight: 700, color: '#0f172a' }}>
+                      {plan.pricePerNight} {plan.currency}
+                    </span>
+                    <span style={{ fontSize: 12, color: '#94a3b8' }}>/ {t('perNight')}</span>
+                  </p>
+                )}
+                {plan.stayTotal != null && (
+                  <p style={{ margin: '2px 0 0', fontSize: 12, color: '#64748b' }}>
+                    {t('totalStay')}: {plan.stayTotal} {plan.currency}
+                  </p>
+                )}
+              </div>
+              {isTestMode ? (
+                <button
+                  type="button"
+                  onClick={() => onSelectTestRate?.(plan)}
                   style={{
                     flexShrink: 0,
+                    border: 'none',
                     background: isHovered ? '#3d7ce0' : '#4f8ef7',
                     color: '#fff',
                     padding: '9px 16px',
                     borderRadius: 8,
-                    textDecoration: 'none',
                     fontWeight: 600,
                     fontSize: 12.5,
                     whiteSpace: 'nowrap',
+                    cursor: 'pointer',
                     transition: 'background 150ms ease',
                   }}
                 >
-                  {t('continueToBook')} →
-                </a>
-              )
-            )}
+                  {t('selectRate')} →
+                </button>
+              ) : (
+                href && (
+                  <a
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      flexShrink: 0,
+                      background: isHovered ? '#3d7ce0' : '#4f8ef7',
+                      color: '#fff',
+                      padding: '9px 16px',
+                      borderRadius: 8,
+                      textDecoration: 'none',
+                      fontWeight: 600,
+                      fontSize: 12.5,
+                      whiteSpace: 'nowrap',
+                      transition: 'background 150ms ease',
+                    }}
+                  >
+                    {t('continueToBook')} →
+                  </a>
+                )
+              )}
+            </div>
+            <RateDetailsPanel
+              key={`${plan.rateId}|${stayKey}`}
+              load={() => loadDetails(plan.rateId)}
+              saving={
+                hasDiscount && discountPct
+                  ? {
+                      amount:
+                        Math.round(
+                          (plan.priceOriginalPerNight! - plan.pricePerNight!) * nights * 100,
+                        ) / 100,
+                      percent: discountPct,
+                      currency: plan.currency,
+                    }
+                  : null
+              }
+              t={t}
+            />
           </div>
         )
       })}

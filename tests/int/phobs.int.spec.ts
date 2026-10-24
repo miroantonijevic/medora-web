@@ -8,6 +8,7 @@ import {
   daysBetweenYMD,
   isValidAdults,
   parseChildAges,
+  parseStayParams,
   parseYMD,
 } from '@/lib/phobsParams'
 
@@ -118,5 +119,32 @@ describe('phobsFetch', () => {
       'https://phobs.invalid/',
       expect.objectContaining({ method: 'POST', body: '<rq/>', signal: expect.any(AbortSignal) }),
     )
+  })
+})
+
+describe('parseStayParams', () => {
+  const stay = (query: string) => parseStayParams(new URLSearchParams(query))
+
+  it('reads a valid stay and defaults to two adults', () => {
+    expect(stay('from=2026-10-26&to=2026-10-28')).toEqual({
+      ok: true,
+      stay: { dateFrom: '2026-10-26', dateTo: '2026-10-28', nights: 2, adults: 2, childAges: [] },
+    })
+    expect(stay('from=2026-10-26&to=2026-10-28&adults=3&children=4,9')).toMatchObject({
+      ok: true,
+      stay: { adults: 3, childAges: [4, 9] },
+    })
+  })
+
+  it.each([
+    ['from=2026-10-26', 'missing_params'],
+    ['from=2026-02-31&to=2026-03-02', 'missing_params'],
+    ['from=2026-10-26&to=2026-10-28&adults=99', 'invalid_params'],
+    ['from=2026-10-26&to=2026-10-28&children=3,x', 'invalid_params'],
+    ['from=2026-10-28&to=2026-10-26', 'invalid_range'],
+    ['from=2026-10-26&to=2026-10-26', 'invalid_range'],
+    ['from=2026-01-01&to=2026-06-01', 'invalid_range'],
+  ])('rejects %s as %s', (query, error) => {
+    expect(stay(query)).toEqual({ ok: false, error })
   })
 })

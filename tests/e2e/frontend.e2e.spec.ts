@@ -112,6 +112,54 @@ test.describe('Frontend', () => {
       expect(popup!.height).toBe(844)
     })
 
+    // Picks the first two open days of the calendar and waits for the rates of that stay. The rates
+    // come from Phobs, so the test skips when the test account has none for these days.
+    async function openRates(page: import('@playwright/test').Page) {
+      const response = await page.goto(TEST_ROOM_URL)
+      test.skip(response?.status() !== 200, 'the internal test room is not in this database')
+      await page.getByRole('button', { name: 'Book now' }).first().click()
+
+      const dialog = page.getByRole('dialog')
+      const openDays = dialog.locator('button:not([disabled])').filter({ hasText: /^\d{1,2}$/ })
+      await expect(openDays.first()).toBeVisible({ timeout: 20_000 })
+      test.skip((await openDays.count()) < 2, 'the Phobs test account has no open days')
+      await openDays.nth(0).click()
+      await openDays.nth(1).click()
+
+      const rates = dialog.getByRole('button', { name: /^Select/ })
+      await rates
+        .first()
+        .waitFor({ timeout: 25_000 })
+        .catch(() => undefined)
+      test.skip((await rates.count()) === 0, 'the Phobs test account has no rates for these days')
+      return { dialog, rateCount: await rates.count() }
+    }
+
+    test('rate details open on request and show the policies', async ({ page }) => {
+      const { dialog } = await openRates(page)
+
+      await dialog.getByRole('button', { name: 'Rate details' }).first().click()
+
+      // The policies come from Phobs; either they show, or the panel says they are unavailable.
+      await expect(
+        dialog
+          .getByText(/Check-in time/)
+          .first()
+          .or(dialog.getByText('The rate details are temporarily unavailable')),
+      ).toBeVisible({ timeout: 25_000 })
+      await dialog.getByRole('button', { name: 'Hide details' }).first().click()
+      await expect(dialog.getByText(/Check-in time/)).toBeHidden()
+    })
+
+    test('the cheapest rate is highlighted in blue', async ({ page }) => {
+      const { dialog, rateCount } = await openRates(page)
+      test.skip(rateCount < 2, 'a single rate has nothing to be cheaper than')
+
+      const badge = dialog.getByText('Best price')
+      await expect(badge).toHaveCount(1)
+      await expect(badge).toHaveCSS('background-color', 'rgb(37, 99, 235)')
+    })
+
     test('a click on the room photo opens the gallery', async ({ page }) => {
       const response = await page.goto(TEST_ROOM_URL)
       test.skip(response?.status() !== 200, 'the internal test room is not in this database')

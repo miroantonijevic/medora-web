@@ -35,3 +35,31 @@ export function parseChildAges(value: string | null): number[] | null {
 export function isValidAdults(adults: number): boolean {
   return Number.isInteger(adults) && adults >= 1 && adults <= MAX_ADULTS
 }
+
+export type StayParams = {
+  dateFrom: string
+  dateTo: string
+  nights: number
+  adults: number
+  childAges: number[]
+}
+
+export type StayParamsResult =
+  | { ok: true; stay: StayParams }
+  | { ok: false; error: 'missing_params' | 'invalid_params' | 'invalid_range' }
+
+/** The stay a guest asks about (from, to, adults, children) as the /api/phobs routes receive it. */
+export function parseStayParams(searchParams: URLSearchParams): StayParamsResult {
+  const dateFrom = parseYMD(searchParams.get('from'))
+  const dateTo = parseYMD(searchParams.get('to'))
+  if (!dateFrom || !dateTo) return { ok: false, error: 'missing_params' }
+
+  const adults = Number(searchParams.get('adults') ?? '2')
+  const childAges = parseChildAges(searchParams.get('children'))
+  if (!isValidAdults(adults) || !childAges) return { ok: false, error: 'invalid_params' }
+
+  const nights = daysBetweenYMD(dateFrom, dateTo)
+  if (nights < 1 || nights > MAX_NIGHTS) return { ok: false, error: 'invalid_range' }
+
+  return { ok: true, stay: { dateFrom, dateTo, nights, adults, childAges } }
+}
