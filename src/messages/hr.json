@@ -85,6 +85,7 @@
     "dealsLoading": "Učitavanje ponuda…",
     "dealsError": "Ponude trenutno nisu dostupne. Pokušajte ponovno kasnije.",
     "noDeals": "Za ove datume nema dostupnih ponuda.",
+    "showAllRooms": "Prikaži sve sobe: {property}",
     "securityTitle": "Sigurno plaćanje",
     "securityText": "Podaci o vašoj kartici šifrirani su i pohranjeni na odvojenim, distribuiranim mjestima. Nikada ne vidimo niti čuvamo puni broj vaše kartice.",
     "securedBy": "Osigurano od strane Phobsa i Monrija · SSL šifriranje",

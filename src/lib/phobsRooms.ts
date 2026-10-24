@@ -24,14 +24,25 @@ export type DealRoom = {
 
 type Locale = 'en' | 'hr' | 'de'
 
+export type DealRooms = {
+  groupName: string | null
+  propertyName: string | null
+  currentUnitId: string
+  /** The rooms to list: the room's group, or the whole property for scope "property". */
+  rooms: DealRoom[]
+  /** Whether the property has rooms with a Phobs unit outside the room's group. */
+  hasOtherRooms: boolean
+}
+
 /**
- * The rooms of the same group as this room that are mapped to a Phobs unit (this room included), for
- * the "show all deals" list of the booking popup.
+ * The rooms mapped to a Phobs unit (this room included) for the "show all deals" list of the booking
+ * popup: those of the room's group, or of the whole property (the room's own group first).
  */
-export async function getGroupRoomsForDeals(
+export async function getRoomsForDeals(
   roomSlug: string,
   locale: Locale,
-): Promise<{ groupName: string | null; currentUnitId: string; rooms: DealRoom[] } | null> {
+  scope: 'group' | 'property',
+): Promise<DealRooms | null> {
   const payload = await getPayloadClient()
   const current = (
     await payload.find({
@@ -45,32 +56,43 @@ export async function getGroupRoomsForDeals(
   if (!current?.phobsUnitId) return null
 
   const group = typeof current.group === 'object' ? current.group : null
-  if (!group) return { groupName: null, currentUnitId: current.phobsUnitId, rooms: [] }
-
-  const siblings = await payload.find({
+  const property = typeof current.property === 'object' ? current.property : null
+  const propertyId = property?.id ?? current.property
+  const propertyRooms = await payload.find({
     collection: 'rooms',
-    where: { group: { equals: group.id } },
+    where: { property: { equals: propertyId } },
     depth: 1,
     locale,
-    limit: 50,
+    limit: 100,
     sort: 'name',
   })
 
-  const rooms = siblings.docs.flatMap((room): DealRoom[] => {
-    if (!room.phobsUnitId) return []
+  const inGroup = (room: (typeof propertyRooms.docs)[number]) =>
+    !!group && typeof room.group === 'object' && room.group?.id === group.id
+  const mapped = propertyRooms.docs.filter((room) => room.phobsUnitId)
+  const listed =
+    scope === 'group'
+      ? mapped.filter(inGroup)
+      : [...mapped.filter(inGroup), ...mapped.filter((room) => !inGroup(room))]
+
+  const rooms = listed.map((room): DealRoom => {
     const image = (room.images ?? []).find(
       (media) => typeof media === 'object' && media.url && !media.mimeType?.startsWith('video/'),
     )
-    return [
-      {
-        slug: room.slug,
-        name: room.name,
-        unitId: room.phobsUnitId,
-        imageUrl: typeof image === 'object' ? (image.url ?? null) : null,
-        meta: [room.size, room.bedType].filter(Boolean).join(' | '),
-      },
-    ]
+    return {
+      slug: room.slug,
+      name: room.name,
+      unitId: room.phobsUnitId!,
+      imageUrl: typeof image === 'object' ? (image.url ?? null) : null,
+      meta: [room.size, room.bedType].filter(Boolean).join(' | '),
+    }
   })
 
-  return { groupName: group.name ?? null, currentUnitId: current.phobsUnitId, rooms }
+  return {
+    groupName: group?.name ?? null,
+    propertyName: property?.name ?? null,
+    currentUnitId: current.phobsUnitId,
+    rooms,
+    hasOtherRooms: mapped.some((room) => !inGroup(room)),
+  }
 }

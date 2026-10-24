@@ -9,7 +9,13 @@ import type { DealRoom } from '@/lib/phobsRooms'
 
 type Translate = ReturnType<typeof useTranslations>
 
-type DealsResponse = { groupName: string | null; rooms: DealRoom[]; deals: PhobsDeal[] }
+type DealsResponse = {
+  groupName: string | null
+  propertyName: string | null
+  hasOtherRooms: boolean
+  rooms: DealRoom[]
+  deals: PhobsDeal[]
+}
 
 type Props = {
   roomSlug: string
@@ -47,6 +53,7 @@ export function DealsView({
   onBack,
   t,
 }: Props) {
+  const [scope, setScope] = useState<'group' | 'property'>('group')
   const [state, setState] = useState<State>({ status: 'loading' })
 
   useEffect(() => {
@@ -57,6 +64,7 @@ export function DealsView({
       to,
       adults: String(adults),
       lang: locale,
+      scope,
     })
     if (childAges.length > 0) query.set('children', childAges.join(','))
 
@@ -75,7 +83,7 @@ export function DealsView({
     }
     // childAges is compared by value through its join, so an equal list does not refetch.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [roomSlug, from, to, adults, childAges.join(','), locale])
+  }, [roomSlug, from, to, adults, childAges.join(','), locale, scope])
 
   const cheapest = useMemo(() => {
     if (state.status !== 'ready') return null
@@ -104,7 +112,12 @@ export function DealsView({
         ← {t('backToRoom')}
       </button>
       <p style={{ margin: '0 0 14px', fontSize: 15, fontWeight: 700, color: '#0f172a' }}>
-        {t('dealsTitle', { group: groupName })}
+        {t('dealsTitle', {
+          group:
+            scope === 'property' && state.status === 'ready'
+              ? (state.data.propertyName ?? groupName)
+              : groupName,
+        })}
       </p>
 
       {state.status === 'loading' && (
@@ -118,7 +131,7 @@ export function DealsView({
       )}
 
       {state.status === 'ready' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
           {state.data.rooms.map((room) => {
             const deals = state.data.deals
               .filter((deal) => deal.unitId === room.unitId)
@@ -128,23 +141,28 @@ export function DealsView({
             return (
               <section
                 key={room.unitId}
-                style={{ border: '1px solid #e2e8f0', borderRadius: 12, overflow: 'hidden' }}
+                style={{
+                  border: '1px solid #cbd5e1',
+                  borderRadius: 12,
+                  overflow: 'hidden',
+                  boxShadow: '0 2px 10px rgba(15,23,42,0.08)',
+                }}
               >
                 <header
                   style={{
                     display: 'flex',
                     gap: 12,
                     alignItems: 'center',
-                    padding: 10,
-                    background: '#f8fafc',
+                    padding: 14,
+                    background: '#e2e8f0',
                   }}
                 >
                   {room.imageUrl && (
                     <div
                       style={{
                         position: 'relative',
-                        width: 76,
-                        height: 56,
+                        width: 96,
+                        height: 68,
                         flexShrink: 0,
                         borderRadius: 8,
                         overflow: 'hidden',
@@ -154,7 +172,7 @@ export function DealsView({
                         src={room.imageUrl}
                         alt=""
                         fill
-                        sizes="76px"
+                        sizes="96px"
                         style={{ objectFit: 'cover' }}
                       />
                     </div>
@@ -184,6 +202,28 @@ export function DealsView({
               </section>
             )
           })}
+          {scope === 'group' && state.data.hasOtherRooms && state.data.propertyName && (
+            <button
+              type="button"
+              onClick={() => {
+                setState({ status: 'loading' })
+                setScope('property')
+              }}
+              style={{
+                width: '100%',
+                padding: '11px 14px',
+                background: '#fff',
+                border: '1.5px solid #2563eb',
+                borderRadius: 10,
+                color: '#2563eb',
+                fontWeight: 700,
+                fontSize: 13,
+                cursor: 'pointer',
+              }}
+            >
+              {t('showAllRooms', { property: state.data.propertyName })}
+            </button>
+          )}
         </div>
       )}
     </div>

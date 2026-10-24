@@ -99,7 +99,7 @@ test.describe('Frontend', () => {
       let heading = await dialog.getByText('Select your check-in and check-out dates').boundingBox()
       let popup = await dialog.locator('> div').first().boundingBox()
       expect(photo!.x + photo!.width, 'photo is left of the steps').toBeLessThanOrEqual(heading!.x)
-      expect(popup!.width, 'a bounded width on a big screen').toBeLessThanOrEqual(1040)
+      expect(popup!.width, 'a bounded width on a big screen').toBeLessThanOrEqual(1280)
       expect(popup!.height, 'never taller than the window').toBeLessThanOrEqual(900)
 
       await page.setViewportSize({ width: 390, height: 844 })
@@ -187,6 +187,8 @@ test.describe('Frontend', () => {
 
       await expect(dialog.getByText(/^All deals:/)).toBeVisible()
       await expect(dialog.getByText('Best price')).toHaveCount(1, { timeout: 25_000 })
+      await dialog.getByRole('button', { name: /^Show all rooms/ }).click()
+      await expect(dialog.getByText(/^All deals: Medora Auri/)).toBeVisible({ timeout: 25_000 })
       await dialog.getByRole('button', { name: /Back to this room/ }).click()
       await expect(showAll).toBeVisible()
     })

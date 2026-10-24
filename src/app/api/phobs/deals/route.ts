@@ -2,18 +2,20 @@ import { NextResponse } from 'next/server'
 
 import { getUnitDeals, isTestModeUnit } from '@/lib/phobs'
 import { parseStayParams } from '@/lib/phobsParams'
-import { getGroupRoomsForDeals } from '@/lib/phobsRooms'
+import { getRoomsForDeals } from '@/lib/phobsRooms'
 
 const LOCALES = ['en', 'hr', 'de'] as const
 
 /**
- * Every room of this room's group with its rate plans for a stay ("show all family deals"). Test
+ * Every room of this room's group (or, with scope=property, of its property) with its rate plans for a
+ * stay ("show all family deals"). Test
  * rooms (Phobs TEST account) and real rooms are never mixed in one list.
  */
 export async function GET(request: Request): Promise<Response> {
   const { searchParams } = new URL(request.url)
   const roomSlug = searchParams.get('room')
   const lang = searchParams.get('lang') ?? 'en'
+  const scope = searchParams.get('scope') ?? 'group'
 
   const parsed = parseStayParams(searchParams)
   if (!roomSlug || !parsed.ok) {
@@ -22,11 +24,14 @@ export async function GET(request: Request): Promise<Response> {
       { status: 400 },
     )
   }
-  if (!(LOCALES as readonly string[]).includes(lang)) {
+  if (
+    !(LOCALES as readonly string[]).includes(lang) ||
+    (scope !== 'group' && scope !== 'property')
+  ) {
     return NextResponse.json({ error: 'invalid_params' }, { status: 400 })
   }
 
-  const group = await getGroupRoomsForDeals(roomSlug, lang as (typeof LOCALES)[number])
+  const group = await getRoomsForDeals(roomSlug, lang as (typeof LOCALES)[number], scope)
   if (!group) {
     return NextResponse.json({ error: 'not_configured' }, { status: 404 })
   }
@@ -43,7 +48,13 @@ export async function GET(request: Request): Promise<Response> {
       adults,
       childAges,
     })
-    return NextResponse.json({ groupName: group.groupName, rooms, deals })
+    return NextResponse.json({
+      groupName: group.groupName,
+      propertyName: group.propertyName,
+      hasOtherRooms: group.hasOtherRooms,
+      rooms,
+      deals,
+    })
   } catch (err) {
     console.error('Phobs deals failed:', err)
     return NextResponse.json({ error: 'phobs_unavailable' }, { status: 502 })

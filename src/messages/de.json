@@ -85,6 +85,7 @@
     "dealsLoading": "Angebote werden geladen…",
     "dealsError": "Die Angebote sind derzeit nicht verfügbar. Bitte versuchen Sie es später erneut.",
     "noDeals": "Für diese Daten sind keine Angebote verfügbar.",
+    "showAllRooms": "Alle Zimmer anzeigen: {property}",
     "securityTitle": "Sichere Zahlung",
     "securityText": "Ihre Kartendaten werden verschlüsselt und an getrennten, verteilten Orten gespeichert. Wir sehen oder speichern Ihre vollständige Kartennummer nie.",
     "securedBy": "Gesichert durch Phobs & Monri · SSL-verschlüsselt",

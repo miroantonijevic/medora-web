@@ -34,7 +34,7 @@ export function RoomPanel({
     <div
       style={{
         flexShrink: 0,
-        width: isAside ? 340 : '100%',
+        width: isAside ? 420 : '100%',
         background: '#f8fafc',
         borderRight: isAside ? '1px solid #e2e8f0' : 'none',
         overflowY: isAside ? 'auto' : 'visible',
@@ -51,7 +51,7 @@ export function RoomPanel({
             position: 'relative',
             display: 'block',
             width: '100%',
-            height: isAside ? 240 : 170,
+            height: isAside ? 300 : 170,
             padding: 0,
             border: 'none',
             background: '#e2e8f0',
@@ -63,7 +63,7 @@ export function RoomPanel({
             src={hero.url}
             alt={hero.alt ?? roomName ?? ''}
             fill
-            sizes={isAside ? '340px' : '100vw'}
+            sizes={isAside ? '420px' : '100vw'}
             style={{ objectFit: 'cover' }}
           />
           <span
@@ -75,12 +75,53 @@ export function RoomPanel({
               color: '#fff',
               fontSize: 12,
               fontWeight: 600,
-              padding: '5px 10px',
+              padding: '6px 11px',
               borderRadius: 999,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
             }}
           >
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M3 7h4l2-3h6l2 3h4v13H3z" />
+              <circle cx="12" cy="13" r="4" />
+            </svg>
             {photosLabel}
           </span>
+          {images.length > 1 && (
+            <span
+              aria-hidden="true"
+              style={{
+                position: 'absolute',
+                right: 10,
+                top: '50%',
+                transform: 'translateY(-50%)',
+                width: 32,
+                height: 32,
+                borderRadius: '50%',
+                background: 'rgba(255,255,255,0.9)',
+                color: '#0f172a',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: 20,
+                lineHeight: 1,
+                boxShadow: '0 1px 4px rgba(0,0,0,0.3)',
+              }}
+            >
+              ›
+            </span>
+          )}
         </button>
       )}
 
