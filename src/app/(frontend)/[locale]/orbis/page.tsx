@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { draftMode } from 'next/headers'
 import { getTranslations } from 'next-intl/server'
 import { getOrbisHomepage } from '@/lib/queries'
+import { ORBIS_SLUG } from '@/lib/properties'
 import { MedoraHero, type HeroSlide } from '@/components/sections/MedoraHero'
 import { MedoraInclusions, type Inclusion } from '@/components/sections/MedoraInclusions'
 import { MedoraGallery } from '@/components/sections/MedoraGallery'
@@ -30,7 +31,6 @@ export default async function OrbisHomePage({
   params: Promise<{ locale: string }>
   searchParams: Promise<{ locale?: string }>
 }) {
-  const PROPERTY_SLUG = 'luxury-camp-orbis'
   const { isEnabled: isDraft } = await draftMode()
   const { locale: localeParam } = await params
   const resolvedSearch = await searchParams
@@ -92,7 +92,7 @@ export default async function OrbisHomePage({
       alt: heroImage?.alt ?? String(group.name),
       mimeType: heroImage?.mimeType,
       name: String(group.name),
-      href: `/properties/${PROPERTY_SLUG}/rooms/${group.slug}`,
+      href: `/properties/${ORBIS_SLUG}/rooms/${group.slug}`,
     }
   })
 

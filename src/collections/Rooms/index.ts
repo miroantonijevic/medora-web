@@ -23,16 +23,24 @@ export const Rooms: CollectionConfig = {
         let propertySlug: string | null = null
         if (typeof prop === 'object' && prop !== null) {
           propertySlug = (prop as { slug?: string }).slug ?? null
-          // Resolve unpopulated relationship (depth:0 gives only an id)
-          if (!propertySlug) {
-            const id = Number(
-              (prop as { id?: unknown; value?: unknown }).id ?? (prop as { value?: unknown }).value,
-            )
-            propertySlug = id === 1 ? 'medora-auri' : id === 2 ? 'luxury-camp-orbis' : null
+        }
+        // Unpopulated relationship (depth:0 gives only an id, or a { value } wrapper)
+        if (!propertySlug && prop && req?.payload) {
+          const id =
+            typeof prop === 'object'
+              ? ((prop as { id?: unknown; value?: unknown }).id ??
+                (prop as { value?: unknown }).value)
+              : prop
+          try {
+            const property = await req.payload.findByID({
+              collection: 'properties',
+              id: id as number | string,
+              depth: 0,
+            })
+            propertySlug = property.slug ?? null
+          } catch (err) {
+            req.payload.logger.warn({ err }, 'Room live preview: could not resolve property slug')
           }
-        } else if (typeof prop === 'number' || typeof prop === 'string') {
-          const id = Number(prop)
-          propertySlug = id === 1 ? 'medora-auri' : id === 2 ? 'luxury-camp-orbis' : null
         }
         if (!propertySlug) return null as unknown as string
         const groupRel = data?.group
@@ -52,7 +60,7 @@ export const Rooms: CollectionConfig = {
           }
         }
         if (!groupSlug) return null as unknown as string
-        const secret = process.env.PAYLOAD_DRAFT_SECRET ?? 'draft-secret'
+        const secret = process.env.PAYLOAD_DRAFT_SECRET ?? ''
         const pageURL = `/${localeCode}/properties/${propertySlug}/rooms/${groupSlug}/${roomSlug}`
         return `${getServerSideURL()}/api/draft?url=${encodeURIComponent(pageURL)}&secret=${secret}&locale=${localeCode}`
       },

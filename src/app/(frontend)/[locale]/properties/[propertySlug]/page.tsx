@@ -15,6 +15,7 @@ import { MedoraInclusions, type Inclusion } from '@/components/sections/MedoraIn
 import { MedoraOfferBanners, type OfferBanner } from '@/components/sections/MedoraOfferBanners'
 import { MediaCover } from '@/components/sections/MediaCover'
 import { bookingService } from '@/lib/booking'
+import { AURI_SLUG } from '@/lib/properties'
 
 type Args = {
   params: Promise<{ propertySlug: string; locale: string }>
@@ -54,7 +55,7 @@ export default async function PropertyHomePage({ params: paramsPromise }: Args) 
 
   if (!property) return notFound()
 
-  const homepageGlobal = propertySlug === 'medora-auri' ? auriGlobal : orbisGlobal
+  const homepageGlobal = propertySlug === AURI_SLUG ? auriGlobal : orbisGlobal
 
   let heroSlides: HeroSlide[] | undefined
   if (homepageGlobal?.slides && homepageGlobal.slides.length > 0) {

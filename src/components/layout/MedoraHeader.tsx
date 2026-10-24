@@ -4,6 +4,7 @@ import Image from 'next/image'
 import { useState, useRef, useEffect } from 'react'
 import { useLocale, useTranslations } from 'next-intl'
 import { Link, usePathname } from '@/i18n/navigation'
+import { AURI_SLUG, ORBIS_SLUG } from '@/lib/properties'
 
 interface NavGreatGrandchild {
   label: string
@@ -29,8 +30,8 @@ interface NavItem {
 }
 
 const PROPERTIES = [
-  { label: 'Medora Auri', href: '/' },
-  { label: 'Luxury Camp Orbis', href: '/orbis' },
+  { label: 'Medora Auri', href: '/', slug: AURI_SLUG },
+  { label: 'Luxury Camp Orbis', href: '/orbis', slug: ORBIS_SLUG },
 ]
 
 const LOCALES = [
@@ -73,7 +74,7 @@ export function MedoraHeader({ navItems = [] }: { navItems?: NavItem[] }) {
     // Replace the first path segment with the new locale.
     const raw = window.location.pathname
     const withoutLocale = raw.replace(/^\/(en|hr|de)(\/|$)/, '/') || '/'
-    window.location.href = `/${code}${withoutLocale === '/' ? '' : withoutLocale}`
+    window.location.assign(`/${code}${withoutLocale === '/' ? '' : withoutLocale}`)
     setLangOpen(false)
   }
 
@@ -448,11 +449,7 @@ export function MedoraHeader({ navItems = [] }: { navItems?: NavItem[] }) {
         }}
       >
         <Link
-          href={
-            activeProperty === 1
-              ? '/properties/luxury-camp-orbis/rooms'
-              : '/properties/medora-auri/rooms'
-          }
+          href={`/properties/${PROPERTIES[activeProperty]?.slug ?? AURI_SLUG}/rooms`}
           style={{
             background: '#fff',
             color: '#012B59',

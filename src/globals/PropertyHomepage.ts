@@ -1,6 +1,7 @@
 import type { GlobalConfig } from 'payload'
 import { revalidatePath } from 'next/cache'
 import { authenticated } from '@/access/authenticated'
+import { AURI_SLUG, ORBIS_SLUG } from '@/lib/properties'
 import { getServerSideURL } from '@/utilities/getURL'
 
 const makePropertyHomepage = (
@@ -16,7 +17,7 @@ const makePropertyHomepage = (
     description: `Controls every section of the ${label} — slides, inclusions, rooms, offer.`,
     livePreview: {
       url: ({ locale }) => {
-        const secret = process.env.PAYLOAD_DRAFT_SECRET ?? 'draft-secret'
+        const secret = process.env.PAYLOAD_DRAFT_SECRET ?? ''
         const localeCode = locale?.code ?? 'en'
         const localizedURL = `/${localeCode}${pageURL === '/' ? '' : pageURL}`
         return `${getServerSideURL()}/api/draft?url=${encodeURIComponent(localizedURL)}&secret=${secret}&locale=${localeCode}`
@@ -226,12 +227,12 @@ export const AuriHomepage = makePropertyHomepage(
   'auri-homepage',
   'Medora Auri Homepage',
   '/',
-  'medora-auri',
+  AURI_SLUG,
 )
 
 export const OrbisHomepage = makePropertyHomepage(
   'orbis-homepage',
   'Luxury Camp Orbis Homepage',
   '/orbis',
-  'luxury-camp-orbis',
+  ORBIS_SLUG,
 )

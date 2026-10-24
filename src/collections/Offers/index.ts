@@ -25,7 +25,7 @@ export const Offers: CollectionConfig = {
         const localeCode = (locale as { code?: string })?.code ?? 'en'
         const offerSlug = data?.slug as string | undefined
         if (!offerSlug) return null as unknown as string
-        const secret = process.env.PAYLOAD_DRAFT_SECRET ?? 'draft-secret'
+        const secret = process.env.PAYLOAD_DRAFT_SECRET ?? ''
         const offerURL = `/${localeCode}/offers/${offerSlug}`
         return `${getServerSideURL()}/api/draft?url=${encodeURIComponent(offerURL)}&secret=${secret}&locale=${localeCode}`
       },
@@ -33,7 +33,7 @@ export const Offers: CollectionConfig = {
     preview: (data) => {
       const offerSlug = data?.slug as string | undefined
       if (!offerSlug) return null
-      const secret = process.env.PAYLOAD_DRAFT_SECRET ?? 'draft-secret'
+      const secret = process.env.PAYLOAD_DRAFT_SECRET ?? ''
       const offerURL = `/en/offers/${offerSlug}`
       return `${getServerSideURL()}/api/draft?url=${encodeURIComponent(offerURL)}&secret=${secret}&locale=en`
     },

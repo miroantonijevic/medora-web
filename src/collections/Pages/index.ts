@@ -52,7 +52,7 @@ export const Pages: CollectionConfig<'pages'> = {
         const localeCode = (locale as { code?: string })?.code ?? 'en'
         const pagePath = (data?.path as string) || (data?.slug as string)
         if (!pagePath) return null as unknown as string
-        const secret = process.env.PAYLOAD_DRAFT_SECRET ?? 'draft-secret'
+        const secret = process.env.PAYLOAD_DRAFT_SECRET ?? ''
         const pageURL = `/${localeCode}/${pagePath}`
         return `${getServerSideURL()}/api/draft?url=${encodeURIComponent(pageURL)}&secret=${secret}&locale=${localeCode}`
       },
@@ -60,7 +60,7 @@ export const Pages: CollectionConfig<'pages'> = {
     preview: (data) => {
       const pagePath = (data?.path as string) || (data?.slug as string)
       if (!pagePath) return null
-      const secret = process.env.PAYLOAD_DRAFT_SECRET ?? 'draft-secret'
+      const secret = process.env.PAYLOAD_DRAFT_SECRET ?? ''
       const pageURL = `/en/${pagePath}`
       return `${getServerSideURL()}/api/draft?url=${encodeURIComponent(pageURL)}&secret=${secret}&locale=en`
     },

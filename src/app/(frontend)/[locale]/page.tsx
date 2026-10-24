@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { draftMode } from 'next/headers'
 import { getTranslations } from 'next-intl/server'
 import { getPublishedOffers, getAuriHomepage } from '@/lib/queries'
+import { AURI_SLUG } from '@/lib/properties'
 import { MedoraHero, type HeroSlide } from '@/components/sections/MedoraHero'
 import { MedoraInclusions, type Inclusion } from '@/components/sections/MedoraInclusions'
 import { MedoraGallery } from '@/components/sections/MedoraGallery'
@@ -31,7 +32,6 @@ export default async function AuriHomePage({
   params: Promise<{ locale: string }>
   searchParams: Promise<{ locale?: string }>
 }) {
-  const PROPERTY_SLUG = 'medora-auri'
   const { isEnabled: isDraft } = await draftMode()
   // In draft mode the locale comes from /api/draft?locale=xx; otherwise from URL segment
   const { locale: localeParam } = await params
@@ -94,7 +94,7 @@ export default async function AuriHomePage({
       alt: heroImage?.alt ?? String(group.name),
       mimeType: heroImage?.mimeType,
       name: String(group.name),
-      href: `/properties/${PROPERTY_SLUG}/rooms/${group.slug}`,
+      href: `/properties/${AURI_SLUG}/rooms/${group.slug}`,
     }
   })
 
@@ -131,7 +131,7 @@ export default async function AuriHomePage({
         rooms={payloadRooms.length > 0 ? payloadRooms : undefined}
         title={tNav('rooms')}
         viewAllLabel={tCommon('viewAll')}
-        viewAllHref={`/properties/${PROPERTY_SLUG}/rooms`}
+        viewAllHref={`/properties/${AURI_SLUG}/rooms`}
       />
       <MedoraOfferBanners
         offer={offerBanner}

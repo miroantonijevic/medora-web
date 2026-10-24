@@ -7,7 +7,8 @@ export async function GET(request: Request): Promise<Response> {
   const secret = searchParams.get('secret')
   const locale = searchParams.get('locale') ?? 'en'
 
-  if (secret !== process.env.PAYLOAD_DRAFT_SECRET) {
+  const expectedSecret = process.env.PAYLOAD_DRAFT_SECRET
+  if (!expectedSecret || secret !== expectedSecret) {
     return new Response('Invalid token', { status: 401 })
   }
 
