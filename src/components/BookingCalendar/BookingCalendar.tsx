@@ -489,7 +489,7 @@ function BookingCalendarModal({
       lang: locale,
       rateId: deal.rateId,
       adults: debouncedAdults,
-      childrenCount: debouncedChildAges.length,
+      childAges: debouncedChildAges,
     })
   }
 
@@ -749,7 +749,7 @@ function BookingCalendarModal({
                                   lang: locale,
                                   rateId,
                                   adults: debouncedAdults,
-                                  childrenCount: debouncedChildAges.length,
+                                  childAges: debouncedChildAges,
                                 })
                               : null
                           }

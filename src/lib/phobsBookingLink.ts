@@ -15,7 +15,8 @@ export function buildPhobsBookingLink(params: {
   lang: string
   rateId?: string
   adults?: number
-  childrenCount?: number
+  /** One age per child; the booking page needs the ages, not only the number of children. */
+  childAges?: number[]
 }): string {
   const baseUrl = process.env.NEXT_PUBLIC_PHOBS_BOOKING_BASE_URL
   const companyId = process.env.NEXT_PUBLIC_PHOBS_COMPANY_ID
@@ -24,8 +25,7 @@ export function buildPhobsBookingLink(params: {
       'Phobs booking link is not configured — missing NEXT_PUBLIC_PHOBS_BOOKING_BASE_URL or NEXT_PUBLIC_PHOBS_COMPANY_ID',
     )
   }
-  const { propertyPhobsId, unitPhobsId, dateFrom, nights, lang, rateId, adults, childrenCount } =
-    params
+  const { propertyPhobsId, unitPhobsId, dateFrom, nights, lang, rateId, adults, childAges } = params
   const search = new URLSearchParams({
     company_id: companyId,
     hotel: propertyPhobsId,
@@ -40,6 +40,9 @@ export function buildPhobsBookingLink(params: {
   // The availability answer names rates "RATE534426"; the booking page wants the number alone.
   if (rateId) search.set('rate', rateId.replace(/^RATE/, ''))
   if (adults != null) search.set('adult[1]', String(adults))
-  if (childrenCount != null) search.set('chd[1]', String(childrenCount))
+  if (childAges) {
+    search.set('chd[1]', String(childAges.length))
+    childAges.forEach((age, i) => search.set(`chdage[1][${i + 1}]`, String(age)))
+  }
   return `${baseUrl}?${search.toString()}`
 }

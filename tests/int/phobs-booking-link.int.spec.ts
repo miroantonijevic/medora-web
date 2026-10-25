@@ -10,7 +10,7 @@ const stay = {
   lang: 'en',
   rateId: 'RATE534426',
   adults: 2,
-  childrenCount: 1,
+  childAges: [5, 9],
 }
 
 function configure(pconnectId: string) {
@@ -37,7 +37,9 @@ describe('buildPhobsBookingLink', () => {
       lang: 'en',
       rate: '534426',
       'adult[1]': '2',
-      'chd[1]': '1',
+      'chd[1]': '2',
+      'chdage[1][1]': '5',
+      'chdage[1][2]': '9',
       pconnect: '189',
     })
   })
