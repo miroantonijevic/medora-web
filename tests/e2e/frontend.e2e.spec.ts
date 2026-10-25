@@ -160,6 +160,48 @@ test.describe('Frontend', () => {
       await expect(badge).toHaveCSS('background-color', 'rgb(37, 99, 235)')
     })
 
+    test('a stay can end on a day whose own night is taken, but never spans a taken night', async ({
+      page,
+    }) => {
+      // Next month, every night free except the 13th, so the test does not depend on Phobs.
+      const now = new Date()
+      const month = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1))
+      const ymd = (day: number) =>
+        `${month.toISOString().slice(0, 8)}${String(day).padStart(2, '0')}`
+      const days = Array.from({ length: 28 }, (_, i) => ({
+        date: ymd(i + 1),
+        available: i + 1 !== 13,
+        isPromo: false,
+      }))
+      await page.route('**/api/phobs/availability**', (route) =>
+        route.fulfill({ json: { propertyId: 'test-property', days } }),
+      )
+
+      const response = await page.goto(TEST_ROOM_URL)
+      test.skip(response?.status() !== 200, 'the internal test room is not in this database')
+      await page.getByRole('button', { name: 'Book now' }).first().click()
+      const dialog = page.getByRole('dialog')
+      await dialog.getByRole('button', { name: 'Next month' }).click()
+
+      const day = (n: number) =>
+        dialog
+          .locator('button')
+          .filter({ hasText: new RegExp(`^${n}$`) })
+          .last()
+      await day(10).click()
+
+      // The 13th is taken, yet a stay from the 10th may end on it (nights 10, 11, 12 are free).
+      await expect(day(13)).toBeEnabled()
+      // The 15th would span the taken night of the 13th: the click is refused with an explanation
+      // and the check-in stays where it was.
+      await day(15).click()
+      await expect(dialog.getByRole('alert')).toContainText('not available')
+      await expect(dialog.getByText(ymd(10), { exact: true })).toBeVisible()
+
+      await day(13).click()
+      await expect(dialog.getByText(ymd(13)).first()).toBeVisible()
+    })
+
     test('the payment security notice shows with the rates', async ({ page }) => {
       const { dialog } = await openRates(page)
 

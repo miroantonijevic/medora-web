@@ -7,6 +7,7 @@ import 'yet-another-react-lightbox/styles.css'
 
 import { bookingService } from '@/lib/booking'
 import { buildPhobsBookingLink } from '@/lib/phobsBookingLink'
+import { resolveDayClick, spansTakenNight } from '@/lib/stayRange'
 import { useMediaQuery } from '@/utilities/useMediaQuery'
 
 import type { PhobsDeal, PhobsRateDetails } from '@/lib/phobs'
@@ -18,7 +19,7 @@ import { RateDetailsPanel } from './RateDetailsPanel'
 import { RoomPanel } from './RoomPanel'
 import { SecurityNotice } from './SecurityNotice'
 
-type DayStatus = 'unknown' | 'available' | 'unavailable' | 'promo'
+import type { NightStatus as DayStatus } from '@/lib/stayRange'
 
 type AvailabilityDay = {
   date: string
@@ -272,6 +273,8 @@ function BookingCalendarModal({
   const isDesktop = useMediaQuery('(min-width: 900px)')
   const [galleryIndex, setGalleryIndex] = useState<number | null>(null)
   const [showDeals, setShowDeals] = useState(false)
+  // The check-in for which a too-long stay was refused; the notice goes away once the check-in changes.
+  const [blockedStart, setBlockedStart] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
   const [notConfigured, setNotConfigured] = useState(false)
@@ -354,18 +357,14 @@ function BookingCalendarModal({
     return entry.isPromo ? 'promo' : 'available'
   }
 
-  function handleDayClick(dateStr: string, status: DayStatus) {
-    if (status === 'unavailable' || status === 'unknown') return
+  function handleDayClick(dateStr: string) {
+    const next = resolveDayClick(range, dateStr, getStatus)
+    if (!next) {
+      if (spansTakenNight(range, dateStr, getStatus)) setBlockedStart(range.start)
+      return
+    }
 
-    setRange((prev) => {
-      if (!prev.start || prev.end) {
-        return { start: dateStr, end: null }
-      }
-      if (dateStr === prev.start) return prev
-      // Second click can land before or after the first — always resolve into an ordered range.
-      if (dateStr < prev.start) return { start: dateStr, end: prev.start }
-      return { start: prev.start, end: dateStr }
-    })
+    setRange(next)
     setHoverDate(null)
   }
 
@@ -660,7 +659,7 @@ function BookingCalendarModal({
                           fontWeight: 500,
                         }}
                       >
-                        {daysBetween(range.start!, range.end!)} {t('nights')}
+                        {t('nights', { count: daysBetween(range.start!, range.end!) })}
                       </p>
                     )}
                   </div>
@@ -821,6 +820,7 @@ function BookingCalendarModal({
                       viewMonth={viewMonth}
                       getStatus={getStatus}
                       range={range}
+                      t={t}
                       hoverDate={hoverDate}
                       onDayHover={setHoverDate}
                       onDayClick={handleDayClick}
@@ -892,6 +892,19 @@ function BookingCalendarModal({
                         )}
                       </p>
                     )}
+                    {range.start && !range.end && blockedStart === range.start && (
+                      <p
+                        role="alert"
+                        style={{
+                          fontSize: 12.5,
+                          color: '#b91c1c',
+                          margin: '6px 0 0',
+                          textAlign: 'center',
+                        }}
+                      >
+                        {t('rangeTakenNight')}
+                      </p>
+                    )}
                   </>
                 )}
               </div>
@@ -902,6 +915,7 @@ function BookingCalendarModal({
 
       {galleryIndex !== null && images && images.length > 0 && (
         <Lightbox
+          labels={{ Close: t('close'), Next: t('next'), Previous: t('previous') }}
           open
           index={galleryIndex}
           close={() => setGalleryIndex(null)}
@@ -1028,7 +1042,7 @@ function GuestDetailsForm({
             {plan.name || plan.rateId}
           </p>
           <p style={{ margin: '3px 0 0', fontSize: 11.5, color: '#64748b' }}>
-            {nights} {t('nights')}
+            {t('nights', { count: nights })}
           </p>
         </div>
         {plan.stayTotal != null && (
@@ -1878,7 +1892,9 @@ function CalendarGrid({
   onPrevMonth,
   onNextMonth,
   prevMonthDisabled,
+  t,
 }: {
+  t: ReturnType<typeof useTranslations>
   monthLabel: string
   weekdayLabels: string[]
   grid: Date[]
@@ -1887,7 +1903,7 @@ function CalendarGrid({
   range: { start: string | null; end: string | null }
   hoverDate: string | null
   onDayHover: (dateStr: string | null) => void
-  onDayClick: (dateStr: string, status: DayStatus) => void
+  onDayClick: (dateStr: string) => void
   onPrevMonth: () => void
   onNextMonth: () => void
   prevMonthDisabled: boolean
@@ -1896,11 +1912,17 @@ function CalendarGrid({
 
   // While picking the second date, preview the range between the first pick and the hovered day,
   // regardless of whether the hovered day is before or after it.
-  const isPreviewing = !!(range.start && !range.end && hoverDate && hoverDate !== range.start)
-  const previewLow = isPreviewing ? (hoverDate! < range.start! ? hoverDate! : range.start!) : null
-  const previewHigh = isPreviewing ? (hoverDate! < range.start! ? range.start! : hoverDate!) : null
+  // A day that cannot be picked (a stay would span a taken night) previews nothing.
+  const hoverStay =
+    range.start && !range.end && hoverDate && hoverDate !== range.start
+      ? resolveDayClick(range, hoverDate, getStatus)
+      : null
+  const isPreviewing = !!hoverStay?.end
+  const previewLow = isPreviewing ? hoverStay!.start : null
+  const previewHigh = isPreviewing ? hoverStay!.end : null
   // Before any date is picked, preview just the hovered day.
-  const isFirstPickPreview = !range.start && !!hoverDate
+  const isFirstPickPreview =
+    !range.start && !!hoverDate && !!resolveDayClick(range, hoverDate, getStatus)
 
   return (
     <div>
@@ -1916,7 +1938,7 @@ function CalendarGrid({
           type="button"
           onClick={onPrevMonth}
           disabled={prevMonthDisabled}
-          aria-label="Previous month"
+          aria-label={t('previousMonth')}
           style={{ ...navButtonStyle, opacity: prevMonthDisabled ? 0.35 : 1 }}
         >
           ‹
@@ -1926,7 +1948,12 @@ function CalendarGrid({
         >
           {monthLabel}
         </span>
-        <button type="button" onClick={onNextMonth} aria-label="Next month" style={navButtonStyle}>
+        <button
+          type="button"
+          onClick={onNextMonth}
+          aria-label={t('nextMonth')}
+          style={navButtonStyle}
+        >
           ›
         </button>
       </div>
@@ -1963,7 +1990,11 @@ function CalendarGrid({
           const isInRange =
             !!(range.start && range.end && dateStr > range.start && dateStr < range.end) ||
             !!(previewLow && previewHigh && dateStr > previewLow && dateStr < previewHigh)
-          const disabled = status === 'unavailable' || status === 'unknown'
+          // Taken days still end a stay that arrives on them, so they stay clickable when they can.
+          const disabled =
+            range.start && !range.end
+              ? dateStr < todayStr
+              : !resolveDayClick(range, dateStr, getStatus)
 
           const leftColor = STATUS_COLOR[prevStatus === 'unknown' ? 'available' : prevStatus]
           const rightColor = STATUS_COLOR[status === 'unknown' ? 'available' : status]
@@ -1990,7 +2021,7 @@ function CalendarGrid({
               key={dateStr}
               type="button"
               disabled={(disabled && !isOtherMonth) || isOtherMonth}
-              onClick={() => onDayClick(dateStr, status)}
+              onClick={() => onDayClick(dateStr)}
               onMouseEnter={() => onDayHover(dateStr)}
               onMouseLeave={() => onDayHover(null)}
               style={{
