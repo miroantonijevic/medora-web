@@ -1,5 +1,9 @@
 /**
- * Builds the Phobs booking redirect URL. This is a plain string template with
+ * Builds the Phobs booking redirect URL. The Phobs page then opens with the room, rate and guests
+ * already chosen: `unit_select=1` makes it take the guest count as given (without it the page
+ * assumes the room's maximum), and `pconnect` (the integration id Phobs puts in its own links)
+ * skips the room selection, so the guest lands on the extras step. Without
+ * NEXT_PUBLIC_PHOBS_PCONNECT_ID the link only opens the availability step. This is a plain string template with
  * no secrets involved (company_id / property id are not sensitive), so it is
  * safe to call from both server and client code.
  */
@@ -27,10 +31,14 @@ export function buildPhobsBookingLink(params: {
     hotel: propertyPhobsId,
     date: dateFrom,
     nights: String(nights),
-    unit_id: unitPhobsId,
+    room: unitPhobsId,
+    unit_select: '1',
     lang,
   })
-  if (rateId) search.set('rate', rateId)
+  const pconnectId = process.env.NEXT_PUBLIC_PHOBS_PCONNECT_ID
+  if (pconnectId) search.set('pconnect', pconnectId)
+  // The availability answer names rates "RATE534426"; the booking page wants the number alone.
+  if (rateId) search.set('rate', rateId.replace(/^RATE/, ''))
   if (adults != null) search.set('adult[1]', String(adults))
   if (childrenCount != null) search.set('chd[1]', String(childrenCount))
   return `${baseUrl}?${search.toString()}`
